@@ -9,7 +9,15 @@ const app = express();
 
 // ── Middleware ───────────────────────────────────────────────────
 app.use(cors({
-  origin:      env.CLIENT_URL,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    const originNormalized = origin.replace(/\/$/, '');
+    const clientNormalized = env.CLIENT_URL.replace(/\/$/, '');
+    if (originNormalized === clientNormalized) {
+      return callback(null, true);
+    }
+    return callback(null, false);
+  },
   credentials: true,
 }));
 

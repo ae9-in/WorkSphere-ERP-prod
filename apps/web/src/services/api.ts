@@ -1,8 +1,10 @@
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
 
+const apiBaseURL = import.meta.env.VITE_API_URL || '/api';
+
 const api = axios.create({
-  baseURL:         '/api',
+  baseURL:         apiBaseURL,
   withCredentials: true,
   timeout:         30000,
   headers: {
@@ -33,7 +35,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthRequest) {
       originalRequest._retry = true;
       try {
-        const { data } = await axios.post('/api/auth/refresh', {}, { withCredentials: true });
+        const { data } = await axios.post(`${apiBaseURL}/auth/refresh`, {}, { withCredentials: true });
         useAuthStore.getState().setAccessToken(data.data.accessToken);
         originalRequest.headers.Authorization = `Bearer ${data.data.accessToken}`;
         return api(originalRequest);
@@ -46,5 +48,6 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
 
 export default api;

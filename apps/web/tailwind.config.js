@@ -1,0 +1,121 @@
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: [
+    path.resolve(__dirname, './index.html'),
+    path.resolve(__dirname, './src/**/*.{js,ts,jsx,tsx}'),
+  ],
+  theme: {
+    extend: {
+      colors: {
+        'ag-white':         '#FFFFFF',
+        'ag-canvas':        '#F7F5FF',
+        'ag-surface':       '#FFFFFF',
+        'ag-surface-2':     '#F0EDFF',
+        'ag-primary':       '#5B3CF5',
+        'ag-primary-hover': '#4A2EDB',
+        'ag-primary-light': '#EDE8FF',
+        'ag-coral':         '#FF5F57',
+        'ag-mint':          '#00C48C',
+        'ag-amber':         '#FFB020',
+        'ag-sky':           '#2BB5FF',
+        'ag-pink':          '#FF4C8B',
+        'ag-indigo':        '#3D3BF3',
+        'ag-ink':           '#1A1433',
+        'ag-ink-2':         '#4B4468',
+        'ag-ink-3':         '#8E88A8',
+        'ag-border':        '#E4DFFF',
+        'ag-border-strong': '#C4BBFF',
+        'ag-peach':         '#FFF2EC',
+        'ag-peach-text':    '#E05A17',
+        'ag-emerald':       '#E6FDF4',
+        'ag-emerald-text':  '#00875A',
+        'ag-cyan':          '#E0F7FA',
+        'ag-cyan-text':     '#006064',
+        'ag-sky-bg':        '#E0F2FE',
+        'ag-mint-bg':       '#E8FDF5',
+        'ag-rose-bg':       '#FFF1F2',
+        'ag-purple-bg':     '#F5F3FF',
+        'ag-slate-bg':      '#F8FAFC',
+      },
+      fontFamily: {
+        display: ['Outfit', 'sans-serif'],
+        body:    ['Inter', 'sans-serif'],
+        mono:    ['JetBrains Mono', 'monospace'],
+      },
+      fontSize: {
+        'xs':   ['12px', { lineHeight: '1.4' }],
+        'sm':   ['14px', { lineHeight: '1.5' }],
+        'base': ['16px', { lineHeight: '1.6' }],
+        'md':   ['18px', { lineHeight: '1.5' }],
+        'lg':   ['24px', { lineHeight: '1.4' }],
+        'xl':   ['36px', { lineHeight: '1.3' }],
+        '2xl':  ['48px', { lineHeight: '1.2' }],
+        '3xl':  ['56px', { lineHeight: '1.15' }],
+        'hero': ['72px', { lineHeight: '1.1' }],
+        'stats':['64px', { lineHeight: '1.0' }],
+      },
+      borderRadius: {
+        'btn':    '14px',
+        'card':   '24px',
+        'input':  '16px',
+        'dialog': '28px',
+        'widget': '24px',
+        'table':  '18px',
+        'badge':  '999px',
+        'sm':     '6px',
+        'md':     '10px',
+        'lg':     '16px',
+        'xl':     '24px',
+        'pill':   '999px',
+      },
+      boxShadow: {
+        'lvl1':  '0 2px 12px rgba(91,60,245,0.04)',
+        'lvl2':  '0 8px 32px rgba(91,60,245,0.08)',
+        'lvl3':  '0 16px 48px rgba(91,60,245,0.1)',
+        'lvl4':  '0 24px 80px rgba(91,60,245,0.15), 0 4px 16px rgba(91,60,245,0.08)',
+        'lvl5':  '0 32px 120px rgba(91,60,245,0.2)',
+        'card':  '0 2px 12px rgba(91,60,245,0.07), 0 1px 3px rgba(91,60,245,0.05)',
+        'modal': '0 24px 80px rgba(91,60,245,0.15), 0 4px 16px rgba(91,60,245,0.08)',
+        'hover': '0 8px 32px rgba(91,60,245,0.14)',
+        'input': '0 0 0 3px rgba(91,60,245,0.18)',
+      },
+      animation: {
+        'shimmer':    'shimmer 1.5s infinite',
+        'fade-up':    'fadeUp 280ms ease forwards',
+        'fade-in':    'fadeIn 200ms ease forwards',
+        'slide-in-r': 'slideInRight 300ms ease forwards',
+        'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
+        'spin-slow':  'spin 3s linear infinite',
+      },
+      keyframes: {
+        shimmer: {
+          '0%':   { backgroundPosition: '-200% 0' },
+          '100%': { backgroundPosition: '200% 0' },
+        },
+        fadeUp: {
+          from: { opacity: '0', transform: 'translateY(20px)' },
+          to:   { opacity: '1', transform: 'translateY(0)' },
+        },
+        fadeIn: {
+          from: { opacity: '0' },
+          to:   { opacity: '1' },
+        },
+        slideInRight: {
+          from: { opacity: '0', transform: 'translateX(24px)' },
+          to:   { opacity: '1', transform: 'translateX(0)' },
+        },
+        pulseSoft: {
+          '0%, 100%': { opacity: '1' },
+          '50%':      { opacity: '0.5' },
+        },
+      },
+    },
+  },
+  plugins: [],
+}

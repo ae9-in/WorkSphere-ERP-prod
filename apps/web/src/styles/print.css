@@ -1,0 +1,88 @@
+/* ═══════════════════════════════════════════════════════════════
+   WorkSphere ERP — Print Styles
+   For payslips and reports
+   ═══════════════════════════════════════════════════════════════ */
+
+@media print {
+  /* Hide all navigation */
+  .ag-sidebar,
+  .ag-topnav,
+  .ag-print-hide,
+  button:not(.ag-print-show) {
+    display: none !important;
+  }
+
+  body {
+    background: white;
+    color: black;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .ag-page {
+    padding: 0;
+    max-width: 100%;
+  }
+
+  /* Payslip specific */
+  .ag-payslip {
+    width: 210mm;
+    min-height: 297mm;
+    padding: 20mm;
+    margin: 0 auto;
+    background: white;
+    box-shadow: none;
+    border: none;
+  }
+
+  .ag-payslip__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2px solid #5B3CF5;
+    padding-bottom: 12px;
+    margin-bottom: 20px;
+  }
+
+  .ag-payslip__company-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: #5B3CF5;
+  }
+
+  .ag-payslip table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 16px;
+  }
+
+  .ag-payslip table th,
+  .ag-payslip table td {
+    padding: 8px 12px;
+    border: 1px solid #E4DFFF;
+    font-size: 11px;
+  }
+
+  .ag-payslip table th {
+    background: #F0EDFF;
+    font-weight: 600;
+  }
+
+  .ag-payslip__total {
+    font-size: 14px;
+    font-weight: 700;
+    color: #5B3CF5;
+  }
+
+  /* Page break control */
+  .print-page-break { page-break-before: always; }
+  .print-no-break   { page-break-inside: avoid; }
+
+  /* Colors for print */
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}

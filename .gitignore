@@ -24,3 +24,7 @@ coverage/
 *.sln
 *.swp
 .vscode/
+
+# Local workspace temporary files
+.gemini/
+scratch/

@@ -72,7 +72,6 @@ export default function AdminLoginPage() {
               <label className="text-xs font-bold text-white/70 uppercase tracking-wider block">Administrator Email</label>
               <Input
                 type="email"
-                placeholder="superadmin@worksphere.com"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 icon={<EnvelopeSimple size={18} />}
@@ -85,7 +84,6 @@ export default function AdminLoginPage() {
               <label className="text-xs font-bold text-white/70 uppercase tracking-wider block">Secure Password</label>
               <Input
                 type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
                 icon={<Lock size={18} />}

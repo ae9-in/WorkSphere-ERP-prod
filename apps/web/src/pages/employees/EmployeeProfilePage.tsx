@@ -29,6 +29,7 @@ export default function EmployeeProfilePage() {
 
   // Current logged in user context
   const currentUser = useAuthStore(s => s.user);
+  const updateUser = useAuthStore(s => s.updateUser);
   const userRole = currentUser?.role || 'employee';
 
   // Actions Menu State
@@ -122,6 +123,16 @@ export default function EmployeeProfilePage() {
 
       const updated = await employeeService.update(employee._id || employee.employeeId, payload);
       setEmployee(updated);
+
+      // If the edited profile belongs to the logged-in user, update the global auth store
+      if (currentUser && currentUser.employeeId === employee.employeeId) {
+        updateUser({
+          fullName: updated.fullName,
+          photo: updated.personal?.photo || currentUser.photo,
+          email: updated.official?.workEmail || currentUser.email
+        });
+      }
+
       toast.success('Profile updated successfully!');
       setIsEditModalOpen(false);
     } catch (err) {

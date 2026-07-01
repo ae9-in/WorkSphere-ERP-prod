@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import mongoose from 'mongoose';
 import { Employee } from '../models/Employee.model';
+import { User } from '../models/User.model';
 
 // GET /api/employees
 export async function listEmployees(req: Request, res: Response): Promise<void> {
@@ -119,6 +120,31 @@ export async function updateEmployee(req: Request, res: Response): Promise<void>
     if (!employee) {
       res.status(404).json({ success: false, message: 'Employee not found' });
       return;
+    }
+
+    // Sync updates to corresponding User document if applicable
+    const userUpdate: Record<string, any> = {};
+    if (req.body.fullName) {
+      userUpdate.fullName = req.body.fullName;
+    }
+    
+    // Check both flat path and nested path for work email
+    const newEmail = req.body['official.workEmail'] || req.body.official?.workEmail;
+    if (newEmail) {
+      userUpdate.email = newEmail.toLowerCase();
+    }
+
+    // Check both flat path and nested path for photo
+    const newPhoto = req.body['personal.photo'] || req.body.personal?.photo;
+    if (newPhoto) {
+      userUpdate.photo = newPhoto;
+    }
+
+    if (Object.keys(userUpdate).length > 0) {
+      await User.updateOne(
+        { employeeId: employee.employeeId, companyId },
+        { $set: userUpdate }
+      );
     }
 
     res.json({ success: true, data: employee });

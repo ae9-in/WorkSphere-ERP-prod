@@ -71,7 +71,6 @@ export default function EmployeeLoginPage() {
             <Input
               label="Work Email"
               type="email"
-              placeholder="employee@company.com"
               value={email}
               onChange={e => setEmail(e.target.value)}
               icon={<EnvelopeSimple size={18} />}
@@ -81,7 +80,6 @@ export default function EmployeeLoginPage() {
             <Input
               label="Password"
               type={showPassword ? 'text' : 'password'}
-              placeholder="••••••••"
               value={password}
               onChange={e => setPassword(e.target.value)}
               icon={<Lock size={18} />}

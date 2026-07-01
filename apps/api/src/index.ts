@@ -7,6 +7,43 @@ import { errorMiddleware, notFoundHandler } from './middleware/error.middleware'
 
 const app = express();
 
+// Disable X-Powered-By to prevent framework fingerprinting
+app.disable('x-powered-by');
+
+// ── Secure HTTP Headers Middleware ──────────────────────────────
+app.use((req, res, next) => {
+  // Prevent clickjacking
+  res.setHeader('X-Frame-Options', 'DENY');
+  
+  // Content Security Policy (CSP)
+  res.setHeader(
+    'Content-Security-Policy',
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' ws: wss: http: https:; frame-ancestors 'none';"
+  );
+  
+  // Strict Transport Security (HSTS)
+  res.setHeader('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  
+  // Prevent MIME sniffing
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  
+  // Referrer Policy
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  
+  // XSS Protection
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+
+  // Permissions Policy
+  res.setHeader('Permissions-Policy', 'geolocation=(), camera=(), microphone=()');
+
+  // Clean common framework information leak headers
+  res.removeHeader('X-Powered-By');
+  res.removeHeader('X-AspNet-Version');
+  res.removeHeader('Server');
+  
+  next();
+});
+
 // ── Middleware ───────────────────────────────────────────────────
 app.use(cors({
   origin: (origin, callback) => {
@@ -16,9 +53,12 @@ app.use(cors({
     if (originNormalized === clientNormalized) {
       return callback(null, true);
     }
-    return callback(null, false);
+    return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range']
 }));
 
 app.use(express.json({ limit: '10mb' }));

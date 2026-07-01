@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuthStore } from '@/store/authStore';
 import api from '@/services/api';
 import { toast } from 'sonner';
 import { motion, AnimatePresence, useScroll } from 'framer-motion';
@@ -12,6 +13,7 @@ import {
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, Tooltip } from 'recharts';
 import { WaveDivider } from '@/components/ui/WaveDivider';
 import { fadeUp, staggerContainer, scaleIn } from '@/lib/animations';
+import { MarketingFooter } from '@/components/layout/MarketingFooter/MarketingFooter';
 
 // --- SEED DATA ---
 const retentionData = [
@@ -132,6 +134,58 @@ export default function LandingPage() {
   const [selectedDeptFilter, setSelectedDeptFilter] = useState('All Hubs');
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'annual'>('annual');
   const [faqIndex, setFaqIndex] = useState<number | null>(null);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    Platform: false,
+    'HR Modules': false,
+    Resources: false,
+    Company: false,
+  });
+
+  const toggleSection = (section: string) => {
+    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
+
+  const handleFooterLinkClick = (title: string, item: string) => {
+    if (title === 'Platform') {
+      const elementId = item === 'Overview' ? 'overview'
+                      : item === 'Features' ? 'platform'
+                      : item === 'Solutions' ? 'solutions'
+                      : 'roadmap';
+      document.getElementById(elementId)?.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+
+    if (title === 'HR Modules') {
+      const isAuthenticated = useAuthStore.getState().isAuthenticated;
+      const targetPath = item === 'Employee Management' ? '/employees'
+                       : item === 'Onboarding' ? '/onboarding'
+                       : item === 'Offboarding' ? '/offboarding'
+                       : item === 'Attendance' ? '/attendance'
+                       : item === 'Leave Management' ? '/leave'
+                       : item === 'Payroll' ? '/payroll'
+                       : '/reports';
+      
+      if (isAuthenticated) {
+        navigate(targetPath);
+      } else {
+        navigate('/login');
+      }
+      return;
+    }
+
+    if (title === 'Company') {
+      if (item === 'Security') {
+        document.getElementById('security')?.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+      if (item === 'Contact') {
+        document.getElementById('cta')?.scrollIntoView({ behavior: 'smooth' });
+        return;
+      }
+      toast.info(`${item} information is available to registered enterprise workspace tenants.`);
+      navigate('/login');
+    }
+  };
 
   // Dynamic Live Database Statistics State
   const [liveStats, setLiveStats] = useState([
@@ -247,7 +301,7 @@ export default function LandingPage() {
             Login
           </button>
           <button
-            onClick={() => navigate('/signup')}
+            onClick={() => navigate('/company/contact')}
             className="px-5 py-2.5 bg-[#5B3CF5] text-white text-xs font-bold uppercase tracking-wider rounded-full hover:bg-opacity-90 shadow-sm transition-all"
           >
             Book Demo
@@ -257,6 +311,7 @@ export default function LandingPage() {
 
       {/* ── SECTION 1: HERO (Dark space theme bg) ── */}
       <motion.section
+        id="overview"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: '-60px' }}
@@ -758,6 +813,7 @@ export default function LandingPage() {
 
       {/* ── SECTION 6: EMPLOYEE LIFECYCLE (amber bg) ── */}
       <motion.section
+        id="solutions"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: '-60px' }}
@@ -959,6 +1015,7 @@ export default function LandingPage() {
 
       {/* ── SECTION 9: WORKFLOW CHAINS (violet bg) ── */}
       <motion.section
+        id="roadmap"
         initial="hidden"
         whileInView="visible"
         viewport={{ once: true, margin: '-60px' }}
@@ -1329,7 +1386,7 @@ export default function LandingPage() {
       </section>
 
       {/* ── SECTION 17: FINAL CONVERSION CTA (dark bg) ── */}
-      <section className="relative z-10 py-24 px-8 bg-[#0D0A1E] text-center">
+      <section id="cta" className="relative z-10 py-24 px-8 bg-[#0D0A1E] text-center">
         <div className="max-w-[1200px] mx-auto relative py-16 flex flex-col items-center">
           <style>{`
             @keyframes pulse-ring {
@@ -1360,7 +1417,7 @@ export default function LandingPage() {
             </p>
             <div className="flex justify-center gap-4 pt-4">
               <button
-                onClick={() => navigate('/signup')}
+                onClick={() => navigate('/company/contact')}
                 className="px-10 py-4 bg-[#5B3CF5] hover:bg-[#3D3BF3] text-white text-sm font-bold uppercase rounded-full shadow-lg transition-all"
               >
                 Book Consultation
@@ -1369,22 +1426,10 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Footer bar */}
-        <div className="max-w-[1280px] mx-auto pt-16 border-t border-white/10 text-[10px] text-white/50 flex justify-between items-center flex-wrap gap-4 mt-12">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-[#5B3CF5] text-white flex items-center justify-center font-display font-black text-sm">
-              WS
-            </div>
-            <span className="font-display font-extrabold text-base tracking-tight text-white">WorkSphere</span>
-          </div>
-          <div className="flex items-center gap-6">
-            <a href="#platform" className="hover:text-white transition-colors">Directory Core</a>
-            <a href="#analytics" className="hover:text-white transition-colors">Fluid Analytics</a>
-            <a href="#security" className="hover:text-white transition-colors">Cryptographics</a>
-          </div>
-          <span>© 2026 WorkSphere Technologies. All rights reserved.</span>
-        </div>
       </section>
+
+      {/* ── FOOTER SECTION ── */}
+      <MarketingFooter />
     </div>
   );
 }

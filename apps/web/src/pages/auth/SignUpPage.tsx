@@ -323,7 +323,6 @@ export default function SignUpPage() {
                       <Input
                         label="First Name"
                         value={firstName}
-                        placeholder="John"
                         onChange={e => handleInputChange('firstName', e.target.value, setFirstName)}
                         onBlur={e => handleBlur('firstName', e.target.value)}
                         error={errors.firstName}
@@ -332,7 +331,6 @@ export default function SignUpPage() {
                       <Input
                         label="Last Name"
                         value={lastName}
-                        placeholder="Doe"
                         onChange={e => handleInputChange('lastName', e.target.value, setLastName)}
                         onBlur={e => handleBlur('lastName', e.target.value)}
                         error={errors.lastName}
@@ -343,7 +341,6 @@ export default function SignUpPage() {
                     <Input
                       label="Company Legal Name"
                       value={companyName}
-                      placeholder="Acme Corporation"
                       onChange={e => handleInputChange('companyName', e.target.value, setCompanyName)}
                       onBlur={e => handleBlur('companyName', e.target.value)}
                       error={errors.companyName}
@@ -355,7 +352,6 @@ export default function SignUpPage() {
                       label="Work Email"
                       type="email"
                       value={email}
-                      placeholder="john@company.com"
                       onChange={e => handleInputChange('email', e.target.value, setEmail)}
                       onBlur={e => handleBlur('email', e.target.value)}
                       error={errors.email}
@@ -367,7 +363,6 @@ export default function SignUpPage() {
                       label="Phone Number"
                       type="tel"
                       value={phone}
-                      placeholder="+91 98765 43210"
                       onChange={e => handleInputChange('phone', e.target.value, setPhone)}
                       onBlur={e => handleBlur('phone', e.target.value)}
                       error={errors.phone}
@@ -475,7 +470,6 @@ export default function SignUpPage() {
                         label="Password"
                         type={showPassword ? 'text' : 'password'}
                         value={password}
-                        placeholder="••••••••"
                         onChange={e => handleInputChange('password', e.target.value, setPassword)}
                         onBlur={e => handleBlur('password', e.target.value)}
                         error={errors.password}
@@ -497,7 +491,6 @@ export default function SignUpPage() {
                         label="Confirm Password"
                         type={showConfirmPassword ? 'text' : 'password'}
                         value={confirmPassword}
-                        placeholder="••••••••"
                         onChange={e => handleInputChange('confirmPassword', e.target.value, setConfirmPassword)}
                         onBlur={e => handleBlur('confirmPassword', e.target.value)}
                         error={errors.confirmPassword}

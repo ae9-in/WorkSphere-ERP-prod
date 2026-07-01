@@ -5,6 +5,8 @@
 export const routes = {
   // Public
   LANDING:         '/',
+  MODULES:         '/modules/:moduleId',
+  COMPANY:         '/company/:sectionId',
   LOGIN:           '/login',
   ADMIN_LOGIN:     '/admin/login',
   EMPLOYEE_LOGIN:  '/employee/login',

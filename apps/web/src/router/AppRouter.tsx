@@ -6,6 +6,8 @@ import { AppShell } from '@/components/layout/AppShell/AppShell';
 
 // ── Lazy-loaded pages ─────────────────────────
 const LandingPage        = lazy(() => import('@/pages/marketing/LandingPage'));
+const HRModulesPage      = lazy(() => import('@/pages/marketing/HRModulesPage'));
+const CompanyPage        = lazy(() => import('@/pages/marketing/CompanyPage'));
 const LoginPage          = lazy(() => import('@/pages/auth/LoginPage'));
 const AdminLoginPage     = lazy(() => import('@/pages/auth/AdminLoginPage'));
 const EmployeeLoginPage  = lazy(() => import('@/pages/auth/EmployeeLoginPage'));
@@ -55,6 +57,8 @@ export function AppRouter() {
         <Routes>
           {/* Public routes */}
           <Route path={routes.LANDING}         element={<LandingPage />} />
+          <Route path="/modules/:moduleId"     element={<HRModulesPage />} />
+          <Route path="/company/:sectionId"    element={<CompanyPage />} />
           <Route path={routes.LOGIN}           element={<LoginPage />} />
           <Route path={routes.ADMIN_LOGIN}     element={<AdminLoginPage />} />
           <Route path={routes.EMPLOYEE_LOGIN}  element={<EmployeeLoginPage />} />

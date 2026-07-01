@@ -38,7 +38,6 @@ export default function MFAPage() {
             maxLength={6}
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-            placeholder="000000"
             className="w-full text-center font-mono text-3xl tracking-widest h-14 border-2 border-ag-border rounded-xl focus:border-ag-primary focus:outline-none bg-ag-surface-2/40 text-ag-ink font-bold"
           />
 

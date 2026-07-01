@@ -209,7 +209,6 @@ export default function WorkspaceSetupPage() {
                   <Input
                     label="Workspace Name"
                     value={workspaceName}
-                    placeholder="Acme Technologies HQ"
                     onChange={e => setWorkspaceName(e.target.value)}
                     required
                   />
@@ -223,7 +222,6 @@ export default function WorkspaceSetupPage() {
                       <input
                         type="text"
                         value={workspaceSlug}
-                        placeholder="acme-technologies-hq"
                         onChange={e => setWorkspaceSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'))}
                         className="ag-input font-mono text-xs"
                         style={{ paddingLeft: '135px' }}
@@ -337,7 +335,6 @@ export default function WorkspaceSetupPage() {
                     <div key={idx} className="flex items-center gap-2">
                       <Input
                         type="email"
-                        placeholder="colleague@company.com"
                         value={email}
                         onChange={e => handleInviteChange(idx, e.target.value)}
                         icon={<EnvelopeSimple size={16} />}

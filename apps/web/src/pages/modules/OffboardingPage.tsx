@@ -8,30 +8,36 @@ import { Avatar } from '@/components/ui/Avatar/Avatar';
 import { ArrowsClockwise, Warning } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 
-type ClearanceItem = {
-  label: string;
-  status: 'done' | 'pending' | 'in_progress';
-};
-
-const CLEARANCE_ITEMS: ClearanceItem[] = [
-  { label: 'Asset Return — Laptop & Access Card', status: 'in_progress' },
-  { label: 'Exit Interview Form',                  status: 'pending' },
-  { label: 'Knowledge Transfer (KT) Sessions',     status: 'in_progress' },
-  { label: 'Gratuity & PF Settlement',             status: 'done' },
-  { label: 'Security De-provisioning (AD/LDAP)',   status: 'pending' },
-  { label: 'NDAs & Legal Clearances',              status: 'done' },
+const CLEARANCE_LABELS = [
+  'Asset Return — Laptop & Access Card',
+  'Exit Interview Form',
+  'Knowledge Transfer (KT) Sessions',
+  'Gratuity & PF Settlement',
+  'Security De-provisioning (AD/LDAP)',
+  'NDAs & Legal Clearances',
 ];
 
-const statusBadge: Record<ClearanceItem['status'], string> = {
-  done:        'bg-[#E6FAF4] text-ag-mint',
-  in_progress: 'bg-[#FFF8E6] text-ag-amber',
-  pending:     'bg-ag-surface text-ag-ink-3 border border-ag-border',
+type ClearanceStatus = 'done' | 'pending' | 'in_progress';
+
+const statusBadge: Record<ClearanceStatus, string> = {
+  done:        'bg-[#E6FAF4] text-ag-mint cursor-pointer hover:bg-[#D5F7EB] transition-colors',
+  in_progress: 'bg-[#FFF8E6] text-ag-amber cursor-pointer hover:bg-[#FFF1CC] transition-colors',
+  pending:     'bg-ag-surface text-ag-ink-3 border border-ag-border cursor-pointer hover:bg-ag-surface-2 transition-colors',
 };
 
 export default function OffboardingPage() {
   const [staff, setStaff]         = useState<EmployeeListItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
+  const [selectedEmpId, setSelectedEmpId] = useState<string | null>(null);
+  const [clearances, setClearances] = useState<Record<string, Record<string, ClearanceStatus>>>(() => {
+    try {
+      const saved = localStorage.getItem('worksphere_clearances');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
 
   const fetch = useCallback(async () => {
     setIsLoading(true);
@@ -51,12 +57,57 @@ export default function OffboardingPage() {
 
   useEffect(() => { fetch(); }, [fetch]);
 
+  useEffect(() => {
+    if (staff.length > 0 && !selectedEmpId) {
+      setSelectedEmpId(staff[0]._id);
+    }
+  }, [staff, selectedEmpId]);
+
   const handleSettle = async (id: string, name: string) => {
     setProcessing(id);
     await new Promise((r) => setTimeout(r, 900));
     toast.success(`Full & Final settlement generated for ${name}`);
     setProcessing(null);
   };
+
+  const toggleClearanceStatus = (empId: string, label: string) => {
+    setClearances((prev) => {
+      const empClearances = prev[empId] || {
+        'Asset Return — Laptop & Access Card': 'pending',
+        'Exit Interview Form': 'pending',
+        'Knowledge Transfer (KT) Sessions': 'pending',
+        'Gratuity & PF Settlement': 'pending',
+        'Security De-provisioning (AD/LDAP)': 'pending',
+        'NDAs & Legal Clearances': 'pending',
+      };
+      const current = empClearances[label] || 'pending';
+      let next: ClearanceStatus = 'pending';
+      if (current === 'pending') next = 'in_progress';
+      else if (current === 'in_progress') next = 'done';
+
+      const updated = {
+        ...prev,
+        [empId]: {
+          ...empClearances,
+          [label]: next,
+        },
+      };
+      localStorage.setItem('worksphere_clearances', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
+  const selectedEmp = staff.find((e) => e._id === selectedEmpId);
+  const selectedEmpClearances = selectedEmpId
+    ? clearances[selectedEmpId] || {
+        'Asset Return — Laptop & Access Card': 'pending',
+        'Exit Interview Form': 'pending',
+        'Knowledge Transfer (KT) Sessions': 'pending',
+        'Gratuity & PF Settlement': 'pending',
+        'Security De-provisioning (AD/LDAP)': 'pending',
+        'NDAs & Legal Clearances': 'pending',
+      }
+    : null;
 
   const noticePeriodCount = staff.filter((e) => e.official.status === 'notice_period').length;
   const inactiveCount     = staff.filter((e) => e.official.status === 'inactive').length;
@@ -116,7 +167,12 @@ export default function OffboardingPage() {
                 {staff.map((emp) => (
                   <div
                     key={emp._id}
-                    className="flex flex-col sm:flex-row sm:items-center justify-between p-4 border border-ag-border/60 rounded-xl hover:border-ag-border-strong transition-colors gap-4"
+                    onClick={() => setSelectedEmpId(emp._id)}
+                    className={`flex flex-col sm:flex-row sm:items-center justify-between p-4 border rounded-xl hover:border-ag-border-strong transition-all gap-4 cursor-pointer ${
+                      selectedEmpId === emp._id
+                        ? 'border-ag-primary bg-ag-primary-light/10 ring-1 ring-ag-primary shadow-sm'
+                        : 'border-ag-border/60 bg-transparent'
+                    }`}
                   >
                     <div className="flex items-center gap-3">
                       <Avatar name={emp.fullName} src={emp.personal.photo} size="md" />
@@ -142,7 +198,10 @@ export default function OffboardingPage() {
                       <Button
                         size="sm"
                         loading={processing === emp._id}
-                        onClick={() => handleSettle(emp._id, emp.fullName)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSettle(emp._id, emp.fullName);
+                        }}
                       >
                         Process F&F
                       </Button>
@@ -157,19 +216,35 @@ export default function OffboardingPage() {
         {/* Clearance Checklist */}
         <div className="space-y-5">
           <Card>
-            <CardHeader title="Standard Exit Clearances" subtitle="Track completion of mandatory steps." />
+            <CardHeader
+              title={selectedEmp ? `Clearances: ${selectedEmp.fullName}` : 'Standard Exit Clearances'}
+              subtitle={selectedEmp ? 'Click status badges to cycle/toggle progress.' : 'Track completion of mandatory steps.'}
+            />
             <div className="space-y-2 mt-2">
-              {CLEARANCE_ITEMS.map((item) => (
-                <div
-                  key={item.label}
-                  className="flex items-center justify-between p-3 border border-ag-border/60 rounded-xl"
-                >
-                  <span className="font-semibold text-ag-ink text-xs leading-tight mr-3">{item.label}</span>
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${statusBadge[item.status]}`}>
-                    {item.status === 'done' ? 'Done' : item.status === 'in_progress' ? 'In Progress' : 'Pending'}
-                  </span>
+              {selectedEmpId && selectedEmpClearances ? (
+                CLEARANCE_LABELS.map((label) => {
+                  const status = selectedEmpClearances[label] || 'pending';
+                  return (
+                    <div
+                      key={label}
+                      className="flex items-center justify-between p-3 border border-ag-border/60 rounded-xl"
+                    >
+                      <span className="font-semibold text-ag-ink text-xs leading-tight mr-3">{label}</span>
+                      <button
+                        type="button"
+                        onClick={() => toggleClearanceStatus(selectedEmpId, label)}
+                        className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap focus:outline-none ${statusBadge[status]}`}
+                      >
+                        {status === 'done' ? 'Done' : status === 'in_progress' ? 'In Progress' : 'Pending'}
+                      </button>
+                    </div>
+                  );
+                })
+              ) : (
+                <div className="p-6 text-center text-ag-ink-3 text-xs">
+                  No employee selected or active exit cases found.
                 </div>
-              ))}
+              )}
             </div>
           </Card>
 

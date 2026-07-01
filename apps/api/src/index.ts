@@ -18,7 +18,7 @@ app.use((req, res, next) => {
   // Content Security Policy (CSP)
   res.setHeader(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' ws: wss: http: https:; frame-ancestors 'none';"
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' ws: wss: http://localhost:5000 http://localhost:5173; object-src 'none'; base-uri 'self'; frame-ancestors 'none';"
   );
   
   // Strict Transport Security (HSTS)
@@ -35,6 +35,11 @@ app.use((req, res, next) => {
 
   // Permissions Policy
   res.setHeader('Permissions-Policy', 'geolocation=(), camera=(), microphone=()');
+
+  // Cache Control (sensitive data should not be cached)
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
 
   // Clean common framework information leak headers
   res.removeHeader('X-Powered-By');

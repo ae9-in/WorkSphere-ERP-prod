@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 
 export function useDebounce<T>(value: T, delay = 300): T {
-  const timer = useRef<ReturnType<typeof setTimeout>>();
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const ref    = useRef<T>(value);
 
   useEffect(() => {
@@ -19,7 +19,7 @@ export function useDebouncedCallback<T extends (...args: unknown[]) => unknown>(
   fn: T,
   delay = 300
 ): T {
-  const timer = useRef<ReturnType<typeof setTimeout>>();
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   return ((...args: Parameters<T>) => {
     clearTimeout(timer.current);
     timer.current = setTimeout(() => fn(...args), delay);

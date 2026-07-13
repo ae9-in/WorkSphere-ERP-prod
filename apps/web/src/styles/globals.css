@@ -627,3 +627,51 @@
 .diagram-connector {
   animation: dash-flow 1.4s linear infinite;
 }
+
+/* Premium Stat Cards Styles */
+.glass-shine {
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: skewX(-20deg);
+  pointer-events: none;
+  z-index: 5;
+}
+
+.group:hover .glass-shine {
+  animation: shine-sweep 800ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+@keyframes shine-sweep {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 200%;
+  }
+}
+
+@keyframes ripple {
+  from {
+    width: 0px;
+    height: 0px;
+    opacity: 0.15;
+  }
+  to {
+    width: 500px;
+    height: 500px;
+    opacity: 0;
+  }
+}
+
+.animate-ripple {
+  animation: ripple 600ms cubic-bezier(0.1, 0.8, 0.3, 1) forwards;
+}

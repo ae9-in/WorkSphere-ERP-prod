@@ -12,7 +12,8 @@ import { Input } from '@/components/ui/Input/Input';
 import { formatCurrency, formatDate, formatTenure } from '@/lib/formatters';
 import {
   Pencil, User, Briefcase, CurrencyInr, GraduationCap, FileText,
-  Phone, EnvelopeSimple, MapPin, Calendar, CheckCircle, Clock, ShieldCheck
+  Phone, EnvelopeSimple, MapPin, Calendar, CheckCircle, Clock, ShieldCheck,
+  Bank, Trophy, ClockCounterClockwise, ListBullets
 } from '@phosphor-icons/react';
 import { ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { toast } from 'sonner';
@@ -26,6 +27,18 @@ export default function EmployeeProfilePage() {
   const navigate = useNavigate();
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [timelineEvents, setTimelineEvents] = useState<any[]>([]);
+
+  const fetchTimeline = async () => {
+    const targetId = id || employee?._id || employee?.employeeId;
+    if (!targetId) return;
+    try {
+      const data = await employeeService.getTimeline(targetId);
+      setTimelineEvents(data);
+    } catch (err) {
+      console.error('Error fetching timeline:', err);
+    }
+  };
 
   // Current logged in user context
   const currentUser = useAuthStore(s => s.user);
@@ -63,6 +76,7 @@ export default function EmployeeProfilePage() {
       navigate('/employees');
     } else {
       setEmployee(updatedEmployee);
+      fetchTimeline();
     }
   };
 
@@ -147,6 +161,12 @@ export default function EmployeeProfilePage() {
       try {
         const data = await employeeService.getById(id || 'emp_001');
         setEmployee(data);
+        // Load timeline
+        const targetId = id || data?._id || data?.employeeId;
+        if (targetId) {
+          const tl = await employeeService.getTimeline(targetId);
+          setTimelineEvents(tl);
+        }
       } catch (err) {
         // Fallback
       } finally {
@@ -249,32 +269,114 @@ export default function EmployeeProfilePage() {
       label: 'Personal Info',
       icon: <User size={16} />,
       content: (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader title="Personal Record & Identity" />
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+              <div>
+                <p className="text-xs text-ag-ink-3">Full Name</p>
+                <p className="font-semibold text-ag-ink mt-0.5">{employee.fullName}</p>
+              </div>
+              <div>
+                <p className="text-xs text-ag-ink-3">Date of Birth</p>
+                <p className="font-semibold text-ag-ink mt-0.5">{formatDate(employee.personal.dateOfBirth)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-ag-ink-3">Gender</p>
+                <p className="font-semibold text-ag-ink mt-0.5 capitalize">{employee.personal.gender}</p>
+              </div>
+              <div>
+                <p className="text-xs text-ag-ink-3">Blood Group</p>
+                <p className="font-semibold text-ag-ink mt-0.5">{employee.personal.bloodGroup || '—'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-ag-ink-3">Nationality</p>
+                <p className="font-semibold text-ag-ink mt-0.5">{employee.personal.nationality || 'Indian'}</p>
+              </div>
+              <div>
+                <p className="text-xs text-ag-ink-3">Marital Status</p>
+                <p className="font-semibold text-ag-ink mt-0.5 capitalize">{employee.personal.maritalStatus || 'Single'}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <CardHeader title="Residential Address" />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
+              <div>
+                <h4 className="font-bold text-ag-ink text-sm mb-2 text-ag-primary">Current Address</h4>
+                <p className="font-semibold text-ag-ink">
+                  {employee.curr_line1 ? (
+                    <>
+                      {employee.curr_line1}
+                      {employee.curr_line2 ? `, ${employee.curr_line2}` : ''}
+                      <br />
+                      {employee.curr_city}, {employee.curr_state}
+                      <br />
+                      {employee.curr_country} - {employee.curr_pincode}
+                    </>
+                  ) : '—'}
+                </p>
+              </div>
+              <div>
+                <h4 className="font-bold text-ag-ink text-sm mb-2 text-ag-primary">Permanent Address</h4>
+                <p className="font-semibold text-ag-ink">
+                  {employee.perm_line1 ? (
+                    <>
+                      {employee.perm_line1}
+                      {employee.perm_line2 ? `, ${employee.perm_line2}` : ''}
+                      <br />
+                      {employee.perm_city}, {employee.perm_state}
+                      <br />
+                      {employee.perm_country} - {employee.perm_pincode}
+                    </>
+                  ) : '—'}
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+      ),
+    },
+    {
+      id: 'org',
+      label: 'Organization',
+      icon: <Briefcase size={16} />,
+      content: (
         <Card>
-          <CardHeader title="Personal Record & Identity" />
+          <CardHeader title="Organization & Position Assignment" />
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
             <div>
-              <p className="text-xs text-ag-ink-3">Full Name</p>
-              <p className="font-semibold text-ag-ink mt-0.5">{employee.fullName}</p>
+              <p className="text-xs text-ag-ink-3">Department</p>
+              <p className="font-semibold text-ag-ink mt-0.5">{employee.job.departmentName || '—'}</p>
             </div>
             <div>
-              <p className="text-xs text-ag-ink-3">Date of Birth</p>
-              <p className="font-semibold text-ag-ink mt-0.5">{formatDate(employee.personal.dateOfBirth)}</p>
+              <p className="text-xs text-ag-ink-3">Designation</p>
+              <p className="font-semibold text-ag-ink mt-0.5">{employee.job.designationName || '—'}</p>
             </div>
             <div>
-              <p className="text-xs text-ag-ink-3">Gender</p>
-              <p className="font-semibold text-ag-ink mt-0.5 capitalize">{employee.personal.gender}</p>
+              <p className="text-xs text-ag-ink-3">Reporting Manager</p>
+              <p className="font-semibold text-ag-ink mt-0.5">{employee.job.reportingManagerName || '—'}</p>
             </div>
             <div>
-              <p className="text-xs text-ag-ink-3">Blood Group</p>
-              <p className="font-semibold text-ag-ink mt-0.5">{employee.personal.bloodGroup || '—'}</p>
+              <p className="text-xs text-ag-ink-3">Location / Branch</p>
+              <p className="font-semibold text-ag-ink mt-0.5">{employee.job.locationName || '—'}</p>
             </div>
             <div>
-              <p className="text-xs text-ag-ink-3">Nationality</p>
-              <p className="font-semibold text-ag-ink mt-0.5">{employee.personal.nationality || 'Indian'}</p>
+              <p className="text-xs text-ag-ink-3">Work Mode</p>
+              <p className="font-semibold text-ag-ink mt-0.5 capitalize">{employee.job.workMode || '—'}</p>
             </div>
             <div>
-              <p className="text-xs text-ag-ink-3">Marital Status</p>
-              <p className="font-semibold text-ag-ink mt-0.5 capitalize">{employee.personal.maritalStatus || 'Single'}</p>
+              <p className="text-xs text-ag-ink-3">Shift Name</p>
+              <p className="font-semibold text-ag-ink mt-0.5">{employee.job.shiftName || '—'}</p>
+            </div>
+            <div>
+              <p className="text-xs text-ag-ink-3">Grade</p>
+              <p className="font-semibold text-ag-ink mt-0.5">{employee.job.gradeName || '—'}</p>
+            </div>
+            <div>
+              <p className="text-xs text-ag-ink-3">Cost Center</p>
+              <p className="font-semibold text-ag-ink mt-0.5">{employee.job.costCenter || '—'}</p>
             </div>
           </div>
         </Card>
@@ -342,21 +444,219 @@ export default function EmployeeProfilePage() {
           <Card>
             <CardHeader title="Education Qualifications" />
             <div className="space-y-4">
-              {employee.education?.map((edu, idx) => (
-                <div key={idx} className="p-4 rounded-xl border border-ag-border flex items-start gap-4">
-                  <div className="p-3 rounded-xl bg-ag-primary-light text-ag-primary">
-                    <GraduationCap size={24} />
+              {(employee.education && employee.education.length > 0) ? (
+                employee.education.map((edu, idx) => (
+                  <div key={idx} className="p-4 rounded-xl border border-ag-border flex items-start gap-4">
+                    <div className="p-3 rounded-xl bg-ag-primary-light text-ag-primary">
+                      <GraduationCap size={24} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-ag-ink text-base">{edu.degree} in {edu.field}</h4>
+                      <p className="text-xs text-ag-ink-2 mt-0.5">{edu.institution}</p>
+                      <p className="text-xs text-ag-ink-3 mt-1">{edu.startYear} – {edu.endYear} • {edu.percentage}% score</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-bold text-ag-ink text-base">{edu.degree} in {edu.field}</h4>
-                    <p className="text-xs text-ag-ink-2 mt-0.5">{edu.institution}</p>
-                    <p className="text-xs text-ag-ink-3 mt-1">{edu.startYear} – {edu.endYear} • {edu.percentage}% score</p>
+                ))
+              ) : (
+                <div className="text-sm text-ag-ink-3">No educational records cataloged.</div>
+              )}
+            </div>
+          </Card>
+
+          <Card>
+            <CardHeader title="Work Experience" />
+            <div className="space-y-4">
+              {(employee.experience && employee.experience.length > 0) ? (
+                employee.experience.map((exp, idx) => (
+                  <div key={idx} className="p-4 rounded-xl border border-ag-border flex items-start gap-4 bg-ag-surface-2/20">
+                    <div className="p-3 rounded-xl bg-ag-mint-light text-ag-mint">
+                      <Briefcase size={24} />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-bold text-ag-ink text-base">{exp.designation} at {exp.company}</h4>
+                      <p className="text-xs text-ag-ink-3 mt-1">
+                        {formatDate(exp.startDate)} – {exp.isCurrent ? 'Present' : formatDate(exp.endDate)}
+                      </p>
+                      {exp.responsibilities && (
+                        <p className="text-sm text-ag-ink-2 mt-2 bg-white/60 p-3 rounded-lg border border-ag-border/40 font-semibold">{exp.responsibilities}</p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="text-sm text-ag-ink-3">No work experience records cataloged.</div>
+              )}
             </div>
           </Card>
         </div>
+      ),
+    },
+    {
+      id: 'emergency',
+      label: 'Emergency Contacts',
+      icon: <Phone size={16} />,
+      content: (
+        <Card>
+          <CardHeader title="Emergency Contacts" subtitle="Authorized emergency contact personnel." />
+          <div className="space-y-4">
+            {(employee.emergencyContacts && employee.emergencyContacts.length > 0) ? (
+              employee.emergencyContacts.map((contact, idx) => (
+                <div key={idx} className="flex items-center justify-between p-4 rounded-xl border border-ag-border bg-ag-surface-2/30">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-lg bg-ag-coral-light text-ag-coral">
+                      <User size={20} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-ag-ink text-sm">{contact.name}</h4>
+                      <p className="text-xs text-ag-ink-3 mt-0.5">{contact.relationship}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="font-semibold text-ag-ink text-sm font-mono">{contact.phone}</span>
+                    {contact.isPrimary && (
+                      <span className="text-[10px] bg-ag-coral-light text-ag-coral font-bold px-2 py-0.5 rounded-full uppercase">Primary</span>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-sm text-ag-ink-3 py-4">No emergency contacts listed.</div>
+            )}
+          </div>
+        </Card>
+      ),
+    },
+    {
+      id: 'banking',
+      label: 'Bank Details',
+      icon: <Bank size={16} />,
+      content: (
+        <Card>
+          <CardHeader title="Employee Bank Accounts" subtitle="Primary and secondary account routing." />
+          <div className="space-y-4">
+            {(employee.bank && employee.bank.length > 0) ? (
+              employee.bank.map((acc, idx) => (
+                <div key={idx} className="p-4 rounded-xl border border-ag-border bg-ag-surface-2/30 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div className="flex items-start gap-3">
+                    <div className="p-2.5 rounded-lg bg-ag-primary-light text-ag-primary">
+                      <Bank size={20} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-ag-ink text-sm">{acc.bankName}</h4>
+                      <p className="text-xs text-ag-ink-3 mt-0.5">IFSC/SWIFT: <span className="font-mono">{acc.ifscSwiftCode}</span></p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-1 text-xs">
+                    <div>
+                      <span className="text-ag-ink-3 block">Holder Name</span>
+                      <span className="font-semibold text-ag-ink text-sm">{acc.accountHolderName}</span>
+                    </div>
+                    <div>
+                      <span className="text-ag-ink-3 block">Account Number</span>
+                      <span className="font-semibold text-ag-ink text-sm font-mono">{acc.accountNumber ? ('*'.repeat(Math.max(0, acc.accountNumber.length - 4)) + acc.accountNumber.slice(-4)) : '—'}</span>
+                    </div>
+                    <div>
+                      <span className="text-ag-ink-3 block">Account Type</span>
+                      <span className="font-semibold text-ag-ink text-sm capitalize">{acc.accountType}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2.5 self-end md:self-auto">
+                    {acc.isPrimary && (
+                      <span className="text-[10px] bg-ag-primary-light text-ag-primary font-bold px-2 py-0.5 rounded-full uppercase">Primary</span>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-sm text-ag-ink-3 py-4">No bank account details listed.</div>
+            )}
+          </div>
+        </Card>
+      ),
+    },
+    {
+      id: 'skills',
+      label: 'Skills & Certs',
+      icon: <Trophy size={16} />,
+      content: (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <Card className="lg:col-span-1">
+            <CardHeader title="Skills Portfolio" />
+            <div className="flex flex-wrap gap-2">
+              {(employee.skills && employee.skills.length > 0) ? (
+                employee.skills.map((sk, idx) => (
+                  <span key={idx} className="px-3 py-1.5 rounded-xl border border-ag-border bg-ag-surface-2 text-ag-ink font-semibold text-xs flex flex-col">
+                    <span>{sk.skillName}</span>
+                    {sk.proficiencyLevel && (
+                      <span className="text-[9px] text-ag-ink-3 capitalize font-bold mt-0.5">{sk.proficiencyLevel}</span>
+                    )}
+                  </span>
+                ))
+              ) : (
+                <div className="text-sm text-ag-ink-3 py-2">No skill tags cataloged.</div>
+              )}
+            </div>
+          </Card>
+          <Card className="lg:col-span-2">
+            <CardHeader title="Certifications" subtitle="Professional and compliance certifications." />
+            <div className="space-y-4">
+              {(employee.certifications && employee.certifications.length > 0) ? (
+                employee.certifications.map((cert, idx) => (
+                  <div key={idx} className="p-4 rounded-xl border border-ag-border flex items-start gap-4 bg-ag-surface-2/10">
+                    <div className="p-3 rounded-xl bg-ag-primary-light text-ag-primary">
+                      <Trophy size={24} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-ag-ink text-base">{cert.certificationName}</h4>
+                      <p className="text-xs text-ag-ink-3 mt-0.5">Issued by {cert.issuingAuthority}</p>
+                      {cert.issueDate && (
+                        <p className="text-[10px] text-ag-ink-3 font-semibold mt-1">Issued: {cert.issueDate}</p>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-sm text-ag-ink-3 py-2">No professional certifications uploaded.</div>
+              )}
+            </div>
+          </Card>
+        </div>
+      ),
+    },
+    {
+      id: 'timeline',
+      label: 'Timeline',
+      icon: <ClockCounterClockwise size={16} />,
+      content: (
+        <Card>
+          <CardHeader title="Employee Timeline & Audits" subtitle="Chronological history of milestones, promotions, and changes." />
+          <div className="relative pl-6 border-l-2 border-ag-border/80 space-y-8 mt-4 ml-3">
+            {timelineEvents && timelineEvents.length > 0 ? (
+              timelineEvents.map((ev, idx) => (
+                <div key={idx} className="relative">
+                  {/* Bullet */}
+                  <span className="absolute -left-[31px] top-1 w-4 h-4 rounded-full border-2 border-ag-primary bg-white flex items-center justify-center">
+                    <span className="w-1.5 h-1.5 rounded-full bg-ag-primary" />
+                  </span>
+                  <div>
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-1">
+                      <h4 className="font-bold text-ag-ink text-sm">{ev.title}</h4>
+                      <span className="text-[11px] text-ag-ink-3 font-mono font-semibold">{ev.eventDate}</span>
+                    </div>
+                    {ev.description && (
+                      <p className="text-xs text-ag-ink-2 mt-1 font-semibold">{ev.description}</p>
+                    )}
+                    {ev.performedBy && (
+                      <span className="inline-block text-[10px] font-bold text-ag-primary mt-1">By: {ev.performedBy}</span>
+                    )}
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-sm text-ag-ink-3 pl-2 py-4">No timeline logs found.</div>
+            )}
+          </div>
+        </Card>
       ),
     },
   ];
@@ -367,7 +667,7 @@ export default function EmployeeProfilePage() {
       <div className="bg-ag-surface border border-ag-border rounded-2xl p-6 shadow-card mb-8">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="flex items-center gap-6">
-            <Avatar name={employee.fullName} src={employee.personal.photo} size="xl" />
+            <Avatar name={employee.fullName ?? `${employee.personal.firstName} ${employee.personal.lastName}`} src={employee.personal.photo} size="xl" />
             <div className="space-y-1">
               <div className="flex items-center gap-3">
                 <h1 className="font-display font-extrabold text-2xl text-ag-ink">{employee.fullName}</h1>

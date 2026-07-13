@@ -7,6 +7,7 @@ import { authService } from '@/services/api.service';
 import { Input } from '@/components/ui/Input/Input';
 import { Button } from '@/components/ui/Button/Button';
 import { toast } from 'sonner';
+import { Logo } from '@/components/ui/Logo/Logo';
 
 export default function AdminLoginPage() {
   const navigate = useNavigate();
@@ -58,11 +59,8 @@ export default function AdminLoginPage() {
             Back to Home
           </Link>
 
-          <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-ag-primary to-ag-accent-pink text-white flex items-center justify-center font-display font-black text-xl shadow-lg shadow-ag-primary/20">
-            WS
-          </div>
-          <h1 className="font-display font-extrabold text-2xl tracking-tight text-white mt-3">WorkSphere Platform</h1>
-          <p className="text-xs text-ag-ink-3 uppercase font-bold tracking-wider">Super Admin Console</p>
+          <Logo showText size={44} variant="white" />
+          <p className="text-xs text-ag-ink-3 uppercase font-bold tracking-wider mt-1.5">Super Admin Console</p>
         </div>
 
         {/* Form Card */}

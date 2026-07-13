@@ -43,7 +43,7 @@ export function Modal({
     <Dialog.Root open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <AnimatePresence>
         {isOpen && (
-          <Dialog.Portal static>
+          <Dialog.Portal>
             <Dialog.Overlay asChild>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -91,7 +91,7 @@ export function Modal({
                       )}
                     </div>
                   )}
-                  {children}
+                  <>{children}</>
                 </motion.div>
               </div>
             </Dialog.Content>

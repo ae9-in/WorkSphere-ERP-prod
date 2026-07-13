@@ -21,8 +21,8 @@ const EmployeeListPage   = lazy(() => import('@/pages/employees/EmployeeListPage
 const EmployeeProfilePage= lazy(() => import('@/pages/employees/EmployeeProfilePage'));
 const EmployeeCreatePage = lazy(() => import('@/pages/employees/EmployeeCreatePage'));
 
-// Placeholders for other modules
-const PlaceholderPage = lazy(() => import('@/pages/PlaceholderPage'));
+// Real Notifications Page
+const NotificationsPage = lazy(() => import('@/pages/modules/NotificationsPage'));
 
 // Modular pages
 const OnboardingPage  = lazy(() => import('@/pages/modules/OnboardingPage'));
@@ -36,7 +36,17 @@ const SettingsPage    = lazy(() => import('@/pages/modules/SettingsPage'));
 const LeavePage       = lazy(() => import('@/pages/modules/LeavePage'));
 const DocumentsPage   = lazy(() => import('@/pages/modules/DocumentsPage'));
 const AssetPage       = lazy(() => import('@/pages/modules/AssetPage'));
+const InventoryPage   = lazy(() => import('@/pages/modules/InventoryPage'));
+const ManufacturingPage = lazy(() => import('@/pages/modules/ManufacturingPage'));
+const MaintenancePage = lazy(() => import('@/pages/modules/MaintenancePage'));
+const SupplyChainPage = lazy(() => import('@/pages/modules/SupplyChainPage'));
 const AuditPage       = lazy(() => import('@/pages/modules/AuditPage'));
+const RecruitmentPage = lazy(() => import('@/pages/modules/RecruitmentPage'));
+const CandidateProfilePage = lazy(() => import('@/pages/modules/CandidateProfilePage'));
+const PerformancePage = lazy(() => import('@/pages/modules/PerformancePage'));
+const LMSPage = lazy(() => import('@/pages/modules/LMSPage'));
+const CommunityPage = lazy(() => import('@/pages/modules/CommunityPage'));
+const HelpdeskPage = lazy(() => import('@/pages/modules/HelpdeskPage'));
 
 // ── Page loader ────────────────────────────────
 function PageLoader() {
@@ -93,8 +103,18 @@ export function AppRouter() {
             <Route path="/leave/*"       element={<LeavePage />} />
             <Route path="/documents/*"   element={<DocumentsPage />} />
             <Route path="/assets/*"      element={<AssetPage />} />
+            <Route path="/inventory/*"   element={<InventoryPage />} />
+            <Route path="/manufacturing/*" element={<ManufacturingPage />} />
+            <Route path="/maintenance/*" element={<MaintenancePage />} />
+            <Route path="/supply-chain/*" element={<SupplyChainPage />} />
             <Route path="/audit"         element={<AuditPage />} />
-            <Route path="/notifications" element={<PlaceholderPage module="Notifications" />} />
+            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/recruitment/candidates/:id" element={<CandidateProfilePage />} />
+            <Route path="/recruitment/*" element={<RecruitmentPage />} />
+            <Route path="/performance/*" element={<PerformancePage />} />
+            <Route path="/lms/*" element={<LMSPage />} />
+            <Route path="/community/*" element={<CommunityPage />} />
+            <Route path="/helpdesk/*" element={<HelpdeskPage />} />
           </Route>
 
           {/* Fallback */}

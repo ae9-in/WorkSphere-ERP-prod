@@ -8,6 +8,7 @@ import {
 } from '@phosphor-icons/react';
 import { Input } from '@/components/ui/Input/Input';
 import { Button } from '@/components/ui/Button/Button';
+import { Logo } from '@/components/ui/Logo/Logo';
 
 const COUNTRIES = [
   'Australia', 'Canada', 'France', 'Germany', 'India',
@@ -204,10 +205,7 @@ export default function SignUpPage() {
 
         {/* Brand Header */}
         <div className="relative z-10 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white text-ag-primary flex items-center justify-center font-display font-bold text-lg shadow-md">
-            WS
-          </div>
-          <span className="font-display font-extrabold text-2xl tracking-tight">WorkSphere ERP</span>
+          <Logo size={40} variant="white" />
         </div>
 
         {/* Dynamic Scene Content */}
@@ -305,10 +303,7 @@ export default function SignUpPage() {
                   </Link>
 
                   <div className="lg:hidden flex items-center gap-3 pt-2">
-                    <div className="w-10 h-10 rounded-xl bg-ag-primary text-white flex items-center justify-center font-display font-bold text-lg">
-                      WS
-                    </div>
-                    <span className="font-display font-extrabold text-2xl text-ag-ink">WorkSphere</span>
+                    <Logo size={36} />
                   </div>
 
                   <h2 className="font-display font-extrabold text-3xl text-ag-ink mt-2">Create your Workspace</h2>

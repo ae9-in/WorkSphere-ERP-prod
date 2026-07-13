@@ -1,13 +1,13 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
+import { motion, type HTMLMotionProps } from 'framer-motion';
 
 // ── Types ─────────────────────────────────────
 
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger' | 'icon';
 type ButtonSize    = 'sm' | 'md' | 'lg';
 
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<HTMLMotionProps<'button'>, 'children'> {
   variant?:  ButtonVariant;
   size?:     ButtonSize;
   loading?:  boolean;
@@ -69,7 +69,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           className,
         )}
         disabled={disabled || loading}
-        {...(props as React.ButtonHTMLAttributes<HTMLButtonElement>)}
+        {...props}
       >
         {loading ? (
           <>

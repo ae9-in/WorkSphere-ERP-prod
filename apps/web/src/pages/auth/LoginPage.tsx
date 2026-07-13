@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/Input/Input';
 import { Button } from '@/components/ui/Button/Button';
 import { Lock, EnvelopeSimple, GoogleLogo, Sparkle, ShieldCheck, ArrowLeft } from '@phosphor-icons/react';
 import { motion } from 'framer-motion';
+import { Logo } from '@/components/ui/Logo/Logo';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -36,10 +37,7 @@ export default function LoginPage() {
 
         {/* Brand Header */}
         <div className="relative z-10 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white text-ag-primary flex items-center justify-center font-display font-bold text-lg shadow-md">
-            WS
-          </div>
-          <span className="font-display font-extrabold text-2xl tracking-tight">WorkSphere ERP</span>
+          <Logo size={40} variant="white" />
         </div>
 
         {/* Dynamic Scene Content */}
@@ -84,10 +82,7 @@ export default function LoginPage() {
 
           <div className="space-y-2">
             <div className="lg:hidden flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-xl bg-ag-primary text-white flex items-center justify-center font-display font-bold text-lg">
-                WS
-              </div>
-              <span className="font-display font-extrabold text-2xl text-ag-ink">WorkSphere</span>
+              <Logo size={36} />
             </div>
             <h2 className="font-display font-extrabold text-3xl text-ag-ink">Welcome back</h2>
             <p className="text-sm text-ag-ink-3">Sign in to access your WorkSphere ERP dashboard.</p>

@@ -33,7 +33,7 @@ export default function OnboardingPage() {
       ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
       const recent = res.employees.filter((e) => {
         const joined = new Date(e.official.dateOfJoining);
-        return (joined >= ninetyDaysAgo && e.official.status === 'active') || e.official.status === 'probation';
+        return (joined >= ninetyDaysAgo && e.official.status === 'active') || (e.official.employeeType as string) === 'probation';
       });
       setCandidates(recent);
     } catch {

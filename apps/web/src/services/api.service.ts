@@ -5,6 +5,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 
 import api from './api';
+export { api };
 import type { AuthUser } from '@/types/auth.types';
 import type { Employee, EmployeeListItem } from '@/types/employee.types';
 import type { PayrollRun } from '@/types/payroll.types';
@@ -100,6 +101,11 @@ export const employeeService = {
 
   async dispatchAction(id: string, action: string, data: any): Promise<Employee> {
     const res = await api.post<{ success: boolean; data: Employee }>(`/employees/${id}/actions`, { action, data });
+    return res.data.data;
+  },
+
+  async getTimeline(id: string): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>(`/employees/${id}/timeline`);
     return res.data.data;
   },
 };
@@ -207,6 +213,75 @@ export const payrollService = {
   async updateStructure(id: string, data: any): Promise<any> {
     const res = await api.put<{ success: boolean; data: any }>(`/payroll/structures/${id}`, data);
     return res.data.data;
+  },
+
+  async recalculateRun(id: string): Promise<void> {
+    await api.post(`/payroll/runs/${id}/recalculate`);
+  },
+
+  async reopenRun(id: string): Promise<any> {
+    const res = await api.post(`/payroll/runs/${id}/reopen`);
+    return res.data.data;
+  },
+
+  async requestReimbursement(payload: { category: string; amount: number; reason: string; receiptUrl?: string; employeeId?: string }): Promise<any> {
+    const res = await api.post('/payroll/reimbursement', payload);
+    return res.data.data;
+  },
+
+  async listReimbursements(employeeId?: string): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/payroll/reimbursement', { params: { employeeId } });
+    return res.data.data;
+  },
+
+  async approveReimbursement(id: string, status: string): Promise<any> {
+    const res = await api.post(`/payroll/reimbursement/${id}/approve`, { status });
+    return res.data.data;
+  },
+
+  async requestLoan(payload: { employeeId: string; principalAmount: number; interestRate?: number; emiAmount: number; installments: number; reason?: string }): Promise<any> {
+    const res = await api.post('/payroll/loans', payload);
+    return res.data.data;
+  },
+
+  async listLoans(employeeId?: string): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/payroll/loans', { params: { employeeId } });
+    return res.data.data;
+  },
+
+  async approveLoan(id: string, status: string): Promise<any> {
+    const res = await api.post(`/payroll/loans/${id}/approve`, { status });
+    return res.data.data;
+  },
+
+  async createAdjustment(payload: { employeeId: string; type: string; amount: number; reason: string }): Promise<any> {
+    const res = await api.post('/payroll/adjustment', payload);
+    return res.data.data;
+  },
+
+  async listAdjustments(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/payroll/adjustment');
+    return res.data.data;
+  },
+
+  async listLedgers(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/payroll/ledger');
+    return res.data.data;
+  },
+
+  async getDashboard(): Promise<any> {
+    const res = await api.get('/payroll/dashboard');
+    return res.data.data;
+  },
+
+  async getAnalytics(): Promise<any> {
+    const res = await api.get('/payroll/analytics');
+    return res.data.data;
+  },
+
+  async assignSalary(payload: { employeeId: string; structureId?: string; payGroupId?: string; ctc: number; effectiveDate: string }): Promise<any> {
+    const res = await api.post('/payroll/salary/assign', payload);
+    return res.data.data;
   }
 };
 
@@ -224,7 +299,12 @@ export const leaveService = {
   },
 
   async apply(data: any): Promise<any> {
-    const res = await api.post<{ success: boolean; data: any }>('/leave/apply', data);
+    const payload = {
+      ...data,
+      from_date: data.from,
+      to_date: data.to
+    };
+    const res = await api.post<{ success: boolean; data: any }>('/leave/apply', payload);
     return res.data.data;
   },
 
@@ -249,8 +329,57 @@ export const leaveService = {
   },
 
   async getBalance(employeeId?: string): Promise<any[]> {
-    const url = employeeId ? `/leave/balance/${employeeId}` : '/leave/balance';
-    const res = await api.get<{ success: boolean; data: any[] }>(url);
+    const res = await api.get<{ success: boolean; data: any[] }>('/leave/balances', { params: { employeeId } });
+    return res.data.data;
+  },
+
+  async cancel(applicationId: string, comments?: string): Promise<any> {
+    const res = await api.post('/leave/cancel', { applicationId, comments });
+    return res.data.data;
+  },
+
+  async withdraw(applicationId: string): Promise<any> {
+    const res = await api.post('/leave/withdraw', { applicationId });
+    return res.data.data;
+  },
+
+  async runAccrual(payload: { employeeId?: string; leaveTypeId?: string }): Promise<any> {
+    const res = await api.post('/leave/accrual', payload);
+    return res.data.data;
+  },
+
+  async runCarryForward(payload: { sourceYear: number; targetYear: number }): Promise<any> {
+    const res = await api.post('/leave/carry-forward', payload);
+    return res.data.data;
+  },
+
+  async requestEncashment(payload: { leaveTypeId: string; days: number; reason?: string; employeeId?: string }): Promise<any> {
+    const res = await api.post('/leave/encashment', payload);
+    return res.data.data;
+  },
+
+  async listEncashments(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/leave/encashment');
+    return res.data.data;
+  },
+
+  async approveEncashment(id: string, payload: { status: string; comments?: string }): Promise<any> {
+    const res = await api.post(`/leave/encashment/${id}/approve`, payload);
+    return res.data.data;
+  },
+
+  async listLedgers(employeeId?: string): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/leave/ledger', { params: { employeeId } });
+    return res.data.data;
+  },
+
+  async getDashboard(): Promise<any> {
+    const res = await api.get('/leave/dashboard');
+    return res.data.data;
+  },
+
+  async getAnalytics(): Promise<any> {
+    const res = await api.get('/leave/analytics');
     return res.data.data;
   }
 };
@@ -341,54 +470,577 @@ export const assetService = {
   }
 };
 
-// ── Reports ────────────────────────────────────────────────────────────────
+// ── Inventory & Warehouse ───────────────────────────────────────────────────
+
+export const inventoryService = {
+  async getCategories(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/inventory/categories');
+    return res.data.data;
+  },
+
+  async createCategory(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/inventory/categories', data);
+    return res.data.data;
+  },
+
+  async getItems(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/inventory/items');
+    return res.data.data;
+  },
+
+  async createItem(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/inventory/items', data);
+    return res.data.data;
+  },
+
+  async getWarehouses(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/inventory/warehouses');
+    return res.data.data;
+  },
+
+  async createWarehouse(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/inventory/warehouses', data);
+    return res.data.data;
+  },
+
+  async getLocations(warehouseCode?: string): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/inventory/locations', { params: { warehouseCode } });
+    return res.data.data;
+  },
+
+  async createLocation(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/inventory/locations', data);
+    return res.data.data;
+  },
+
+  async stockIn(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/inventory/stock-in', data);
+    return res.data.data;
+  },
+
+  async stockOut(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/inventory/stock-out', data);
+    return res.data.data;
+  },
+
+  async transfer(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/inventory/transfers', data);
+    return res.data.data;
+  },
+
+  async getAdjustments(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/inventory/adjustments');
+    return res.data.data;
+  },
+
+  async createAdjustment(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/inventory/adjustments', data);
+    return res.data.data;
+  },
+
+  async approveAdjustment(id: string, status: 'approved' | 'rejected'): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>(`/inventory/adjustments/${id}/approve`, { status });
+    return res.data.data;
+  },
+
+  async submitCount(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/inventory/count', data);
+    return res.data.data;
+  },
+
+  async getCounts(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/inventory/count');
+    return res.data.data;
+  },
+
+  async getCountDetails(id: string): Promise<any> {
+    const res = await api.get<{ success: boolean; data: any }>(`/inventory/count/${id}`);
+    return res.data.data;
+  },
+
+  async approveCount(id: string, status: 'approved' | 'rejected'): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>(`/inventory/count/${id}/approve`, { status });
+    return res.data.data;
+  },
+
+  async getValuation(method: string = 'AVERAGE'): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/inventory/valuation', { params: { method } });
+    return res.data.data;
+  },
+
+  async getReorders(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/inventory/reorder');
+    return res.data.data;
+  },
+
+  async getDashboard(): Promise<any> {
+    const res = await api.get<{ success: boolean; data: any }>('/inventory/dashboard');
+    return res.data.data;
+  },
+
+  async getAnalytics(): Promise<any> {
+    const res = await api.get<{ success: boolean; data: any }>('/inventory/analytics');
+    return res.data.data;
+  },
+
+  async getForecast(itemCode: string, horizonDays?: number): Promise<any> {
+    const res = await api.get<{ success: boolean; data: any }>('/inventory/forecast', { params: { itemCode, horizonDays } });
+    return res.data.data;
+  },
+
+  async getOptimization(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/inventory/optimization');
+    return res.data.data;
+  }
+};
+
+// ── Manufacturing & Production Planning ─────────────────────────────────────
+
+export const manufacturingService = {
+  async getPlants(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/manufacturing/plants');
+    return res.data.data;
+  },
+
+  async createPlant(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/manufacturing/plants', data);
+    return res.data.data;
+  },
+
+  async createCalendar(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/manufacturing/calendars', data);
+    return res.data.data;
+  },
+
+  async getBoms(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/manufacturing/bom');
+    return res.data.data;
+  },
+
+  async createBom(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/manufacturing/bom', data);
+    return res.data.data;
+  },
+
+  async getWorkCenters(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/manufacturing/work-centers');
+    return res.data.data;
+  },
+
+  async createWorkCenter(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/manufacturing/work-centers', data);
+    return res.data.data;
+  },
+
+  async getMachines(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/manufacturing/machines');
+    return res.data.data;
+  },
+
+  async createMachine(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/manufacturing/machines', data);
+    return res.data.data;
+  },
+
+  async getRoutings(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/manufacturing/routings');
+    return res.data.data;
+  },
+
+  async createRouting(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/manufacturing/routings', data);
+    return res.data.data;
+  },
+
+  async getProductionOrders(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/manufacturing/orders');
+    return res.data.data;
+  },
+
+  async createProductionOrder(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/manufacturing/orders', data);
+    return res.data.data;
+  },
+
+  async releaseWorkOrder(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/manufacturing/work-orders', data);
+    return res.data.data;
+  },
+
+  async getWorkOrders(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/manufacturing/work-orders');
+    return res.data.data;
+  },
+
+  async completeWorkOrder(id: string, data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>(`/manufacturing/work-orders/${id}/complete`, data);
+    return res.data.data;
+  },
+
+  async runMrp(): Promise<any[]> {
+    const res = await api.post<{ success: boolean; data: any[] }>('/manufacturing/mrp');
+    return res.data.data;
+  },
+
+  async submitQualityInspection(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/manufacturing/quality', data);
+    return res.data.data;
+  },
+
+  async getQualityInspections(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/manufacturing/quality');
+    return res.data.data;
+  },
+
+  async getNcrs(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/manufacturing/ncr');
+    return res.data.data;
+  },
+
+  async updateCapa(id: string, data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>(`/manufacturing/ncr/${id}/capa`, data);
+    return res.data.data;
+  },
+
+  async submitScrap(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/manufacturing/scrap', data);
+    return res.data.data;
+  },
+
+  async getScraps(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/manufacturing/scrap');
+    return res.data.data;
+  },
+
+  async getDashboard(): Promise<any> {
+    const res = await api.get<{ success: boolean; data: any }>('/manufacturing/dashboard');
+    return res.data.data;
+  },
+
+  async getOee(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/manufacturing/oee');
+    return res.data.data;
+  },
+
+  async getAnalytics(): Promise<any> {
+    const res = await api.get<{ success: boolean; data: any }>('/manufacturing/analytics');
+    return res.data.data;
+  },
+
+  async getCapacity(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/manufacturing/capacity');
+    return res.data.data;
+  },
+
+  async getForecast(plantCode: string, horizonDays?: number): Promise<any> {
+    const res = await api.get<{ success: boolean; data: any }>('/manufacturing/forecast', { params: { plantCode, horizonDays } });
+    return res.data.data;
+  },
+
+  async getMaintenance(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/manufacturing/maintenance');
+    return res.data.data;
+  }
+};
+
+// ── Maintenance Management (CMMS-EAM) ────────────────────────────────────────
+
+export const maintenanceService = {
+  async getAssets(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/maintenance/assets');
+    return res.data.data;
+  },
+
+  async createAsset(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/maintenance/assets', data);
+    return res.data.data;
+  },
+
+  async createPmPlan(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/maintenance/pm-plans', data);
+    return res.data.data;
+  },
+
+  async submitWorkRequest(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/maintenance/work-request', data);
+    return res.data.data;
+  },
+
+  async createWorkOrder(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/maintenance/work-order', data);
+    return res.data.data;
+  },
+
+  async consumeSpareParts(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/maintenance/work-order/consume-parts', data);
+    return res.data.data;
+  },
+
+  async completeWorkOrder(id: string, data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>(`/maintenance/work-order/${id}/complete`, data);
+    return res.data.data;
+  },
+
+  async submitInspection(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/maintenance/inspection', data);
+    return res.data.data;
+  },
+
+  async submitTelemetry(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/maintenance/telemetry', data);
+    return res.data.data;
+  },
+
+  async simulatePredictive(): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/maintenance/predict');
+    return res.data.data;
+  },
+
+  async getDashboard(): Promise<any> {
+    const res = await api.get<{ success: boolean; data: any }>('/maintenance/dashboard');
+    return res.data.data;
+  },
+
+  async getReliability(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/maintenance/reliability');
+    return res.data.data;
+  },
+
+  async getReports(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/maintenance/reports');
+    return res.data.data;
+  },
+
+  async getAnalytics(): Promise<any> {
+    const res = await api.get<{ success: boolean; data: any }>('/maintenance/analytics');
+    return res.data.data;
+  },
+
+  async getHealth(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/maintenance/health');
+    return res.data.data;
+  },
+
+  async getKpis(): Promise<any> {
+    const res = await api.get<{ success: boolean; data: any }>('/maintenance/kpis');
+    return res.data.data;
+  }
+};
+
+// ── Supply Chain Management (SCM) ──────────────────────────────────────────
+
+export const supplyChainService = {
+  async getShipments(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/supply-chain/shipments');
+    return res.data.data;
+  },
+
+  async createShipment(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/supply-chain/shipments', data);
+    return res.data.data;
+  },
+
+  async confirmDispatch(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/supply-chain/dispatch', data);
+    return res.data.data;
+  },
+
+  async createRoute(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/supply-chain/routes', data);
+    return res.data.data;
+  },
+
+  async submitPod(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/supply-chain/pod', data);
+    return res.data.data;
+  },
+
+  async processReturn(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/supply-chain/reverse', data);
+    return res.data.data;
+  },
+
+  async updateTelemetry(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/supply-chain/telemetry', data);
+    return res.data.data;
+  },
+
+  async simulateAI(): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/supply-chain/predict');
+    return res.data.data;
+  },
+
+  async getDashboard(): Promise<any> {
+    const res = await api.get<{ success: boolean; data: any }>('/supply-chain/dashboard');
+    return res.data.data;
+  },
+
+  async getAnalytics(): Promise<any> {
+    const res = await api.get<{ success: boolean; data: any }>('/supply-chain/analytics');
+    return res.data.data;
+  },
+
+  async getTracking(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/supply-chain/tracking');
+    return res.data.data;
+  },
+
+  async getCosts(): Promise<any> {
+    const res = await api.get<{ success: boolean; data: any }>('/supply-chain/costs');
+    return res.data.data;
+  },
+
+  async getOptimization(): Promise<any> {
+    const res = await api.get<{ success: boolean; data: any }>('/supply-chain/optimization');
+    return res.data.data;
+  },
+
+  async getReports(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/supply-chain/reports');
+    return res.data.data;
+  },
+
+  // Setup helpers
+  async createNetworkNode(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/supply-chain/network', data);
+    return res.data.data;
+  },
+
+  async getNetworkNodes(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/supply-chain/network');
+    return res.data.data;
+  },
+
+  async createDC(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/supply-chain/distribution-centers', data);
+    return res.data.data;
+  },
+
+  async getDCs(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/supply-chain/distribution-centers');
+    return res.data.data;
+  },
+
+  async createPartner(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/supply-chain/partners', data);
+    return res.data.data;
+  },
+
+  async getPartners(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/supply-chain/partners');
+    return res.data.data;
+  },
+
+  async createCarrier(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/supply-chain/carriers', data);
+    return res.data.data;
+  },
+
+  async getCarriers(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/supply-chain/carriers');
+    return res.data.data;
+  },
+
+  async createVehicle(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/supply-chain/fleet', data);
+    return res.data.data;
+  },
+
+  async getVehicles(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/supply-chain/fleet');
+    return res.data.data;
+  },
+
+  async createDriver(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/supply-chain/drivers', data);
+    return res.data.data;
+  },
+
+  async getDrivers(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/supply-chain/drivers');
+    return res.data.data;
+  }
+};
+
 
 export const reportService = {
   async getHeadcount(groupBy: string): Promise<any[]> {
-    const res = await api.get<{ success: boolean; data: any[] }>('/reports/employees/headcount', { params: { groupBy } });
+    const res = await api.get<{ success: boolean; data: any[] }>('/reports/headcount', { params: { groupBy } });
     return res.data.data;
   },
 
   async getAttrition(): Promise<any[]> {
-    const res = await api.get<{ success: boolean; data: any[] }>('/reports/employees/attrition');
+    const res = await api.get<{ success: boolean; data: any[] }>('/reports/attrition');
     return res.data.data;
   },
 
   async getDiversity(): Promise<any[]> {
-    const res = await api.get<{ success: boolean; data: any[] }>('/reports/employees/diversity');
+    const res = await api.get<{ success: boolean; data: any[] }>('/reports/diversity');
     return res.data.data;
   },
 
   async getAttendanceReport(month?: number, year?: number): Promise<any[]> {
-    const res = await api.get<{ success: boolean; data: any[] }>('/reports/attendance/monthly', { params: { month, year } });
+    const res = await api.get<{ success: boolean; data: any[] }>('/reports/attendance', { params: { month, year } });
     return res.data.data;
   },
 
   async getLatecomers(): Promise<any[]> {
-    const res = await api.get<{ success: boolean; data: any[] }>('/reports/attendance/latecomers');
+    const res = await api.get<{ success: boolean; data: any[] }>('/reports/latecomers');
     return res.data.data;
   },
 
   async getPayrollCost(): Promise<any[]> {
-    const res = await api.get<{ success: boolean; data: any[] }>('/reports/payroll/cost');
+    const res = await api.get<{ success: boolean; data: any[] }>('/reports/payroll-cost');
     return res.data.data;
   },
 
   async getStatutory(): Promise<any> {
-    const res = await api.get<{ success: boolean; data: any }>('/reports/payroll/statutory');
+    const res = await api.get<{ success: boolean; data: any }>('/reports/statutory');
     return res.data.data;
   },
 
   async getLeaveSummary(): Promise<any[]> {
-    const res = await api.get<{ success: boolean; data: any[] }>('/reports/leave/summary');
+    const res = await api.get<{ success: boolean; data: any[] }>('/reports/leave-summary');
     return res.data.data;
   },
 
   async runCustom(data: any): Promise<any[]> {
-    const res = await api.post<{ success: boolean; data: any[] }>('/reports/custom/run', data);
+    const res = await api.post<{ success: boolean; data: any[] }>('/reports/custom', data);
     return res.data.data;
-  }
+  },
+
+  // ── Module 13 New Analytics Endpoints ───────────────────────
+  async getExecutiveSummary(): Promise<any> {
+    const res = await api.get<{ success: boolean; data: any }>('/reports/executive-summary');
+    return res.data.data;
+  },
+
+  async getHRDashboard(): Promise<any> {
+    const res = await api.get<{ success: boolean; data: any }>('/reports/hr-dashboard');
+    return res.data.data;
+  },
+
+  async getAttendanceTrends(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/reports/attendance-trends');
+    return res.data.data;
+  },
+
+  async getWorkforceGrowth(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/reports/workforce-growth');
+    return res.data.data;
+  },
+
+  async getDepartmentStats(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/reports/department-stats');
+    return res.data.data;
+  },
+
+  async getPayrollTrends(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/reports/payroll-trends');
+    return res.data.data;
+  },
 };
+
 
 // ── Settings ───────────────────────────────────────────────────────────────
 
@@ -514,13 +1166,63 @@ export const attendanceService = {
     return res.data.data;
   },
 
-  async checkIn(payload: { employeeId: string; fullName: string; workMode: string }) {
+  async checkIn(payload: { employeeId: string; fullName: string; workMode: string; lat?: number; lng?: number }) {
     const res = await api.post('/attendance/checkin', payload);
     return res.data.data;
   },
 
   async checkOut(id: string) {
     const res = await api.patch(`/attendance/${id}/checkout`);
+    return res.data.data;
+  },
+
+  async startBreak(payload: { date: string; breakType: string; employeeId?: string }) {
+    const res = await api.post('/attendance/breaks/start', payload);
+    return res.data.data;
+  },
+
+  async endBreak(payload: { date: string; employeeId?: string }) {
+    const res = await api.post('/attendance/breaks/end', payload);
+    return res.data.data;
+  },
+
+  async requestRegularization(payload: { date: string; requestType: string; checkIn?: string; checkOut?: string; reason: string; employeeId?: string }) {
+    const res = await api.post('/attendance/regularization', payload);
+    return res.data.data;
+  },
+
+  async listRegularizations() {
+    const res = await api.get('/attendance/regularization');
+    return res.data.data;
+  },
+
+  async approveRegularization(id: string, payload: { status: string; comments?: string }) {
+    const res = await api.post(`/attendance/regularization/${id}/approve`, payload);
+    return res.data.data;
+  },
+
+  async lockAttendance(payload: { startDate: string; endDate: string }) {
+    const res = await api.post('/attendance/lock', payload);
+    return res.data.data;
+  },
+
+  async listShifts() {
+    const res = await api.get('/attendance/shifts');
+    return res.data.data;
+  },
+
+  async createShift(payload: any) {
+    const res = await api.post('/attendance/shifts', payload);
+    return res.data.data;
+  },
+
+  async assignShift(payload: { employeeId: string; shiftId: string; effectiveDate: string }) {
+    const res = await api.post('/attendance/shifts/assign', payload);
+    return res.data.data;
+  },
+
+  async getAnalytics() {
+    const res = await api.get('/attendance/analytics');
     return res.data.data;
   },
 };

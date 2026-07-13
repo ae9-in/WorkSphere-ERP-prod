@@ -1,0 +1,87 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: worksphere_db
+    restart: always
+    environment:
+      POSTGRES_DB: worksphere_erp
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d worksphere_erp"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  valkey:
+    image: valkey/valkey:latest
+    container_name: worksphere-valkey
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey_data:/data
+    deploy:
+      resources:
+        limits:
+          memory: 512m
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - worksphere_net
+
+  backend:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    container_name: worksphere_backend
+    restart: always
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/worksphere_erp
+      - VALKEY_URL=redis://valkey:6379
+      - CACHE_URL=redis://valkey:6379
+      - NODE_ENV=production
+      - PORT=5000
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    networks:
+      - worksphere_net
+
+  web:
+    build:
+      context: .
+      dockerfile: ./apps/web/Dockerfile
+    container_name: worksphere_web
+    restart: always
+    environment:
+      - NEXT_PUBLIC_API_URL=http://backend:5000
+      - PORT=3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    networks:
+      - worksphere_net
+
+volumes:
+  pgdata:
+  valkey_data:
+
+networks:
+  worksphere_net:
+    driver: bridge

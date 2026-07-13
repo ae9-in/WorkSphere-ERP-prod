@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { Lock, EnvelopeSimple, Sparkle, ArrowLeft, Eye, EyeSlash, ShieldCheck, Users } from '@phosphor-icons/react';
+import { Lock, EnvelopeSimple, Sparkle, ArrowLeft, Eye, EyeSlash, ShieldCheck, Users, CheckCircle } from '@phosphor-icons/react';
 import { useAuthStore } from '@/store/authStore';
 import { authService } from '@/services/api.service';
 import { Input } from '@/components/ui/Input/Input';
 import { Button } from '@/components/ui/Button/Button';
 import { toast } from 'sonner';
+import { Logo } from '@/components/ui/Logo/Logo';
 
 export default function EmployeeLoginPage() {
   const navigate = useNavigate();
@@ -58,11 +59,8 @@ export default function EmployeeLoginPage() {
             Back to Home
           </Link>
 
-          <div className="w-12 h-12 rounded-2xl bg-ag-accent-mint text-white flex items-center justify-center font-display font-black text-xl shadow-md">
-            WS
-          </div>
-          <h1 className="font-display font-extrabold text-2xl tracking-tight text-ag-ink mt-3">WorkSphere ERP</h1>
-          <p className="text-xs text-ag-ink-3 uppercase font-bold tracking-wider">Employee Portal</p>
+          <Logo showText size={44} />
+          <p className="text-xs text-ag-ink-3 uppercase font-bold tracking-wider mt-1.5">Employee Portal</p>
         </div>
 
         {/* Login Card */}

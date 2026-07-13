@@ -63,6 +63,18 @@ export const routes = {
   // Assets
   ASSETS:             '/assets',
 
+  // Inventory
+  INVENTORY:          '/inventory',
+
+  // Manufacturing
+  MANUFACTURING:      '/manufacturing',
+
+  // Maintenance
+  MAINTENANCE:        '/maintenance',
+
+  // Supply Chain
+  SUPPLY_CHAIN:       '/supply-chain',
+
   // Admin
   APPROVALS:      '/approvals',
   NOTIFICATIONS:  '/notifications',
@@ -74,6 +86,13 @@ export const routes = {
   SETTINGS_ROLES: '/settings/roles',
   SETTINGS_WF:    '/settings/workflows',
   SETTINGS_EMAIL: '/settings/email-templates',
+  // Recruitment & ATS
+  RECRUITMENT:              '/recruitment',
+  RECRUITMENT_JOBS:         '/recruitment/jobs',
+  RECRUITMENT_CANDIDATES:   '/recruitment/candidates',
+  RECRUITMENT_PIPELINE:     '/recruitment/pipeline',
+  RECRUITMENT_INTERVIEWS:   '/recruitment/interviews',
+  RECRUITMENT_OFFERS:       '/recruitment/offers',
 } as const;
 
 export function buildRoute(route: string, params: Record<string, string>): string {

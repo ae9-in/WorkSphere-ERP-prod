@@ -11,6 +11,7 @@ import {
 } from '@phosphor-icons/react';
 import { ProgressBar } from '@/components/ui/ProgressBar/ProgressBar';
 import { toast } from 'sonner';
+import { Logo } from '@/components/ui/Logo/Logo';
 
 export default function WorkspaceSetupPage() {
   const navigate = useNavigate();
@@ -170,11 +171,8 @@ export default function WorkspaceSetupPage() {
         
         {/* Main logo header */}
         <div className="flex flex-col items-center text-center gap-2 mb-2">
-          <div className="w-12 h-12 rounded-2xl bg-ag-primary text-white flex items-center justify-center font-display font-black text-xl shadow-md">
-            WS
-          </div>
-          <h1 className="font-display font-extrabold text-2xl tracking-tight text-ag-ink mt-2">WorkSphere ERP</h1>
-          <p className="text-xs text-ag-ink-3 uppercase font-bold tracking-wider">Initialize Workspace</p>
+          <Logo showText size={44} />
+          <p className="text-xs text-ag-ink-3 uppercase font-bold tracking-wider mt-1.5">Initialize Workspace</p>
         </div>
 
         {/* Wizard Card Container */}

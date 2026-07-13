@@ -28,6 +28,27 @@ export default function EmployeeCreatePage() {
     workMode: 'hybrid',
     ctc: '1200000',
     dateOfJoining: new Date().toISOString().split('T')[0],
+
+    // Emergency Contact details
+    emergencyContactName: '',
+    emergencyContactRelation: '',
+    emergencyContactPhone: '',
+
+    // Banking details
+    bankName: '',
+    accountHolderName: '',
+    accountNumber: '',
+    ifscSwiftCode: '',
+    branchName: '',
+    accountType: 'savings',
+
+    // Education details
+    degree: '',
+    field: '',
+    institution: '',
+    startYear: '',
+    endYear: '',
+    percentage: '',
   });
 
   const handleChange = (field: string, value: string) => {
@@ -50,6 +71,7 @@ export default function EmployeeCreatePage() {
           workEmail: formData.workEmail,
           employeeType: 'full_time',
           dateOfJoining: formData.dateOfJoining,
+          status: 'active' as const,
         },
         job: {
           departmentName: formData.departmentName,
@@ -57,6 +79,42 @@ export default function EmployeeCreatePage() {
           locationName: formData.locationName,
           workMode: formData.workMode as any,
         },
+        salary: {
+          ctc: parseFloat(formData.ctc) || 0,
+          basicPercent: 40.0,
+          currency: 'INR',
+          paymentMode: 'bank_transfer',
+          effectiveDate: formData.dateOfJoining,
+        },
+        emergencyContacts: formData.emergencyContactName ? [
+          {
+            name: formData.emergencyContactName,
+            relationship: formData.emergencyContactRelation,
+            phone: formData.emergencyContactPhone,
+            isPrimary: true,
+          }
+        ] : [],
+        bank: formData.bankName ? [
+          {
+            bankName: formData.bankName,
+            accountHolderName: formData.accountHolderName || `${formData.firstName} ${formData.lastName}`,
+            accountNumber: formData.accountNumber,
+            ifscSwiftCode: formData.ifscSwiftCode,
+            branchName: formData.branchName,
+            accountType: formData.accountType,
+            isPrimary: true,
+          }
+        ] : [],
+        education: formData.degree ? [
+          {
+            degree: formData.degree,
+            field: formData.field,
+            institution: formData.institution,
+            startYear: parseInt(formData.startYear) || 2010,
+            endYear: parseInt(formData.endYear) || 2014,
+            percentage: parseFloat(formData.percentage) || 80.0,
+          }
+        ] : [],
       });
       toast.success(`Employee ${created.fullName} created successfully!`);
       navigate(`/employees/${created._id}`);
@@ -75,7 +133,7 @@ export default function EmployeeCreatePage() {
       <div className="max-w-3xl mx-auto space-y-6">
         {/* Step Indicator */}
         <div className="flex items-center justify-between p-4 bg-ag-surface rounded-xl border border-ag-border mb-6">
-          {[1, 2, 3].map((s) => (
+          {[1, 2, 3, 4, 5].map((s) => (
             <div key={s} className="flex items-center gap-3">
               <div
                 className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm transition-colors ${
@@ -89,7 +147,15 @@ export default function EmployeeCreatePage() {
                 {step > s ? <Check size={18} weight="bold" /> : s}
               </div>
               <span className={`text-xs font-semibold hidden sm:inline ${step === s ? 'text-ag-ink' : 'text-ag-ink-3'}`}>
-                {s === 1 ? 'Personal Info' : s === 2 ? 'Job & Official' : 'Compensation'}
+                {s === 1
+                  ? 'Personal'
+                  : s === 2
+                  ? 'Job & Official'
+                  : s === 3
+                  ? 'Compensation'
+                  : s === 4
+                  ? 'Emergency & Bank'
+                  : 'Education'}
               </span>
             </div>
           ))}
@@ -113,7 +179,7 @@ export default function EmployeeCreatePage() {
                     options={[
                       { value: 'male', label: 'Male' },
                       { value: 'female', label: 'Female' },
-                      { value: 'non_binary', label: 'Non Binary' },
+                      { value: 'other', label: 'Other' },
                     ]}
                   />
                 </div>
@@ -162,6 +228,49 @@ export default function EmployeeCreatePage() {
               </div>
             )}
 
+            {step === 4 && (
+              <div className="space-y-4 animate-fade-in">
+                <h3 className="font-display font-bold text-lg text-ag-ink border-b border-ag-border pb-3">Step 4: Emergency Contacts & Banking Details</h3>
+                <div className="space-y-4">
+                  <h4 className="font-bold text-ag-primary text-sm">Emergency Contact Person</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <Input label="Contact Name" value={formData.emergencyContactName} onChange={e => handleChange('emergencyContactName', e.target.value)} />
+                    <Input label="Relationship" value={formData.emergencyContactRelation} onChange={e => handleChange('emergencyContactRelation', e.target.value)} />
+                    <Input label="Phone Number" value={formData.emergencyContactPhone} onChange={e => handleChange('emergencyContactPhone', e.target.value)} />
+                  </div>
+                </div>
+
+                <div className="space-y-4 pt-4 border-t border-ag-border">
+                  <h4 className="font-bold text-ag-primary text-sm">Bank Account Credentials</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Input label="Bank Name" value={formData.bankName} onChange={e => handleChange('bankName', e.target.value)} />
+                    <Input label="Account Holder Name" value={formData.accountHolderName} onChange={e => handleChange('accountHolderName', e.target.value)} />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <Input label="Account Number" value={formData.accountNumber} onChange={e => handleChange('accountNumber', e.target.value)} />
+                    <Input label="IFSC / SWIFT Code" value={formData.ifscSwiftCode} onChange={e => handleChange('ifscSwiftCode', e.target.value)} />
+                    <Input label="Branch Name" value={formData.branchName} onChange={e => handleChange('branchName', e.target.value)} />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {step === 5 && (
+              <div className="space-y-4 animate-fade-in">
+                <h3 className="font-display font-bold text-lg text-ag-ink border-b border-ag-border pb-3">Step 5: Education Details</h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input label="Degree / Diploma" placeholder="B.E. / B.Sc. / MBA" value={formData.degree} onChange={e => handleChange('degree', e.target.value)} />
+                  <Input label="Field of Study" placeholder="Computer Science / Finance" value={formData.field} onChange={e => handleChange('field', e.target.value)} />
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <Input label="Institution / University" value={formData.institution} onChange={e => handleChange('institution', e.target.value)} />
+                  <Input label="Start Year" type="number" placeholder="2018" value={formData.startYear} onChange={e => handleChange('startYear', e.target.value)} />
+                  <Input label="End Year" type="number" placeholder="2022" value={formData.endYear} onChange={e => handleChange('endYear', e.target.value)} />
+                </div>
+                <Input label="Percentage / GPA" placeholder="85.5 or 3.8" value={formData.percentage} onChange={e => handleChange('percentage', e.target.value)} />
+              </div>
+            )}
+
             {/* Wizard Navigation */}
             <div className="flex items-center justify-between pt-4 border-t border-ag-border">
               {step > 1 ? (
@@ -170,7 +279,7 @@ export default function EmployeeCreatePage() {
                 </Button>
               ) : <div />}
 
-              {step < 3 ? (
+              {step < 5 ? (
                 <Button type="button" onClick={() => setStep(step + 1)} iconRight={<ArrowRight size={16} />}>
                   Next Step
                 </Button>

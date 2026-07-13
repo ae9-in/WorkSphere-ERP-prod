@@ -19,13 +19,24 @@ interface TabsProps {
 }
 
 export function Tabs({ items, defaultValue, value, onValueChange, className }: TabsProps) {
-  const activeVal = value || defaultValue || items[0]?.id;
+  const [internalValue, setInternalValue] = React.useState(defaultValue || items[0]?.id);
+  
+  const isControlled = value !== undefined;
+  const activeVal = isControlled ? value : internalValue;
+  
+  const handleChange = (val: string) => {
+    if (!isControlled) {
+      setInternalValue(val);
+    }
+    if (onValueChange) {
+      onValueChange(val);
+    }
+  };
 
   return (
     <RadixTabs.Root
       value={activeVal}
-      defaultValue={defaultValue || items[0]?.id}
-      onValueChange={onValueChange}
+      onValueChange={handleChange}
       className={cn('w-full flex flex-col gap-6', className)}
     >
       <RadixTabs.List className="flex items-center gap-2 border-b border-ag-border overflow-x-auto no-scrollbar pb-px">
@@ -51,7 +62,7 @@ export function Tabs({ items, defaultValue, value, onValueChange, className }: T
 
       {items.map((tab) => (
         <RadixTabs.Content key={tab.id} value={tab.id} className="focus:outline-none animate-fade-in">
-          {tab.content}
+          <>{tab.content}</>
         </RadixTabs.Content>
       ))}
     </RadixTabs.Root>

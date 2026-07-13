@@ -19,23 +19,26 @@ const paddingMap = {
 };
 
 export function Card({ children, className, hover = false, padding = 'md', onClick, id }: CardProps) {
-  const Tag = onClick ? motion.div : 'div';
+  const baseClass = cn(
+    'bg-ag-surface border border-ag-border rounded-lg shadow-card',
+    paddingMap[padding],
+    hover && 'transition-all duration-200 cursor-pointer hover:border-ag-border-strong hover:shadow-hover hover:-translate-y-0.5',
+    onClick && 'cursor-pointer',
+    className
+  );
+
+  if (onClick) {
+    return (
+      <motion.div id={id} onClick={onClick} className={baseClass} whileTap={{ scale: 0.99 }}>
+        <>{children}</>
+      </motion.div>
+    );
+  }
 
   return (
-    <Tag
-      id={id}
-      onClick={onClick}
-      className={cn(
-        'bg-ag-surface border border-ag-border rounded-lg shadow-card',
-        paddingMap[padding],
-        hover && 'transition-all duration-200 cursor-pointer hover:border-ag-border-strong hover:shadow-hover hover:-translate-y-0.5',
-        onClick && 'cursor-pointer',
-        className
-      )}
-      {...(onClick ? { whileTap: { scale: 0.99 } } : {})}
-    >
+    <div id={id} className={baseClass}>
       {children}
-    </Tag>
+    </div>
   );
 }
 

@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { PageContainer } from '@/components/layout/PageContainer/PageContainer';
 import { DataTable } from '@/components/ui/Table/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
@@ -16,25 +17,19 @@ import { formatDate } from '@/lib/formatters';
 
 export default function EmployeeListPage() {
   const navigate = useNavigate();
-  const [employees, setEmployees] = useState<EmployeeListItem[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState('all');
   const [page, setPage] = useState(1);
-  const [total, setTotal] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => {
-    async function fetchEmployees() {
-      setIsLoading(true);
-      const res = await employeeService.list({ page, limit: 10, search, status });
-      setEmployees(res.employees);
-      setTotal(res.total);
-      setTotalPages(res.totalPages);
-      setIsLoading(false);
-    }
-    fetchEmployees();
-  }, [page, search, status]);
+  const { data, isLoading } = useQuery({
+    queryKey: ['employees', page, search, status],
+    queryFn: () => employeeService.list({ page, limit: 10, search, status }),
+  });
+
+  const employees = data?.employees || [];
+  const total = data?.total || 0;
+  const totalPages = data?.totalPages || 1;
+
 
   const columns: ColumnDef<EmployeeListItem>[] = [
     {

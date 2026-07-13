@@ -123,6 +123,35 @@ export interface EmergencyContact {
   isPrimary: boolean;
 }
 
+export interface BankAccount {
+  id?: string;
+  bankName: string;
+  accountHolderName: string;
+  accountNumber: string;
+  ifscSwiftCode: string;
+  branchName: string;
+  accountType: string;
+  upiId?: string;
+  isPrimary: boolean;
+}
+
+export interface Skill {
+  id?: string;
+  skillName: string;
+  skillType: string;
+  proficiencyLevel?: string;
+}
+
+export interface Certification {
+  id?: string;
+  certificationName: string;
+  issuingAuthority: string;
+  issueDate?: string;
+  expiryDate?: string;
+  credentialId?: string;
+  credentialUrl?: string;
+}
+
 export interface Employee {
   _id: string;
   employeeId: string;
@@ -135,6 +164,21 @@ export interface Employee {
   experience?: Experience[];
   documents?: EmployeeDocument[];
   emergencyContacts?: EmergencyContact[];
+  bank?: BankAccount[];
+  skills?: Skill[];
+  certifications?: Certification[];
+  curr_line1?: string;
+  curr_line2?: string;
+  curr_city?: string;
+  curr_state?: string;
+  curr_country?: string;
+  curr_pincode?: string;
+  perm_line1?: string;
+  perm_line2?: string;
+  perm_city?: string;
+  perm_state?: string;
+  perm_country?: string;
+  perm_pincode?: string;
   fullName?: string;
   tenure?: number;
   isArchived?: boolean;

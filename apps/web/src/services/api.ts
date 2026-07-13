@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
 
-let apiBaseURL = import.meta.env.VITE_API_URL || '/api';
+let apiBaseURL = process.env.NEXT_PUBLIC_API_URL || '/api';
 if (apiBaseURL !== '/api' && !apiBaseURL.endsWith('/api') && !apiBaseURL.endsWith('/api/')) {
   apiBaseURL = apiBaseURL.replace(/\/$/, '') + '/api';
 }
@@ -27,10 +27,67 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// ── Response Interceptor — handle 401 ─────────
+// Helper to recursively inject legacy _id field wherever id field exists
+function injectLegacyIds(data: any): any {
+  if (data === null || typeof data !== 'object') {
+    return data;
+  }
+  
+  // Safety check: only traverse plain objects or arrays (not Blobs, Files, etc.)
+  const proto = Object.getPrototypeOf(data);
+  if (proto !== Object.prototype && proto !== Array.prototype) {
+    return data;
+  }
+  
+  if (Array.isArray(data)) {
+    return data.map(injectLegacyIds);
+  }
+  
+  const obj: any = {};
+  for (const key in data) {
+    if (Object.prototype.hasOwnProperty.call(data, key)) {
+      obj[key] = injectLegacyIds(data[key]);
+    }
+  }
+  
+  // Inject legacy _id if id exists and _id does not
+  if (obj.id && !obj._id) {
+    obj._id = obj.id;
+  }
+  
+  // Inject standard id if _id exists and id does not
+  if (obj._id && !obj.id) {
+    obj.id = obj._id;
+  }
+  
+  return obj;
+}
+
+// ── Response Interceptor — handle 401 & Inject _id ─────────
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    if (response.data) {
+      response.data = injectLegacyIds(response.data);
+    }
+    return response;
+  },
   async (error) => {
+    // Format Pydantic validation error objects into clean, readable strings
+    if (error.response?.data) {
+      const data = error.response.data;
+      if (Array.isArray(data.detail)) {
+        const formatted = data.detail
+          .map((err: any) => {
+            const path = Array.isArray(err.loc) ? err.loc.filter((l: any) => l !== 'body' && l !== 'query').join('.') : '';
+            return path ? `${path}: ${err.msg}` : err.msg;
+          })
+          .join(', ');
+        data.detail = formatted || 'Validation error';
+      } else if (typeof data.detail === 'object' && data.detail !== null) {
+        data.detail = (data.detail as any).msg || JSON.stringify(data.detail);
+      }
+    }
+
     const originalRequest = error.config;
 
     const isAuthRequest = originalRequest.url?.includes('/auth/login') || originalRequest.url?.includes('/auth/refresh');

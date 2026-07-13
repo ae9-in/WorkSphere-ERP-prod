@@ -160,7 +160,7 @@ export default function SettingsPage() {
             <div className="mt-4">
               <Button
                 onClick={handleInitialize}
-                isLoading={saving}
+                loading={saving}
                 icon={<Rocket size={18} />}
               >
                 Initialize Company Defaults
@@ -188,7 +188,7 @@ export default function SettingsPage() {
               </label>
             </div>
             <div className="mt-5 flex justify-end">
-              <Button onClick={() => toast.success('Payroll rules saved')} isLoading={saving}>
+              <Button onClick={() => toast.success('Payroll rules saved')} loading={saving}>
                 Save Rules
               </Button>
             </div>
@@ -399,7 +399,7 @@ export default function SettingsPage() {
             <div className="flex justify-end">
               <Button
                 onClick={() => toast.success('Security settings saved')}
-                isLoading={saving}
+                loading={saving}
               >
                 Save Security Settings
               </Button>

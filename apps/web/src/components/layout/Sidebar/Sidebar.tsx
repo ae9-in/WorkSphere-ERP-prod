@@ -4,10 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useUIStore } from '@/store/uiStore';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/ui/Avatar/Avatar';
+import { Logo } from '@/components/ui/Logo/Logo';
 import {
   House, Users, Rocket, SignOut, CurrencyInr,
   CalendarCheck, ChartBar, CheckSquare, Bell, Gear, ShieldCheck,
-  CaretLeft, CaretRight, UserPlus, FileText, FolderOpen, Laptop, CalendarBlank
+  CaretLeft, CaretRight, UserPlus, FileText, FolderOpen, Laptop, CalendarBlank, Briefcase, Target, GraduationCap, Chats, Headset, Package, Factory, Wrench, Truck
 } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 import { approvalsService } from '@/services/api.service';
@@ -40,6 +41,15 @@ const navSections: NavSection[] = [
       { label: 'Attendance',  icon: <CalendarCheck size={20} />, href: '/attendance' },
       { label: 'Documents',   icon: <FolderOpen size={20} />,    href: '/documents' },
       { label: 'Assets',      icon: <Laptop size={20} />,        href: '/assets' },
+      { label: 'Inventory',   icon: <Package size={20} />,       href: '/inventory' },
+      { label: 'Manufacturing', icon: <Factory size={20} />,      href: '/manufacturing' },
+      { label: 'Maintenance', icon: <Wrench size={20} />,        href: '/maintenance' },
+      { label: 'Supply Chain', icon: <Truck size={20} />,        href: '/supply-chain' },
+      { label: 'Recruitment', icon: <Briefcase size={20} />,     href: '/recruitment' },
+      { label: 'Performance', icon: <Target size={20} />,        href: '/performance' },
+      { label: 'LMS',         icon: <GraduationCap size={20} />, href: '/lms' },
+      { label: 'Feeds',       icon: <Chats size={20} />,         href: '/community' },
+      { label: 'Helpdesk',    icon: <Headset size={20} />,      href: '/helpdesk' },
     ],
   },
   {
@@ -93,19 +103,7 @@ export function Sidebar() {
       {/* Top Logo Header */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-ag-border flex-shrink-0">
         <Link to="/" className="flex items-center gap-3 overflow-hidden">
-          <div className="w-9 h-9 rounded-xl bg-ag-primary flex items-center justify-center text-white font-display font-bold text-base flex-shrink-0 shadow-sm">
-            WS
-          </div>
-          {!sidebarCollapsed && (
-            <motion.span
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="font-display font-extrabold text-lg text-ag-ink whitespace-nowrap tracking-tight"
-            >
-              WorkSphere
-            </motion.span>
-          )}
+          <Logo showText={!sidebarCollapsed} size={30} />
         </Link>
         {!sidebarCollapsed && (
           <button

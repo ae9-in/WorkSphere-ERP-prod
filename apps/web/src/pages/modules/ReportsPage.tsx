@@ -3,56 +3,117 @@ import { PageContainer } from '@/components/layout/PageContainer/PageContainer';
 import { Card, CardHeader } from '@/components/ui/Card/Card';
 import { Button } from '@/components/ui/Button/Button';
 import { reportService } from '@/services/api.service';
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell } from 'recharts';
+import {
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid,
+  PieChart, Pie, Cell, LineChart, Line, AreaChart, Area, Legend
+} from 'recharts';
 import { formatCurrency } from '@/lib/formatters';
 import { DataTable } from '@/components/ui/Table/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
-import { ArrowsClockwise, Download, SquaresFour, Sliders } from '@phosphor-icons/react';
+import {
+  ArrowsClockwise, Download, SquaresFour, Sliders,
+  ChartBar, ChartPie, Buildings, Users, CurrencyInr,
+  CalendarCheck, Clock, TrendUp, Warning
+} from '@phosphor-icons/react';
 import { toast } from 'sonner';
 
-export default function ReportsPage() {
-  const [activeTab, setActiveTab] = useState<'analytics' | 'custom'>('analytics');
-  const [headcount, setHeadcount] = useState<any[]>([]);
-  const [diversity, setDiversity] = useState<any[]>([]);
-  const [statutory, setStatutory] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(true);
+// ── Colors & constants ────────────────────────────────────────
+const CHART_COLORS = ['#5B3CF5', '#00C48C', '#FFBB28', '#FF8042', '#AF19FF', '#00B4D8'];
 
-  // Custom Report Builder state
+type DashboardTab = 'executive' | 'hr' | 'payroll' | 'custom';
+
+// ── Small KPI card ────────────────────────────────────────────
+function KPICard({ label, value, sub, icon, color = 'text-ag-primary' }: {
+  label: string; value: string | number; sub?: string; icon: React.ReactNode; color?: string;
+}) {
+  return (
+    <Card className="p-5 flex gap-4 items-start">
+      <div className="w-10 h-10 rounded-xl bg-ag-primary/10 flex items-center justify-center shrink-0 text-ag-primary">
+        {icon}
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-semibold text-ag-ink-3 uppercase tracking-wider truncate">{label}</p>
+        <p className={`text-2xl font-black mt-0.5 ${color}`}>{value}</p>
+        {sub && <p className="text-[10px] text-ag-ink-3 mt-0.5">{sub}</p>}
+      </div>
+    </Card>
+  );
+}
+
+// ── Chart helpers ─────────────────────────────────────────────
+function EmptyChart({ label }: { label: string }) {
+  return (
+    <div className="h-64 flex items-center justify-center text-xs text-ag-ink-3 text-center">
+      <div>
+        <ChartBar size={36} className="mx-auto mb-2 opacity-20" />
+        <p>{label}</p>
+      </div>
+    </div>
+  );
+}
+
+// ══════════════════════════════════════════════════════════════
+export default function ReportsPage() {
+  const [activeTab, setActiveTab] = useState<DashboardTab>('executive');
+  const [loading, setLoading] = useState(false);
+
+  // Executive tab state
+  const [execSummary, setExecSummary] = useState<any>(null);
+  const [workforceGrowth, setWorkforceGrowth] = useState<any[]>([]);
+
+  // HR tab state
+  const [hrDashboard, setHrDashboard] = useState<any>(null);
+  const [attendanceTrends, setAttendanceTrends] = useState<any[]>([]);
+  const [diversity, setDiversity] = useState<any[]>([]);
+
+  // Payroll tab state
+  const [payrollTrends, setPayrollTrends] = useState<any[]>([]);
+  const [deptStats, setDeptStats] = useState<any[]>([]);
+  const [statutory, setStatutory] = useState<any>(null);
+
+  // Custom report builder state
   const [customEntity, setCustomEntity] = useState('employee');
   const [customColumns, setCustomColumns] = useState<string[]>(['fullName', 'employeeId', 'official.status']);
   const [customResults, setCustomResults] = useState<any[]>([]);
   const [customLoading, setCustomLoading] = useState(false);
 
-  const fetchReports = useCallback(async () => {
-    setIsLoading(true);
+  // ── Data fetch ─────────────────────────────────────────────
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
     try {
-      const [hc, div, stat] = await Promise.all([
-        reportService.getHeadcount('department'),
+      const [exec, growth, hr, attn, div, payTrend, dept, stat] = await Promise.allSettled([
+        reportService.getExecutiveSummary(),
+        reportService.getWorkforceGrowth(),
+        reportService.getHRDashboard(),
+        reportService.getAttendanceTrends(),
         reportService.getDiversity(),
-        reportService.getStatutory()
+        reportService.getPayrollTrends(),
+        reportService.getDepartmentStats(),
+        reportService.getStatutory(),
       ]);
-      setHeadcount(hc);
-      setDiversity(div);
-      setStatutory(stat);
+
+      if (exec.status === 'fulfilled') setExecSummary(exec.value);
+      if (growth.status === 'fulfilled') setWorkforceGrowth(growth.value ?? []);
+      if (hr.status === 'fulfilled') setHrDashboard(hr.value);
+      if (attn.status === 'fulfilled') setAttendanceTrends(attn.value ?? []);
+      if (div.status === 'fulfilled') setDiversity(div.value ?? []);
+      if (payTrend.status === 'fulfilled') setPayrollTrends(payTrend.value ?? []);
+      if (dept.status === 'fulfilled') setDeptStats(dept.value ?? []);
+      if (stat.status === 'fulfilled') setStatutory(stat.value);
     } catch {
-      toast.error('Failed to load compliance report charts');
+      toast.error('Failed to load analytics data');
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    fetchReports();
-  }, [fetchReports]);
+  useEffect(() => { fetchAll(); }, [fetchAll]);
 
+  // ── Custom report ──────────────────────────────────────────
   const handleRunCustom = async () => {
     setCustomLoading(true);
     try {
-      const data = await reportService.runCustom({
-        entity: customEntity,
-        columns: customColumns,
-        filters: []
-      });
+      const data = await reportService.runCustom({ entity: customEntity, columns: customColumns, filters: [] });
       setCustomResults(data);
       toast.success(`Loaded ${data.length} records`);
     } catch {
@@ -67,166 +128,160 @@ export default function ReportsPage() {
     const headers = customColumns.join(',');
     const rows = customResults.map((r: any) =>
       customColumns.map((col) => {
-        // Resolve nested paths (e.g. official.status)
         const parts = col.split('.');
-        let val = r;
-        for (const p of parts) {
-          val = val?.[p];
-        }
+        let val: any = r;
+        for (const p of parts) val = val?.[p];
         return `"${val ?? ''}"`;
       }).join(',')
     );
-    const csvContent = "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `custom_report_${customEntity}.csv`);
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers, ...rows].join('\n');
+    const link = document.createElement('a');
+    link.setAttribute('href', encodeURI(csvContent));
+    link.setAttribute('download', `custom_report_${customEntity}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  const COLORS = ['#5B3CF5', '#00C48C', '#FFBB28', '#FF8042', '#AF19FF'];
+  const entitiesList = [
+    { value: 'employee', label: 'Employee Profile Registry', fields: ['fullName', 'employeeId', 'official.status', 'official.workEmail', 'official.employeeType'] },
+    { value: 'payslip', label: 'Statutory Payroll Payslips', fields: ['employeeId', 'status', 'pay_period', 'gross_salary', 'net_salary'] },
+    { value: 'leave', label: 'Leave Applications List', fields: ['employeeId', 'days', 'status', 'from_date', 'to_date', 'reason'] },
+    { value: 'attendance', label: 'Daily Attendance Logs', fields: ['employeeId', 'date', 'check_in_time', 'check_out_time', 'status'] }
+  ];
 
   const columns: ColumnDef<any>[] = customColumns.map((col) => ({
     accessorKey: col,
-    header: col.replace('official.', '').replace('personal.', '').replace('totals.', '').toUpperCase(),
+    header: col.replace(/official\.|personal\.|totals\./, '').toUpperCase(),
     cell: ({ row }) => {
       const parts = col.split('.');
-      let val = row.original;
-      for (const p of parts) {
-        val = val?.[p];
-      }
-      return typeof val === 'number' && col.includes('amount') || col.includes('Price') || col.includes('gross') || col.includes('net') ? (
-        <span className="font-mono text-sm">{formatCurrency(val)}</span>
-      ) : (
-        <span className="text-xs text-ag-ink-2">{String(val ?? '—')}</span>
-      );
+      let val: any = row.original;
+      for (const p of parts) val = val?.[p];
+      return <span className="text-xs text-ag-ink-2">{String(val ?? '—')}</span>;
     }
   }));
 
-  const entitiesList = [
-    { value: 'employee', label: 'Employee Profile Registry', fields: ['fullName', 'employeeId', 'official.status', 'official.workEmail', 'official.employeeType'] },
-    { value: 'payslip', label: 'Statutory Payroll Payslips', fields: ['employeeSnapshot.fullName', 'employeeId', 'totals.gross', 'totals.deductions', 'totals.net'] },
-    { value: 'leave', label: 'Leave Applications List', fields: ['employeeId', 'days', 'status', 'from', 'to', 'reason'] },
-    { value: 'attendance', label: 'Daily Attendance Logs', fields: ['employeeId', 'fullName', 'date', 'checkIn', 'checkOut', 'status'] }
+  // ── Tabs config ────────────────────────────────────────────
+  const TABS: { id: DashboardTab; label: string; icon: React.ReactNode }[] = [
+    { id: 'executive', label: 'Executive Dashboard', icon: <TrendUp size={16} /> },
+    { id: 'hr',        label: 'HR Analytics',        icon: <Users size={16} /> },
+    { id: 'payroll',   label: 'Payroll & Compliance', icon: <CurrencyInr size={16} /> },
+    { id: 'custom',    label: 'Custom Builder',       icon: <Sliders size={16} /> },
   ];
 
+  // ── Render ─────────────────────────────────────────────────
   return (
     <PageContainer
-      title="Reports & Statutory Analytics"
-      subtitle="Run real-time headcount queries, audit tax challans and compile custom column reports."
+      title="Reporting & Analytics"
+      subtitle="Organization-wide visibility across workforce, attendance, payroll, and compliance metrics."
       actions={
         <div className="flex items-center gap-3">
-          <Button variant="secondary" onClick={fetchReports} icon={<ArrowsClockwise size={18} />}>
+          <Button variant="secondary" onClick={fetchAll} icon={<ArrowsClockwise size={18} />} loading={loading}>
             Refresh
           </Button>
         </div>
       }
     >
-      {/* Tabs Menu */}
-      <div className="flex gap-2 p-1 bg-ag-surface-2 rounded-xl w-fit border border-ag-border mb-8">
-        <button
-          onClick={() => setActiveTab('analytics')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-            activeTab === 'analytics' ? 'bg-ag-primary text-white shadow' : 'text-ag-ink-3 hover:text-ag-ink'
-          }`}
-        >
-          <SquaresFour size={18} />
-          Compliance Dashboards
-        </button>
-        <button
-          onClick={() => setActiveTab('custom')}
-          className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-            activeTab === 'custom' ? 'bg-ag-primary text-white shadow' : 'text-ag-ink-3 hover:text-ag-ink'
-          }`}
-        >
-          <Sliders size={18} />
-          Custom Report Builder
-        </button>
+      {/* Tab Bar */}
+      <div className="flex gap-2 p-1 bg-ag-surface-2 rounded-xl w-fit border border-ag-border mb-8 flex-wrap">
+        {TABS.map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+              activeTab === tab.id ? 'bg-ag-primary text-white shadow' : 'text-ag-ink-3 hover:text-ag-ink'
+            }`}
+          >
+            {tab.icon}
+            {tab.label}
+          </button>
+        ))}
       </div>
 
-      {activeTab === 'analytics' && (
+      {/* ── EXECUTIVE DASHBOARD ────────────────────────────── */}
+      {activeTab === 'executive' && (
         <div className="space-y-8">
-          {/* Statutory Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <Card className="p-5 flex flex-col justify-between">
-              <div>
-                <p className="text-xs text-ag-ink-3 uppercase font-semibold tracking-wider">Provident Fund (PF) Challan Liability</p>
-                <h3 className="text-2xl font-bold font-display text-ag-ink mt-2">
-                  {isLoading ? '—' : formatCurrency(statutory?.pfChallan ?? 0)}
-                </h3>
-              </div>
-              <p className="text-xs text-[#00875A] font-semibold mt-4">Form 12A compliant filings</p>
-            </Card>
-
-            <Card className="p-5 flex flex-col justify-between">
-              <div>
-                <p className="text-xs text-ag-ink-3 uppercase font-semibold tracking-wider">ESI Contribution Liability</p>
-                <h3 className="text-2xl font-bold font-display text-ag-ink mt-2">
-                  {isLoading ? '—' : formatCurrency(statutory?.esiChallan ?? 0)}
-                </h3>
-              </div>
-              <p className="text-xs text-ag-ink-3 mt-4">Statutory ESIC monthly ledger</p>
-            </Card>
-
-            <Card className="p-5 flex flex-col justify-between">
-              <div>
-                <p className="text-xs text-ag-ink-3 uppercase font-semibold tracking-wider">Total Statutory Obligations</p>
-                <h3 className="text-2xl font-bold font-display text-ag-primary mt-2">
-                  {isLoading ? '—' : formatCurrency(statutory?.totalStatutory ?? 0)}
-                </h3>
-              </div>
-              <p className="text-xs text-ag-ink-3 mt-4">All statutory deductors summed</p>
-            </Card>
+          {/* KPI Cards */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <KPICard
+              label="Total Active Employees"
+              value={loading ? '—' : (execSummary?.totalEmployees ?? 0)}
+              sub={`+${execSummary?.newJoiners30d ?? 0} new this month`}
+              icon={<Users size={20} />}
+            />
+            <KPICard
+              label="Monthly Payroll Gross"
+              value={loading ? '—' : formatCurrency(execSummary?.monthlyPayrollGross ?? 0)}
+              sub={`Net: ${formatCurrency(execSummary?.monthlyPayrollNet ?? 0)}`}
+              icon={<CurrencyInr size={20} />}
+              color="text-green-600"
+            />
+            <KPICard
+              label="Leave Utilization"
+              value={loading ? '—' : `${execSummary?.leaveUtilizationPct ?? 0}%`}
+              sub="Approved leaves this month"
+              icon={<CalendarCheck size={20} />}
+              color="text-yellow-600"
+            />
+            <KPICard
+              label="Pending Approvals"
+              value={loading ? '—' : (execSummary?.pendingApprovals ?? 0)}
+              sub="Workflow items awaiting action"
+              icon={<Clock size={20} />}
+              color={execSummary?.pendingApprovals > 5 ? 'text-red-600' : 'text-ag-ink'}
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Department Headcount */}
+            {/* Workforce Growth */}
             <Card>
-              <CardHeader title="Headcount Distribution" subtitle="Active employees grouped by department." />
-              <div className="h-72 p-4">
-                {isLoading ? (
-                  <p className="text-ag-ink-3">Loading distribution chart...</p>
-                ) : headcount.length === 0 ? (
-                  <p className="text-ag-ink-3 text-center pt-24">No data available. Initialize employees to view chart.</p>
+              <CardHeader title="Workforce Growth Trend" subtitle="Cumulative headcount over the last 6 months." />
+              <div className="h-64 p-4">
+                {loading || workforceGrowth.length === 0 ? (
+                  <EmptyChart label="No workforce growth data. Add employees to see trends." />
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={headcount}>
+                    <AreaChart data={workforceGrowth}>
+                      <defs>
+                        <linearGradient id="growthGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#5B3CF5" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#5B3CF5" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#EDE8FF" />
-                      <XAxis dataKey="_id" stroke="#1A1433" fontSize={11} />
-                      <YAxis stroke="#1A1433" fontSize={11} />
-                      <Tooltip />
-                      <Bar dataKey="count" fill="#5B3CF5" radius={[4, 4, 0, 0]} />
-                    </BarChart>
+                      <XAxis dataKey="month" stroke="#6B7280" fontSize={11} />
+                      <YAxis stroke="#6B7280" fontSize={11} />
+                      <Tooltip formatter={(v: any) => [v, 'Headcount']} />
+                      <Area type="monotone" dataKey="headcount" stroke="#5B3CF5" strokeWidth={2} fill="url(#growthGrad)" />
+                    </AreaChart>
                   </ResponsiveContainer>
                 )}
               </div>
             </Card>
 
-            {/* Gender Diversity */}
+            {/* Employee Type Breakdown */}
             <Card>
-              <CardHeader title="Gender Diversity Ratio" subtitle="Diversity distribution across the workspace." />
-              <div className="h-72 p-4 flex items-center justify-center">
-                {isLoading ? (
-                  <p className="text-ag-ink-3">Loading diversity ratio...</p>
-                ) : diversity.length === 0 ? (
-                  <p className="text-ag-ink-3 text-center">No data available.</p>
+              <CardHeader title="Employment Type Distribution" subtitle="Active workforce by contract type." />
+              <div className="h-64 p-4 flex items-center justify-center">
+                {loading || !execSummary?.employeeTypeBreakdown?.length ? (
+                  <EmptyChart label="No employee type data available." />
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
-                        data={diversity}
+                        data={execSummary.employeeTypeBreakdown}
                         cx="50%"
                         cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        paddingAngle={5}
+                        innerRadius={55}
+                        outerRadius={85}
+                        paddingAngle={4}
                         dataKey="count"
-                        nameKey="_id"
+                        nameKey="type"
+                        label={({ type, percent }) => `${type} ${(percent * 100).toFixed(0)}%`}
+                        labelLine={false}
                       >
-                        {diversity.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                        {execSummary.employeeTypeBreakdown.map((_: any, index: number) => (
+                          <Cell key={`cell-${index}`} fill={CHART_COLORS[index % CHART_COLORS.length]} />
                         ))}
                       </Pie>
                       <Tooltip />
@@ -239,16 +294,236 @@ export default function ReportsPage() {
         </div>
       )}
 
+      {/* ── HR ANALYTICS ──────────────────────────────────── */}
+      {activeTab === 'hr' && (
+        <div className="space-y-8">
+          {/* Upcoming Events */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="p-5">
+              <h3 className="font-bold text-sm text-ag-ink mb-3">🎂 Upcoming Birthdays (7 days)</h3>
+              {loading ? <p className="text-xs text-ag-ink-3">Loading...</p> : (
+                (hrDashboard?.upcomingBirthdays?.length ?? 0) === 0 ? (
+                  <p className="text-xs text-ag-ink-3">No birthdays in the next 7 days.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {hrDashboard?.upcomingBirthdays?.map((b: any, i: number) => (
+                      <div key={i} className="flex justify-between items-center text-xs py-1 border-b border-ag-border last:border-0">
+                        <div>
+                          <p className="font-semibold text-ag-ink">{b.name}</p>
+                          <p className="text-ag-ink-3">{b.department}</p>
+                        </div>
+                        <span className="text-ag-primary font-mono">{b.date?.slice(5, 10)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )
+              )}
+            </Card>
+
+            <Card className="p-5">
+              <h3 className="font-bold text-sm text-ag-ink mb-3">🏆 Work Anniversaries (7 days)</h3>
+              {loading ? <p className="text-xs text-ag-ink-3">Loading...</p> : (
+                (hrDashboard?.upcomingAnniversaries?.length ?? 0) === 0 ? (
+                  <p className="text-xs text-ag-ink-3">No anniversaries in the next 7 days.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {hrDashboard?.upcomingAnniversaries?.map((a: any, i: number) => (
+                      <div key={i} className="flex justify-between items-center text-xs py-1 border-b border-ag-border last:border-0">
+                        <div>
+                          <p className="font-semibold text-ag-ink">{a.name}</p>
+                          <p className="text-ag-ink-3">{a.department}</p>
+                        </div>
+                        <span className="text-ag-primary font-mono">{a.date?.slice(0, 10)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )
+              )}
+            </Card>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <KPICard
+              label="Exits in Last 30 Days"
+              value={loading ? '—' : (hrDashboard?.exits30d ?? 0)}
+              sub="Resigned or terminated employees"
+              icon={<Warning size={20} />}
+              color="text-red-600"
+            />
+            <KPICard
+              label="Pending Leave Approvals"
+              value={loading ? '—' : (hrDashboard?.leavePendingApprovals ?? 0)}
+              sub="Awaiting manager/HR action"
+              icon={<CalendarCheck size={20} />}
+              color="text-yellow-600"
+            />
+            <KPICard
+              label="Gender Diversity"
+              value={loading ? '—' : `${diversity.length} groups`}
+              sub="Across active workforce"
+              icon={<Users size={20} />}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* 6-month Attendance Trends */}
+            <Card>
+              <CardHeader title="6-Month Attendance Trend" subtitle="Monthly breakdown of attendance statuses." />
+              <div className="h-64 p-4">
+                {loading || attendanceTrends.length === 0 ? (
+                  <EmptyChart label="No attendance records. Submit attendance to see monthly trends." />
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={attendanceTrends}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#EDE8FF" />
+                      <XAxis dataKey="month" fontSize={11} />
+                      <YAxis fontSize={11} />
+                      <Tooltip />
+                      <Legend />
+                      <Bar dataKey="present" fill="#00C48C" name="Present" radius={[2, 2, 0, 0]} />
+                      <Bar dataKey="absent"  fill="#FF8042" name="Absent"  radius={[2, 2, 0, 0]} />
+                      <Bar dataKey="leave"   fill="#FFBB28" name="Leave"   radius={[2, 2, 0, 0]} />
+                      <Bar dataKey="wfh"     fill="#5B3CF5" name="WFH"     radius={[2, 2, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </Card>
+
+            {/* Gender Diversity */}
+            <Card>
+              <CardHeader title="Gender Diversity" subtitle="Ratio across the active workforce." />
+              <div className="h-64 p-4 flex items-center justify-center">
+                {loading || diversity.length === 0 ? (
+                  <EmptyChart label="No diversity data. Employee gender info required." />
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={diversity}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={55}
+                        outerRadius={85}
+                        paddingAngle={4}
+                        dataKey="count"
+                        nameKey="_id"
+                        label={({ _id, percent }: any) => `${_id} ${(percent * 100).toFixed(0)}%`}
+                        labelLine={false}
+                      >
+                        {diversity.map((_, index) => (
+                          <Cell key={index} fill={CHART_COLORS[index % CHART_COLORS.length]} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* ── PAYROLL & COMPLIANCE ──────────────────────────── */}
+      {activeTab === 'payroll' && (
+        <div className="space-y-8">
+          {/* Statutory KPI Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <KPICard
+              label="PF Challan Liability"
+              value={loading ? '—' : formatCurrency(statutory?.pfChallan ?? 0)}
+              sub="Form 12A compliant"
+              icon={<Buildings size={20} />}
+            />
+            <KPICard
+              label="ESI Contribution"
+              value={loading ? '—' : formatCurrency(statutory?.esiChallan ?? 0)}
+              sub="Monthly ESIC ledger"
+              icon={<Buildings size={20} />}
+              color="text-green-600"
+            />
+            <KPICard
+              label="Total Statutory"
+              value={loading ? '—' : formatCurrency(statutory?.totalStatutory ?? 0)}
+              sub="All statutory deductors"
+              icon={<CurrencyInr size={20} />}
+              color="text-ag-primary"
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Payroll Trend */}
+            <Card>
+              <CardHeader title="Monthly Payroll Trend" subtitle="Gross payroll disbursement over last 6 payroll cycles." />
+              <div className="h-64 p-4">
+                {loading || payrollTrends.length === 0 ? (
+                  <EmptyChart label="No completed payroll runs found. Run payroll to see trends." />
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={payrollTrends}>
+                      <defs>
+                        <linearGradient id="payrollGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#00C48C" stopOpacity={0.3} />
+                          <stop offset="95%" stopColor="#00C48C" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#EDE8FF" />
+                      <XAxis dataKey="month" fontSize={11} />
+                      <YAxis fontSize={11} tickFormatter={(v) => `₹${(v / 100000).toFixed(1)}L`} />
+                      <Tooltip formatter={(v: any) => [formatCurrency(v), 'Gross Payroll']} />
+                      <Area type="monotone" dataKey="totalGross" stroke="#00C48C" strokeWidth={2} fill="url(#payrollGrad)" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                )}
+              </div>
+            </Card>
+
+            {/* Department Stats table */}
+            <Card>
+              <CardHeader title="Department Statistics" subtitle="Headcount, average CTC, and leave days per department." />
+              <div className="overflow-auto max-h-64 p-2">
+                {loading || deptStats.length === 0 ? (
+                  <EmptyChart label="No department data available." />
+                ) : (
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-ag-border">
+                        <th className="text-left py-2 px-3 font-bold text-ag-ink-2">Department</th>
+                        <th className="text-right py-2 px-3 font-bold text-ag-ink-2">Headcount</th>
+                        <th className="text-right py-2 px-3 font-bold text-ag-ink-2">Avg CTC</th>
+                        <th className="text-right py-2 px-3 font-bold text-ag-ink-2">Leave Days</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {deptStats.map((d: any, i: number) => (
+                        <tr key={i} className="border-b border-ag-border/50 hover:bg-ag-surface-2/50 transition-colors">
+                          <td className="py-2 px-3 font-semibold text-ag-ink">{d.department}</td>
+                          <td className="py-2 px-3 text-right text-ag-ink-2">{d.headcount}</td>
+                          <td className="py-2 px-3 text-right font-mono text-ag-ink-2">{formatCurrency(d.avgCTC)}</td>
+                          <td className="py-2 px-3 text-right text-ag-ink-2">{d.totalLeaveDays}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                )}
+              </div>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {/* ── CUSTOM REPORT BUILDER ─────────────────────────── */}
       {activeTab === 'custom' && (
         <div className="space-y-6">
           <Card>
-            <CardHeader title="Build Custom Report Columns" subtitle="Pick target dataset and column attributes to export CSV data." />
+            <CardHeader title="Build Custom Report" subtitle="Pick a dataset and column attributes, then export CSV data." />
             <div className="p-5 grid grid-cols-1 md:grid-cols-4 gap-6">
               {/* Dataset Select */}
               <div className="space-y-2">
                 <label className="block text-xs font-bold text-ag-ink uppercase tracking-wider">Target Dataset</label>
                 <select
-                  className="w-full h-10 px-3 bg-ag-surface border border-ag-border rounded-lg text-sm text-ag-ink focus:outline-none"
+                  className="w-full h-10 px-3 bg-ag-surface border border-ag-border rounded-lg text-sm text-ag-ink focus:outline-none focus:border-ag-primary"
                   value={customEntity}
                   onChange={(e) => {
                     setCustomEntity(e.target.value);
@@ -289,7 +564,7 @@ export default function ReportsPage() {
 
               {/* Buttons */}
               <div className="flex items-end gap-3">
-                <Button className="w-full h-10" onClick={handleRunCustom} isLoading={customLoading}>
+                <Button className="w-full h-10" onClick={handleRunCustom} loading={customLoading}>
                   Run Report
                 </Button>
                 {customResults.length > 0 && (
@@ -301,7 +576,7 @@ export default function ReportsPage() {
 
           {customResults.length > 0 && (
             <Card>
-              <CardHeader title="Report Query Results" subtitle={`Found ${customResults.length} records matching column query.`} />
+              <CardHeader title="Query Results" subtitle={`Found ${customResults.length} records.`} />
               <DataTable
                 columns={columns}
                 data={customResults}

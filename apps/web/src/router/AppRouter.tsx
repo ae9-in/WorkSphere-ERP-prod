@@ -5,48 +5,48 @@ import { routes } from './routes';
 import { AppShell } from '@/components/layout/AppShell/AppShell';
 
 // ── Lazy-loaded pages ─────────────────────────
-const LandingPage        = lazy(() => import('@/pages/marketing/LandingPage'));
-const HRModulesPage      = lazy(() => import('@/pages/marketing/HRModulesPage'));
-const CompanyPage        = lazy(() => import('@/pages/marketing/CompanyPage'));
-const LoginPage          = lazy(() => import('@/pages/auth/LoginPage'));
-const AdminLoginPage     = lazy(() => import('@/pages/auth/AdminLoginPage'));
-const EmployeeLoginPage  = lazy(() => import('@/pages/auth/EmployeeLoginPage'));
-const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage'));
-const SignUpPage         = lazy(() => import('@/pages/auth/SignUpPage'));
-const WorkspaceSetupPage = lazy(() => import('@/pages/auth/WorkspaceSetupPage'));
-const ForgotPasswordPage = lazy(() => import('@/pages/auth/ForgotPasswordPage'));
-const MFAPage            = lazy(() => import('@/pages/auth/MFAPage'));
-const DashboardPage      = lazy(() => import('@/pages/dashboard/DashboardPage'));
-const EmployeeListPage   = lazy(() => import('@/pages/employees/EmployeeListPage'));
-const EmployeeProfilePage= lazy(() => import('@/pages/employees/EmployeeProfilePage'));
-const EmployeeCreatePage = lazy(() => import('@/pages/employees/EmployeeCreatePage'));
+const LandingPage        = lazy(() => import('@/views/marketing/LandingPage'));
+const HRModulesPage      = lazy(() => import('@/views/marketing/HRModulesPage'));
+const CompanyPage        = lazy(() => import('@/views/marketing/CompanyPage'));
+const LoginPage          = lazy(() => import('@/views/auth/LoginPage'));
+const AdminLoginPage     = lazy(() => import('@/views/auth/AdminLoginPage'));
+const EmployeeLoginPage  = lazy(() => import('@/views/auth/EmployeeLoginPage'));
+const AdminDashboardPage = lazy(() => import('@/views/admin/AdminDashboardPage'));
+const SignUpPage         = lazy(() => import('@/views/auth/SignUpPage'));
+const WorkspaceSetupPage = lazy(() => import('@/views/auth/WorkspaceSetupPage'));
+const ForgotPasswordPage = lazy(() => import('@/views/auth/ForgotPasswordPage'));
+const MFAPage            = lazy(() => import('@/views/auth/MFAPage'));
+const DashboardPage      = lazy(() => import('@/views/dashboard/DashboardPage'));
+const EmployeeListPage   = lazy(() => import('@/views/employees/EmployeeListPage'));
+const EmployeeProfilePage= lazy(() => import('@/views/employees/EmployeeProfilePage'));
+const EmployeeCreatePage = lazy(() => import('@/views/employees/EmployeeCreatePage'));
 
 // Real Notifications Page
-const NotificationsPage = lazy(() => import('@/pages/modules/NotificationsPage'));
+const NotificationsPage = lazy(() => import('@/views/modules/NotificationsPage'));
 
 // Modular pages
-const OnboardingPage  = lazy(() => import('@/pages/modules/OnboardingPage'));
-const OnboardingWizardPage = lazy(() => import('@/pages/modules/OnboardingWizardPage'));
-const OffboardingPage = lazy(() => import('@/pages/modules/OffboardingPage'));
-const PayrollPage     = lazy(() => import('@/pages/modules/PayrollPage'));
-const AttendancePage  = lazy(() => import('@/pages/modules/AttendancePage'));
-const ReportsPage     = lazy(() => import('@/pages/modules/ReportsPage'));
-const ApprovalsPage   = lazy(() => import('@/pages/modules/ApprovalsPage'));
-const SettingsPage    = lazy(() => import('@/pages/modules/SettingsPage'));
-const LeavePage       = lazy(() => import('@/pages/modules/LeavePage'));
-const DocumentsPage   = lazy(() => import('@/pages/modules/DocumentsPage'));
-const AssetPage       = lazy(() => import('@/pages/modules/AssetPage'));
-const InventoryPage   = lazy(() => import('@/pages/modules/InventoryPage'));
-const ManufacturingPage = lazy(() => import('@/pages/modules/ManufacturingPage'));
-const MaintenancePage = lazy(() => import('@/pages/modules/MaintenancePage'));
-const SupplyChainPage = lazy(() => import('@/pages/modules/SupplyChainPage'));
-const AuditPage       = lazy(() => import('@/pages/modules/AuditPage'));
-const RecruitmentPage = lazy(() => import('@/pages/modules/RecruitmentPage'));
-const CandidateProfilePage = lazy(() => import('@/pages/modules/CandidateProfilePage'));
-const PerformancePage = lazy(() => import('@/pages/modules/PerformancePage'));
-const LMSPage = lazy(() => import('@/pages/modules/LMSPage'));
-const CommunityPage = lazy(() => import('@/pages/modules/CommunityPage'));
-const HelpdeskPage = lazy(() => import('@/pages/modules/HelpdeskPage'));
+const OnboardingPage  = lazy(() => import('@/views/modules/OnboardingPage'));
+const OnboardingWizardPage = lazy(() => import('@/views/modules/OnboardingWizardPage'));
+const OffboardingPage = lazy(() => import('@/views/modules/OffboardingPage'));
+const PayrollPage     = lazy(() => import('@/views/modules/PayrollPage'));
+const AttendancePage  = lazy(() => import('@/views/modules/AttendancePage'));
+const ReportsPage     = lazy(() => import('@/views/modules/ReportsPage'));
+const ApprovalsPage   = lazy(() => import('@/views/modules/ApprovalsPage'));
+const SettingsPage    = lazy(() => import('@/views/modules/SettingsPage'));
+const LeavePage       = lazy(() => import('@/views/modules/LeavePage'));
+const DocumentsPage   = lazy(() => import('@/views/modules/DocumentsPage'));
+const AssetPage       = lazy(() => import('@/views/modules/AssetPage'));
+const InventoryPage   = lazy(() => import('@/views/modules/InventoryPage'));
+const ManufacturingPage = lazy(() => import('@/views/modules/ManufacturingPage'));
+const MaintenancePage = lazy(() => import('@/views/modules/MaintenancePage'));
+const SupplyChainPage = lazy(() => import('@/views/modules/SupplyChainPage'));
+const AuditPage       = lazy(() => import('@/views/modules/AuditPage'));
+const RecruitmentPage = lazy(() => import('@/views/modules/RecruitmentPage'));
+const CandidateProfilePage = lazy(() => import('@/views/modules/CandidateProfilePage'));
+const PerformancePage = lazy(() => import('@/views/modules/PerformancePage'));
+const LMSPage = lazy(() => import('@/views/modules/LMSPage'));
+const CommunityPage = lazy(() => import('@/views/modules/CommunityPage'));
+const HelpdeskPage = lazy(() => import('@/views/modules/HelpdeskPage'));
 
 // ── Page loader ────────────────────────────────
 function PageLoader() {

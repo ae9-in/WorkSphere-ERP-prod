@@ -60,17 +60,7 @@ project-erp-website/
 └── README.md                    # Project overview
 ```
 
----
 
-## 🔐 Default Credentials (Local Development)
-
-Upon initializing and seeding the database, you can log in with:
-
-| Email | Password | Role |
-| :--- | :--- | :--- |
-| `admin@worksphere.com` | `Admin@123` | **Super Admin** |
-
----
 
 ## 📖 Available Guides
 

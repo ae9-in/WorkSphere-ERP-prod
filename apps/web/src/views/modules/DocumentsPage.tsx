@@ -718,7 +718,7 @@ export default function DocumentsPage() {
     return matchSearch && matchCat;
   });
 
-  const depts = [...new Set(employees.map(e => e.job?.departmentName).filter(Boolean))] as string[];
+  const depts = Array.from(new Set(employees.map(e => e.job?.departmentName).filter(Boolean))) as string[];
 
   const pieData = [
     { name: 'Verified', value: verifiedCount, color: '#00C48C' },
@@ -1054,7 +1054,7 @@ export default function DocumentsPage() {
             {/* Employee Document Profile */}
             {selectedEmp && (
               <div className="lg:col-span-7">
-                <Card className="flex flex-col" style={{ minHeight: '70vh' }}>
+                <Card className="flex flex-col min-h-[70vh]">
                   <EmployeeDocProfile
                     emp={selectedEmp}
                     docs={documents}

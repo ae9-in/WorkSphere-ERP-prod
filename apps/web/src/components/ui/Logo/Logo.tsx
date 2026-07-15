@@ -39,77 +39,48 @@ export function Logo({
           {isWhite ? (
             <>
               <linearGradient id={purpleGradId} x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#FFFFFF" />
-                <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.9" />
-              </linearGradient>
-              <linearGradient id={indigoGradId} x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.95" />
-                <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.8" />
+                <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.25" />
+                <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0.05" />
               </linearGradient>
             </>
           ) : isDark ? (
             <>
               <linearGradient id={purpleGradId} x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#1E293B" />
-                <stop offset="100%" stopColor="#0F172A" />
-              </linearGradient>
-              <linearGradient id={indigoGradId} x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#0F172A" />
-                <stop offset="100%" stopColor="#020617" />
+                <stop offset="0%" stopColor="#0F172A" stopOpacity="0.2" />
+                <stop offset="100%" stopColor="#0F172A" stopOpacity="0.05" />
               </linearGradient>
             </>
           ) : (
             <>
-              {/* Default Gradient Palette matching the uploaded logo: Vibrant Violet-Indigo and Deep Navy */}
               <linearGradient id={purpleGradId} x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#8A7DFF" />
-                <stop offset="100%" stopColor="#5B3CF5" />
+                <stop offset="0%" stopColor="#A88BFF" />
+                <stop offset="40%" stopColor="#5B3CF5" />
+                <stop offset="100%" stopColor="#1E1F4B" />
               </linearGradient>
               <linearGradient id={indigoGradId} x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" stopColor="#434599" />
-                <stop offset="100%" stopColor="#1E1F4B" />
+                <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.35" />
+                <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
               </linearGradient>
             </>
           )}
         </defs>
 
-        {/* 
-          Tracing the intertwined "WS" Monogram geometry:
-          - A central "W" with wings/arrowheads on outer peaks
-          - Left sweeping curve wrapping down (representing the 'S' transition on the left)
-          - Right sweeping curve wrapping up (representing the 'S' transition on the right)
-        */}
-        
-        {/* Left/Bottom segment (Purple/Violet Gradient) */}
+        {/* Base Sphere */}
+        {isWhite ? (
+          <circle cx="50" cy="50" r="46" fill={`url(#${purpleGradId})`} stroke="#FFFFFF" strokeWidth="2" strokeOpacity="0.3" />
+        ) : isDark ? (
+          <circle cx="50" cy="50" r="46" fill={`url(#${purpleGradId})`} stroke="#0F172A" strokeWidth="2" strokeOpacity="0.3" />
+        ) : (
+          <>
+            <circle cx="50" cy="50" r="46" fill={`url(#${purpleGradId})`} />
+            <circle cx="50" cy="50" r="46" fill={`url(#${indigoGradId})`} />
+          </>
+        )}
+
+        {/* W Fusion path */}
         <path
-          d="M 50 48 L 38 67 L 27 50 L 37 32 M 50 48 L 50 30 L 37 12 L 25 30 L 25 43 L 13 25"
-          stroke={`url(#${purpleGradId})`}
-          strokeWidth="7"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M 27 50 C 12 55 12 75 32 75 C 47 75 50 63 50 48"
-          stroke={`url(#${purpleGradId})`}
-          strokeWidth="7.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        
-        {/* Right/Top segment (Dark Indigo Gradient) */}
-        <path
-          d="M 50 48 L 62 67 L 73 50 L 63 32 M 50 48 L 50 30 L 63 12 L 75 30 L 75 43 L 87 25"
-          stroke={`url(#${indigoGradId})`}
-          strokeWidth="7"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M 73 50 C 88 45 88 25 68 25 C 53 25 50 37 50 48"
-          stroke={`url(#${indigoGradId})`}
-          strokeWidth="7.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
+          d="M 28 20 C 18 45 18 72 35 80 C 38 81 41 80 43 76 C 47 60 48 45 50 30 C 52 45 53 60 57 76 C 59 80 62 81 65 80 C 82 72 82 45 72 20 C 68 20 66 22 66 24 C 75 45 74 68 62 72 C 60 72 59 71 58 68 C 54 50 52 42 50 38 C 48 42 46 50 42 68 C 41 71 40 72 38 72 C 26 68 25 45 34 24 C 34 22 32 20 28 20 Z"
+          fill={isWhite ? '#FFFFFF' : isDark ? '#0F172A' : '#FFFFFF'}
         />
       </svg>
 

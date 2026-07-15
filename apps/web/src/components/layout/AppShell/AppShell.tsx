@@ -9,20 +9,21 @@ import { motion } from 'framer-motion';
 
 export function AppShell() {
   const sidebarCollapsed = useUIStore(s => s.sidebarCollapsed);
+  const sidebarWidth = useUIStore(s => s.sidebarWidth);
+  const widthVal = sidebarCollapsed ? 72 : sidebarWidth;
 
   return (
     <div className="min-h-screen bg-ag-canvas flex flex-col">
       <Sidebar />
-      <motion.div
-        animate={{ paddingLeft: sidebarCollapsed ? 64 : 240 }}
-        transition={{ duration: 0.25, ease: 'easeInOut' }}
-        className="flex-1 flex flex-col min-w-0 min-h-screen"
+      <div
+        style={{ paddingLeft: `${widthVal}px` }}
+        className="flex-1 flex flex-col min-w-0 min-h-screen transition-[padding] duration-200 ease-in-out"
       >
         <TopNavbar />
         <main className="flex-1">
           <Outlet />
         </main>
-      </motion.div>
+      </div>
 
       {/* Global Modals & Drawers */}
       <GlobalSearch />

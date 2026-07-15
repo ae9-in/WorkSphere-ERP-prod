@@ -7,12 +7,14 @@ interface UIState {
   sidebarMobileOpen:    boolean;
   globalSearchOpen:     boolean;
   notificationDrawerOpen: boolean;
+  sidebarWidth:         number;
 
   toggleSidebar:            () => void;
   setSidebarCollapsed:      (v: boolean) => void;
   setSidebarMobileOpen:     (v: boolean) => void;
   setGlobalSearchOpen:      (v: boolean) => void;
   setNotificationDrawerOpen:(v: boolean) => void;
+  setSidebarWidth:          (w: number) => void;
 }
 
 export const useUIStore = create<UIState>()(
@@ -22,6 +24,7 @@ export const useUIStore = create<UIState>()(
       sidebarMobileOpen:     false,
       globalSearchOpen:      false,
       notificationDrawerOpen: false,
+      sidebarWidth:          320,
 
       toggleSidebar: () => set((state) => {
         state.sidebarCollapsed = !state.sidebarCollapsed;
@@ -42,12 +45,17 @@ export const useUIStore = create<UIState>()(
       setNotificationDrawerOpen: (v) => set((state) => {
         state.notificationDrawerOpen = v;
       }),
+
+      setSidebarWidth: (w) => set((state) => {
+        state.sidebarWidth = w;
+      }),
     })),
     {
       name:    'ag-ui',
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({
         sidebarCollapsed: state.sidebarCollapsed,
+        sidebarWidth:     state.sidebarWidth,
       }),
     }
   )

@@ -71,7 +71,7 @@ const navSections: NavSection[] = [
 
 export function Sidebar() {
   const location = useLocation();
-  const { sidebarCollapsed, toggleSidebar } = useUIStore();
+  const { sidebarCollapsed, toggleSidebar, sidebarWidth, setSidebarWidth } = useUIStore();
   const { user, logout } = useAuth();
   const [pendingApprovals, setPendingApprovals] = React.useState<number>(0);
 
@@ -93,104 +93,210 @@ export function Sidebar() {
     };
   }, []);
 
+  const widthVal = sidebarCollapsed ? 72 : sidebarWidth;
+
+  const [isDragging, setIsDragging] = React.useState(false);
+
+  const startResize = React.useCallback((mouseDownEvent: React.MouseEvent | React.TouchEvent) => {
+    mouseDownEvent.preventDefault();
+    setIsDragging(true);
+    document.body.classList.add('sidebar-resizing');
+
+    const doResize = (moveEvent: MouseEvent | TouchEvent) => {
+      const currentX = 'touches' in moveEvent ? moveEvent.touches[0].clientX : moveEvent.clientX;
+      const newWidth = Math.max(280, Math.min(520, currentX));
+      setSidebarWidth(newWidth);
+    };
+
+    const stopResize = () => {
+      setIsDragging(false);
+      document.body.classList.remove('sidebar-resizing');
+      window.removeEventListener('mousemove', doResize);
+      window.removeEventListener('mouseup', stopResize);
+      window.removeEventListener('touchmove', doResize);
+      window.removeEventListener('touchend', stopResize);
+    };
+
+    window.addEventListener('mousemove', doResize);
+    window.addEventListener('mouseup', stopResize);
+    window.addEventListener('touchmove', doResize);
+    window.addEventListener('touchend', stopResize);
+  }, [setSidebarWidth]);
+
+  const handleDoubleClick = () => {
+    setSidebarWidth(320);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      setSidebarWidth(Math.min(520, sidebarWidth + 10));
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      setSidebarWidth(Math.max(280, sidebarWidth - 10));
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      setSidebarWidth(320);
+    }
+  };
+
+  // Calculate logo typography variables
+  const logoFontSize = sidebarCollapsed
+    ? '0px'
+    : `${Math.max(16, Math.min(24, 16 + (sidebarWidth - 280) * 0.05))}px`;
+  const logoLetterSpacing = `${Math.min(-0.02, -0.05 + (sidebarWidth - 280) * 0.0003)}em`;
+
   return (
-    <motion.aside
-      initial={false}
-      animate={{ width: sidebarCollapsed ? 64 : 240 }}
-      transition={{ duration: 0.25, ease: 'easeInOut' }}
-      className="fixed top-0 left-0 bottom-0 bg-ag-surface border-r border-ag-border z-40 flex flex-col justify-between overflow-hidden select-none"
-    >
-      {/* Top Logo Header */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-ag-border flex-shrink-0">
-        <Link to={user?.role === 'super_admin' ? '/admin/dashboard' : '/dashboard'} className="flex items-center gap-3 overflow-hidden">
-          <Logo showText={!sidebarCollapsed} size={30} />
-        </Link>
-        {!sidebarCollapsed && (
-          <button
-            onClick={toggleSidebar}
-            className="w-7 h-7 rounded-lg flex items-center justify-center text-ag-ink-3 hover:text-ag-ink hover:bg-ag-surface-2 transition-colors"
-          >
-            <CaretLeft size={16} />
-          </button>
-        )}
-      </div>
+    <>
+      <style>{`
+        .sidebar-resizing,
+        .sidebar-resizing * {
+          cursor: col-resize !important;
+          user-select: none !important;
+          transition: none !important;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+          height: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: transparent;
+          border-radius: 4px;
+        }
+        .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+          background: var(--ag-border-strong, #E4DFFF);
+        }
+      `}</style>
 
-      {/* Nav List */}
-      <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 no-scrollbar">
-        {navSections.map((section) => (
-          <div key={section.title} className="space-y-1">
-            {!sidebarCollapsed && (
-              <div className="ag-nav-section-label px-2">
-                {section.title}
-              </div>
-            )}
-            {section.items.map((item) => {
-              const isActive = item.href === '/dashboard'
-                ? location.pathname === '/dashboard'
-                : location.pathname.startsWith(item.href);
-
-              const displayBadge = item.label === 'Approvals'
-                ? (pendingApprovals > 0 ? pendingApprovals : undefined)
-                : item.badge;
-
-              return (
-                <Link
-                  key={item.href}
-                  to={item.href}
-                  className={cn(
-                    'ag-nav-item',
-                    isActive && 'ag-nav-item--active',
-                    sidebarCollapsed && 'justify-center px-0'
-                  )}
-                  title={sidebarCollapsed ? item.label : undefined}
-                >
-                  <span className={cn('flex-shrink-0', isActive ? 'text-ag-primary' : 'text-ag-ink-2')}>
-                    {item.icon}
-                  </span>
-                  {!sidebarCollapsed && (
-                    <span className="flex-1 truncate">{item.label}</span>
-                  )}
-                  {!sidebarCollapsed && displayBadge !== undefined && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-ag-accent-coral text-white">
-                      {displayBadge}
-                    </span>
-                  )}
-                </Link>
-              );
-            })}
-          </div>
-        ))}
-      </div>
-
-      {/* Footer / User Profile */}
-      <div className="p-3 border-t border-ag-border flex flex-col gap-2 flex-shrink-0 bg-ag-surface">
-        {sidebarCollapsed && (
-          <button
-            onClick={toggleSidebar}
-            className="w-full h-9 rounded-lg flex items-center justify-center text-ag-ink-3 hover:text-ag-ink hover:bg-ag-surface-2 transition-colors mb-1"
-          >
-            <CaretRight size={16} />
-          </button>
-        )}
-        <div className={cn('flex items-center gap-3 p-2 rounded-xl bg-ag-surface-2/60', sidebarCollapsed && 'justify-center p-0 bg-transparent')}>
-          <Avatar name={user?.fullName || 'User'} src={user?.photo} size="sm" />
-          {!sidebarCollapsed && (
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-semibold text-ag-ink truncate">{user?.fullName}</p>
-              <p className="text-[11px] text-ag-ink-3 truncate capitalize">{user?.role?.replace('_', ' ')}</p>
-            </div>
-          )}
+      <motion.aside
+        initial={false}
+        animate={{ width: widthVal }}
+        transition={{ duration: isDragging ? 0 : 0.2, ease: 'easeInOut' }}
+        style={{
+          width: widthVal,
+          '--sidebar-width': `${widthVal}px`,
+          '--logo-font-size': logoFontSize,
+          '--logo-letter-spacing': logoLetterSpacing,
+        } as any}
+        className="fixed top-0 left-0 bottom-0 bg-ag-surface border-r border-ag-border z-40 flex flex-col justify-between overflow-hidden select-none"
+      >
+        {/* Top Logo Header */}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-ag-border flex-shrink-0">
+          <Link to={user?.role === 'super_admin' ? '/admin/dashboard' : '/dashboard'} className="flex items-center gap-3 overflow-hidden">
+            <Logo showText={!sidebarCollapsed} size={30} />
+          </Link>
           {!sidebarCollapsed && (
             <button
-              onClick={logout}
-              title="Sign Out"
-              className="text-ag-ink-3 hover:text-ag-coral p-1 rounded-md transition-colors"
+              onClick={toggleSidebar}
+              className="w-7 h-7 rounded-lg flex items-center justify-center text-ag-ink-3 hover:text-ag-ink hover:bg-ag-surface-2 transition-colors"
             >
-              <SignOut size={18} />
+              <CaretLeft size={16} />
             </button>
           )}
         </div>
-      </div>
-    </motion.aside>
+
+        {/* Nav List */}
+        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 custom-scrollbar">
+          {navSections.map((section) => (
+            <div key={section.title} className="space-y-1">
+              {!sidebarCollapsed && (
+                <div className="ag-nav-section-label px-2 truncate">
+                  {section.title}
+                </div>
+              )}
+              {section.items.map((item) => {
+                const isActive = item.href === '/dashboard'
+                  ? location.pathname === '/dashboard'
+                  : location.pathname.startsWith(item.href);
+
+                const displayBadge = item.label === 'Approvals'
+                  ? (pendingApprovals > 0 ? pendingApprovals : undefined)
+                  : item.badge;
+
+                return (
+                  <Link
+                    key={item.href}
+                    to={item.href}
+                    className={cn(
+                      'ag-nav-item flex items-center gap-3 py-2 px-3 rounded-lg text-xs font-semibold text-ag-ink-2 hover:bg-ag-surface-2 hover:text-ag-ink transition-colors',
+                      isActive && 'bg-ag-primary-light text-ag-primary hover:bg-ag-primary-light hover:text-ag-primary',
+                      sidebarCollapsed && 'justify-center px-0'
+                    )}
+                    title={sidebarCollapsed ? item.label : undefined}
+                  >
+                    <span className={cn('flex-shrink-0', isActive ? 'text-ag-primary' : 'text-ag-ink-2')}>
+                      {item.icon}
+                    </span>
+                    {!sidebarCollapsed && (
+                      <span className="flex-1 truncate">{item.label}</span>
+                    )}
+                    {!sidebarCollapsed && displayBadge !== undefined && (
+                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-ag-accent-coral text-white shrink-0">
+                        {displayBadge}
+                      </span>
+                    )}
+                  </Link>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+
+        {/* Footer / User Profile */}
+        <div className="p-3 border-t border-ag-border flex flex-col gap-2 flex-shrink-0 bg-ag-surface">
+          {sidebarCollapsed && (
+            <button
+              onClick={toggleSidebar}
+              className="w-full h-9 rounded-lg flex items-center justify-center text-ag-ink-3 hover:text-ag-ink hover:bg-ag-surface-2 transition-colors mb-1"
+            >
+              <CaretRight size={16} />
+            </button>
+          )}
+          <div className={cn('flex items-center gap-3 p-2 rounded-xl bg-ag-surface-2/60 min-w-0', sidebarCollapsed && 'justify-center p-0 bg-transparent')}>
+            <Avatar name={user?.fullName || 'User'} src={user?.photo} size="sm" className="flex-shrink-0" />
+            {!sidebarCollapsed && (
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-semibold text-ag-ink truncate">{user?.fullName}</p>
+                <p className="text-[11px] text-ag-ink-3 truncate capitalize">{user?.role?.replace('_', ' ')}</p>
+              </div>
+            )}
+            {!sidebarCollapsed && (
+              <button
+                onClick={logout}
+                title="Sign Out"
+                className="text-ag-ink-3 hover:text-ag-coral p-1 rounded-md transition-colors flex-shrink-0"
+              >
+                <SignOut size={18} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Resize Handle */}
+        <div
+          onMouseDown={startResize}
+          onTouchStart={startResize}
+          onDoubleClick={handleDoubleClick}
+          onKeyDown={handleKeyDown}
+          tabIndex={0}
+          role="separator"
+          aria-valuenow={widthVal}
+          aria-valuemin={280}
+          aria-valuemax={520}
+          aria-label="Sidebar resize handle"
+          className="absolute top-0 right-0 bottom-0 w-[6px] -mr-[3px] cursor-col-resize z-50 group select-none focus:outline-none"
+        >
+          <div
+            className={cn(
+              "w-[2px] h-full mx-auto transition-all rounded-full",
+              isDragging ? "bg-ag-primary w-[3px]" : "bg-transparent group-hover:bg-ag-border-strong"
+            )}
+          />
+        </div>
+      </motion.aside>
+    </>
   );
 }

@@ -40,15 +40,20 @@ export function Logo({
       {showText && (
         <span
           className={cn(
-            'font-display font-extrabold text-xl tracking-tight select-none flex items-center',
+            'font-display select-none flex items-center',
             isWhite ? 'text-white' : isDark ? 'text-slate-900' : 'text-slate-900',
             textClassName
           )}
+          style={{
+            fontSize: 'var(--logo-font-size, 20px)',
+            letterSpacing: 'var(--logo-letter-spacing, -0.03em)',
+            lineHeight: '1',
+          }}
         >
-          <span className={cn(isWhite ? 'text-white' : isDark ? 'text-slate-700' : 'text-[#6D5DFC]')}>
+          <span className={cn('font-bold', isWhite ? 'text-white' : isDark ? 'text-slate-700' : 'text-[#6D5DFC]')}>
             Work
           </span>
-          <span className={cn(isWhite ? 'text-white/90' : isDark ? 'text-slate-900' : 'text-[#1E1F4B]')}>
+          <span className={cn('font-black', isWhite ? 'text-white/90' : isDark ? 'text-slate-900' : 'text-[#1E1F4B]')}>
             Sphere
           </span>
         </span>

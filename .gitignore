@@ -83,3 +83,36 @@ _backup/
 backup/
 Worksphere ERP/
 "Worksphere ERP/"
+
+# Additional Security Rules - Ignore Keys, Secrets, Credentials, Passwords, Certificates, and Tokens
+*.pem
+*.key
+*.pub
+*.pfx
+*.p12
+*.cer
+*.crt
+*.der
+credentials.json
+client_secret.json
+client_secrets.json
+secrets.json
+config.json
+settings.json
+*secret*
+*token*
+*password*
+*credential*
+passwd
+shadow
+.npmrc
+yarn.lock
+pnpm-lock.yaml
+.env.local
+.env.*.local
+.env.production
+.env.development
+.env.test
+.env.stage
+.env.staging
+

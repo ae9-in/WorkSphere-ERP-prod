@@ -3,6 +3,8 @@ import { PageContainer } from '@/components/layout/PageContainer/PageContainer';
 import { Card, CardHeader } from '@/components/ui/Card/Card';
 import { Button } from '@/components/ui/Button/Button';
 import { Input } from '@/components/ui/Input/Input';
+import { Modal } from '@/components/ui/Modal/Modal';
+import { Select } from '@/components/ui/Select/Select';
 import { assetService, employeeService } from '@/services/api.service';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDate } from '@/lib/formatters';
@@ -34,6 +36,14 @@ export default function AssetPage() {
   const [assignForm, setAssignForm] = useState({
     assetId: '',
     employeeId: '',
+    condition: 'good',
+    remarks: ''
+  });
+
+  // Return modal state
+  const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
+  const [returnAssetId, setReturnAssetId] = useState('');
+  const [returnForm, setReturnForm] = useState({
     condition: 'good',
     remarks: ''
   });
@@ -110,13 +120,25 @@ export default function AssetPage() {
     }
   };
 
-  const handleReturn = async (id: string) => {
-    const condition = prompt('Enter return condition (new / good / fair / damaged):', 'good');
-    if (!condition) return;
-    const remarks = prompt('Enter return comments:') || '';
+  const openReturnModal = (id: string) => {
+    setReturnAssetId(id);
+    setReturnForm({
+      condition: 'good',
+      remarks: ''
+    });
+    setIsReturnModalOpen(true);
+  };
+
+  const handleReturnSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!returnAssetId) return;
     try {
-      await assetService.return(id, { condition, remarks });
+      await assetService.return(returnAssetId, {
+        condition: returnForm.condition,
+        remarks: returnForm.remarks
+      });
       toast.success('Asset returned and restored to registry');
+      setIsReturnModalOpen(false);
       fetchData();
     } catch {
       toast.error('Failed to return asset');
@@ -157,11 +179,16 @@ export default function AssetPage() {
     {
       accessorKey: 'currentEmployeeId',
       header: 'Assignee',
-      cell: ({ row }) => (
-        <span className="text-xs text-ag-primary font-semibold">
-          {row.original.currentEmployeeId ? `Assigned (${row.original.currentEmployeeId})` : 'Unassigned'}
-        </span>
-      ),
+      cell: ({ row }) => {
+        const empId = row.original.currentEmployeeId;
+        if (!empId) return <span className="text-xs text-ag-ink-3">Unassigned</span>;
+        const emp = employees.find((e) => e._id === empId);
+        return (
+          <span className="text-xs text-ag-primary font-semibold">
+            {emp ? emp.fullName : `Assigned (${empId})`}
+          </span>
+        );
+      },
     },
     {
       id: 'actions',
@@ -183,7 +210,7 @@ export default function AssetPage() {
             <Button
               size="sm"
               variant="secondary"
-              onClick={() => handleReturn(row.original._id)}
+              onClick={() => openReturnModal(row.original._id)}
               icon={<Sparkle size={14} />}
             >
               Return
@@ -401,6 +428,52 @@ export default function AssetPage() {
           </form>
         </Card>
       )}
+
+      <Modal
+        isOpen={isReturnModalOpen}
+        onClose={() => setIsReturnModalOpen(false)}
+        title="Return Corporate Property"
+        description="Verify and document the physical condition of the asset being returned to the registry."
+      >
+        <form onSubmit={handleReturnSubmit} className="space-y-4 pt-2">
+          <Select
+            label="Current Condition"
+            options={[
+              { value: 'new', label: 'Brand New' },
+              { value: 'good', label: 'Good Condition' },
+              { value: 'fair', label: 'Fair / Used' },
+              { value: 'damaged', label: 'Damaged' }
+            ]}
+            value={returnForm.condition}
+            onChange={(e) => setReturnForm({ ...returnForm, condition: e.target.value })}
+            required
+          />
+
+          <div className="flex flex-col gap-1.5">
+            <label className="ag-label">Return Comments</label>
+            <textarea
+              className="w-full p-3 bg-ag-surface border border-ag-border rounded-lg text-sm text-ag-ink focus:outline-none focus:ring-2 focus:ring-ag-primary/20"
+              rows={3}
+              placeholder="Include details about physical wear, missing accessories, or faults..."
+              value={returnForm.remarks}
+              onChange={(e) => setReturnForm({ ...returnForm, remarks: e.target.value })}
+            />
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-ag-border mt-6">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => setIsReturnModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit">
+              Confirm Return
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </PageContainer>
   );
 }

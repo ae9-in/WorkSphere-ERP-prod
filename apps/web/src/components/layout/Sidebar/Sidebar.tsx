@@ -102,7 +102,7 @@ export function Sidebar() {
     >
       {/* Top Logo Header */}
       <div className="h-16 flex items-center justify-between px-4 border-b border-ag-border flex-shrink-0">
-        <Link to="/" className="flex items-center gap-3 overflow-hidden">
+        <Link to={user?.role === 'super_admin' ? '/admin/dashboard' : '/dashboard'} className="flex items-center gap-3 overflow-hidden">
           <Logo showText={!sidebarCollapsed} size={30} />
         </Link>
         {!sidebarCollapsed && (

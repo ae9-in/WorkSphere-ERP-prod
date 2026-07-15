@@ -791,35 +791,8 @@ export default function LandingPage() {
             </button>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-left max-w-5xl mx-auto">
-            {/* Starter Plan */}
-            <motion.div
-              variants={scaleIn}
-              className="p-8 rounded-[20px] border border-[#E4DFFF] bg-white shadow-sm flex flex-col justify-between"
-            >
-              <div className="space-y-4">
-                <h4 className="font-display font-bold text-base text-ag-ink">Starter Plan</h4>
-                <div className="py-2">
-                  <span className="text-2xl font-display font-black text-ag-ink">
-                    ₹{billingPeriod === 'annual' ? '2,400' : '3,000'}
-                  </span>
-                  <span className="text-xs text-ag-ink-3"> / employee / year</span>
-                </div>
-                <div className="h-px bg-[#E4DFFF]" />
-                <ul className="space-y-2 text-xs text-ag-ink-2">
-                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Up to 100 employees</li>
-                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Payroll + Attendance</li>
-                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Leave Management</li>
-                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> 10GB document storage</li>
-                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Email support</li>
-                </ul>
-              </div>
-              <button onClick={() => navigate('/signup')} className="mt-8 w-full py-2.5 border border-[#E4DFFF] text-xs font-bold uppercase rounded-full text-center transition-all bg-white hover:bg-slate-50 text-slate-800">
-                Get Started
-              </button>
-            </motion.div>
-
-            {/* Growth Plan */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 text-left max-w-4xl mx-auto">
+            {/* All-in-One Plan (5000 Rs Plan) */}
             <motion.div
               variants={scaleIn}
               className="p-8 rounded-[20px] border-2 border-[#5B3CF5] bg-white shadow-lg flex flex-col justify-between relative"
@@ -829,26 +802,32 @@ export default function LandingPage() {
                 RECOMMENDED
               </div>
               <div className="space-y-4">
-                <h4 className="font-display font-bold text-base text-ag-ink">Growth Plan</h4>
+                <h4 className="font-display font-bold text-base text-ag-ink">All-in-One Plan</h4>
                 <div className="py-2">
                   <span className="text-2xl font-display font-black text-ag-ink">
-                    ₹{billingPeriod === 'annual' ? '4,800' : '6,000'}
+                    ₹{billingPeriod === 'annual' ? '4,000' : '5,000'}
                   </span>
-                  <span className="text-xs text-ag-ink-3"> / employee / year</span>
+                  <span className="text-xs text-ag-ink-3"> / month</span>
                 </div>
                 <div className="h-px bg-[#E4DFFF]" />
-                <ul className="space-y-2 text-xs text-ag-ink-2">
-                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Up to 1,000 employees</li>
-                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> All Starter features</li>
+                <p className="text-xs font-semibold text-[#5B3CF5] uppercase tracking-wider">Included Modules:</p>
+                <ul className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs text-ag-ink-2">
+                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Onboarding</li>
+                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Offboarding</li>
+                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Payroll</li>
+                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Attendance</li>
+                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Leave Management</li>
                   <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Asset Management</li>
-                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Custom Workflow Builder</li>
+                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Documents</li>
                   <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Reports &amp; Analytics</li>
-                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> 50GB document storage</li>
-                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Priority support</li>
+                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Workflow Engine</li>
+                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Notifications</li>
+                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Audit &amp; Security</li>
+                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Global Search</li>
                 </ul>
               </div>
               <button onClick={() => navigate('/signup')} className="mt-8 w-full py-2.5 bg-[#5B3CF5] hover:bg-[#3D3BF3] text-white text-xs font-bold uppercase rounded-full text-center transition-all">
-                Upgrade to Growth
+                Get Started
               </button>
             </motion.div>
 
@@ -864,9 +843,9 @@ export default function LandingPage() {
                   <span className="text-xs text-ag-ink-3"> / dedicated tenancy</span>
                 </div>
                 <div className="h-px bg-[#E4DFFF]" />
+                <p className="text-xs font-semibold text-ag-ink uppercase tracking-wider">Enterprise Features:</p>
                 <ul className="space-y-2 text-xs text-ag-ink-2">
                   <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Unlimited employees</li>
-                  <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> All Growth features</li>
                   <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Multi-company / Multi-branch</li>
                   <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Custom integrations</li>
                   <li className="flex items-center gap-2"><span className="text-[#5B3CF5]">✦</span> Dedicated cloud tenancy</li>

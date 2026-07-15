@@ -9,6 +9,7 @@ from typing import Optional
 router = APIRouter(prefix="/audit", tags=["audit"])
 
 @router.get("")
+@router.get("/logs")
 def get_audit_logs(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),

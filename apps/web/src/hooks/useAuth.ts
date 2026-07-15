@@ -13,7 +13,7 @@ export function useAuth() {
       setAccessToken(accessToken);
       return { success: true };
     } catch (err: any) {
-      const message = err.response?.data?.message || err.message || 'Login failed';
+      const message = err.response?.data?.detail || err.response?.data?.message || err.message || 'Login failed';
       toast.error(message);
       return { success: false, error: message };
     }

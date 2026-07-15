@@ -149,9 +149,9 @@ export default function WorkspaceSetupPage() {
       
       toast.success('Workspace created and initialized successfully!');
       navigate('/dashboard');
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      const message = err instanceof Error ? err.message : 'Workspace setup failed';
+      const message = err.response?.data?.detail || err.response?.data?.message || err.message || 'Workspace setup failed';
       toast.error(message);
     } finally {
       setLoading(false);

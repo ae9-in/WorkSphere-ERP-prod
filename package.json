@@ -4,14 +4,12 @@
   "private": true,
   "workspaces": [
     "apps/web",
-    "apps/api",
     "packages/shared"
   ],
   "scripts": {
-    "dev": "concurrently \"npm run dev --workspace=apps/web\" \"npm run dev --workspace=apps/api\"",
+    "dev": "npm run dev --workspace=apps/web",
     "dev:web": "npm run dev --workspace=apps/web",
-    "dev:api": "npm run dev --workspace=apps/api",
-    "build": "cross-env NODE_OPTIONS=\"--max-old-space-size=8192\" npm run build --workspace=apps/web && npm run build --workspace=apps/api",
+    "build": "cross-env NODE_OPTIONS=\"--max-old-space-size=8192\" npm run build --workspace=apps/web",
     "build:web": "cross-env NODE_OPTIONS=\"--max-old-space-size=8192\" npm run build --workspace=apps/web",
     "lint": "npm run lint --workspace=apps/web",
     "test": "npm run test --workspace=apps/web"

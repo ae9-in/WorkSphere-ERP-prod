@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuthStore } from '@/store/authStore';
 import { adminService } from '@/services/api.service';
 import { Button } from '@/components/ui/Button/Button';
@@ -116,15 +116,15 @@ export default function AdminDashboardPage() {
       
       {/* Top Header */}
       <header className="border-b border-white/10 bg-[#0C0720]/80 backdrop-blur-md px-8 py-4 flex items-center justify-between sticky top-0 z-20">
-        <div className="flex items-center gap-3">
+        <Link to="/admin/dashboard" className="flex items-center gap-3 hover:opacity-90 transition-opacity">
           <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-ag-primary to-ag-accent-pink text-white flex items-center justify-center font-display font-black text-base shadow-md">
             WS
           </div>
           <div>
-            <h1 className="font-display font-extrabold text-lg leading-none">WorkSphere SaaS</h1>
-            <span className="text-[10px] text-white/50 uppercase font-mono tracking-widest font-bold">Platform Controller</span>
+            <h1 className="font-display font-extrabold text-lg leading-none text-white">WorkSphere SaaS</h1>
+            <span className="text-[10px] text-white/50 uppercase font-mono tracking-widest font-bold block">Platform Controller</span>
           </div>
-        </div>
+        </Link>
 
         <div className="flex items-center gap-4">
           <div className="text-right hidden sm:block">

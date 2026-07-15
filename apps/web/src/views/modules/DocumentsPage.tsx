@@ -796,7 +796,7 @@ export default function DocumentsPage() {
           {/* KPIs */}
           <div className="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-4">
             {[
-              { title: 'Total Documents',    value: documents.length,        icon: <img src="/logo/logo.png" alt="Logo" className="w-5 h-5 object-contain" />, bg: 'bg-ag-primary-light text-ag-primary' },
+              { title: 'Total Documents',    value: documents.length,        icon: <img src="/logo/logo_main.png" alt="Logo" className="w-5 h-5 object-contain" />, bg: 'bg-ag-primary-light text-ag-primary' },
               { title: 'Employee Docs',      value: employeeDocs.length,     icon: <User size={20} />,        bg: 'bg-[#E8F6FF] text-ag-sky' },
               { title: 'Company Docs',       value: companyDocs.length,      icon: <Buildings size={20} />,   bg: 'bg-ag-surface-2 text-ag-ink-2' },
               { title: 'Verified',           value: verifiedCount,           icon: <CheckCircle size={20} />, bg: 'bg-[#E6FAF4] text-ag-mint' },
@@ -1591,7 +1591,7 @@ export default function DocumentsPage() {
           {/* KPIs */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
-              { label: 'Total Documents',   val: documents.length,           color: 'text-ag-primary bg-ag-primary-light', icon: <img src="/logo/logo.png" alt="Logo" className="w-5 h-5 object-contain" /> },
+              { label: 'Total Documents',   val: documents.length,           color: 'text-ag-primary bg-ag-primary-light', icon: <img src="/logo/logo_main.png" alt="Logo" className="w-5 h-5 object-contain" /> },
               { label: 'Verification Rate', val: documents.length > 0 ? `${Math.round((verifiedCount / documents.length) * 100)}%` : '0%', color: 'text-ag-mint bg-[#E6FAF4]', icon: <Database size={20} /> },
               { label: 'Compliance Rate',   val: employees.length > 0 ? `${Math.round((verifiedCount / Math.max(1, employees.length * EMPLOYEE_CATEGORIES.reduce((s, c) => s + c.docs.filter(d => d.required).length, 0))) * 100)}%` : '0%', color: 'text-ag-sky bg-[#E8F6FF]', icon: <Database size={20} /> },
               { label: 'Storage Used',      val: formatFileSize(totalSize),  color: 'text-ag-amber bg-[#FFF8E6]', icon: <Database size={20} /> },

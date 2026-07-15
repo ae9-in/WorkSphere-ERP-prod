@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+        <link rel="icon" type="image/png" href="/logo/logo_main.png" />
       </head>
       <body className="antialiased text-ag-ink bg-ag-canvas min-h-screen">
         <Providers>{children}</Providers>

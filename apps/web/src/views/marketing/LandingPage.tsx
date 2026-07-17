@@ -68,6 +68,15 @@ const successStories = [
   }
 ];
 
+const mockChartData = [
+  { month: 'Jan', payroll: 2.1, headcount: 450 },
+  { month: 'Feb', payroll: 2.3, headcount: 480 },
+  { month: 'Mar', payroll: 2.8, headcount: 520 },
+  { month: 'Apr', payroll: 3.2, headcount: 580 },
+  { month: 'May', payroll: 3.9, headcount: 640 },
+  { month: 'Jun', payroll: 4.2, headcount: 710 },
+];
+
 const faqItems = [
   { q: 'Can WorkSphere ERP support multiple entities?', a: 'Yes. WorkSphere is architected with a multi-entity database layout, allowing unified directory structures to separate ledger and tax compliance rules by regional hub.' },
   { q: 'Can compliance and payroll rules be customized?', a: 'Absolutely. The visual builder lets you draw node paths, tax exemption components, and regional HRA policies with zero coding required.' },
@@ -191,22 +200,12 @@ export default function LandingPage() {
     }
 
     if (item === 'AI Console') {
-      if (isAuthenticated) {
-        navigate('/workflows');
-      } else {
-        toast.info('AI Console is available to registered enterprise workspace tenants.');
-        navigate('/login');
-      }
+      document.getElementById('ai-console')?.scrollIntoView({ behavior: 'smooth' });
       return;
     }
 
     if (item === 'Analytics') {
-      if (isAuthenticated) {
-        navigate('/analytics/dashboard');
-      } else {
-        toast.info('Analytics Center is available to registered enterprise workspace tenants.');
-        navigate('/login');
-      }
+      document.getElementById('analytics')?.scrollIntoView({ behavior: 'smooth' });
       return;
     }
   };
@@ -287,6 +286,19 @@ export default function LandingPage() {
     'Who has pending approvals in Engineering?',
     'Draft audit trail report for ISO audit...',
   ];
+
+  const getAiResponse = () => {
+    const idx = aiIndex % aiPhrases.length;
+    if (idx === 0) {
+      return "Analyzing 1,420 employee logs... Found 12 variance anomalies in Bangalore. Click to review recommendations.";
+    } else if (idx === 1) {
+      return "Scanning payroll journals... Isolated 2 payroll anomalies in Engineering (Basic CTC salary component mismatch).";
+    } else if (idx === 2) {
+      return "Found 3 pending approvals in Engineering: 2 leave requests (Rajesh K.) and 1 asset allocation (Priya S.).";
+    } else {
+      return "Drafting ISO 27001 audit report... Compiled 30-day immutable activity ledger with SOC 2 cryptosignatures.";
+    }
+  };
 
   useEffect(() => {
     let textTimeout: NodeJS.Timeout;
@@ -744,9 +756,192 @@ export default function LandingPage() {
         </div>
       </motion.section>
 
-      {/* Wave transition: Every Module -> Security */}
+      {/* Wave transition: Every Module (White) -> AI Console (Dark) */}
       <div style={{ position: 'relative', zIndex: 1 }}>
-        <WaveDivider topColor="#FFFFFF" bottomColor="#1A1433" direction="down" height={100} />
+        <WaveDivider topColor="#FFFFFF" bottomColor="#0D0A1E" direction="down" height={100} />
+      </div>
+
+      {/* ── SECTION 9.6: AI CONSOLE (Dark cosmic theme) ── */}
+      <motion.section
+        id="ai-console"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-60px' }}
+        variants={staggerContainer}
+        className="relative z-10 py-24 px-8 bg-[#0D0A1E] text-white"
+      >
+        <div className="max-w-[1280px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="lg:col-span-5 space-y-6 text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#5B3CF5]/10 border border-[#5B3CF5]/20 text-xs font-semibold text-[#5B3CF5]">
+              <Cpu size={16} />
+              <span>AI AUTOPILOT ENGINE</span>
+            </div>
+            <AnimatedHeading
+              text="Autonomous HR Operations. Run by AI."
+              highlightWord="AI."
+              highlightColor="text-[#FFB020]"
+              className="text-3xl md:text-4xl text-white tracking-tight font-black"
+            />
+            <p className="text-white/60 text-sm leading-relaxed">
+              WorkSphere is powered by a fine-tuned, localized intelligence layer that translates natural business queries into direct system actions. Run automated compliance checks, draft policy structures, and analyze logs using natural language.
+            </p>
+            <div className="space-y-4 pt-2">
+              {[
+                { title: 'Natural Language Queries', desc: 'Ask questions like "Who has pending approvals?" or "Isolate payroll anomalies" and receive instantly compiled tables.' },
+                { title: 'Predictive Attrition Risk', desc: 'Pre-emptively scan flight risks and attendance changes, flag anomalies, and protect retention targets.' },
+                { title: 'Self-Healing Workflows', desc: 'Auto-reroute approvals, escalate SLAs, and generate handover briefs dynamically if personnel change.' }
+              ].map((feat, i) => (
+                <div key={i} className="flex gap-3 text-left">
+                  <div className="w-5 h-5 rounded-full bg-[#FFB020]/20 flex items-center justify-center text-[#FFB020] text-xs mt-0.5 shrink-0">✦</div>
+                  <div>
+                    <h5 className="font-bold text-xs text-white">{feat.title}</h5>
+                    <p className="text-white/50 text-[11px] mt-0.5 leading-relaxed">{feat.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="lg:col-span-7 bg-[#070512] border border-[#2A2050] rounded-2xl p-6 font-mono text-[11px] text-white/70 space-y-4 shadow-2xl relative overflow-hidden min-h-[300px] flex flex-col justify-between text-left">
+            <div className="flex items-center justify-between border-b border-[#2A2050]/50 pb-3">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#FFB020]" />
+                <span className="w-2.5 h-2.5 rounded-full bg-[#00C48C]" />
+              </div>
+              <span className="text-[10px] text-white/40 tracking-wider">WORKSphere AI CO-PILOT CONSOLE</span>
+            </div>
+
+            <div className="space-y-3 flex-grow pt-4">
+              <div className="flex gap-2">
+                <span className="text-[#FFB020] shrink-0">&gt;</span>
+                <p className="text-white/90 font-mono tracking-wide">
+                  {aiText}
+                  <span className="animate-pulse text-[#FFB020]">|</span>
+                </p>
+              </div>
+
+              {aiText === aiPhrases[aiIndex % aiPhrases.length] && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-4 rounded-xl bg-[#5B3CF5]/5 border border-[#5B3CF5]/30 space-y-2 mt-4"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-[9px] font-bold text-[#5B3CF5] bg-[#5B3CF5]/10 px-2 py-0.5 rounded-full uppercase tracking-wider">🤖 CO-PILOT RESULT</span>
+                    <span className="text-[9px] text-[#00C48C] font-semibold flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[#00C48C] animate-ping" /> EXECUTED SUCCESS
+                    </span>
+                  </div>
+                  <p className="text-white/80 leading-relaxed font-mono text-[11px]">
+                    {getAiResponse()}
+                  </p>
+                </motion.div>
+              )}
+            </div>
+
+            <div className="border-t border-[#2A2050]/30 pt-3 text-[10px] text-white/30 flex justify-between">
+              <span>SYSTEM: LOCALIZED LLM v2.3</span>
+              <span>LATENCY: 84ms</span>
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Wave transition: AI Console (Dark) -> Analytics (Light) */}
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <WaveDivider topColor="#0D0A1E" bottomColor="#F7F5FF" direction="up" height={100} />
+      </div>
+
+      {/* ── SECTION 9.7: ANALYTICS (Light lavender bg) ── */}
+      <motion.section
+        id="analytics"
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: '-60px' }}
+        variants={staggerContainer}
+        className="relative z-10 py-24 px-8 bg-[#F7F5FF] text-ag-ink"
+      >
+        <div className="max-w-[1280px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div className="lg:col-span-7 bg-white border border-[#E4DFFF] rounded-2xl p-6 shadow-lg min-h-[350px] flex flex-col justify-between text-left">
+            <div className="flex items-center justify-between border-b border-[#E4DFFF]/50 pb-4 mb-4">
+              <div>
+                <h4 className="font-display font-black text-sm text-[#1A1433]">WorkSphere BI Analytics Center</h4>
+                <p className="text-[10px] text-ag-ink-3">Live payroll CTC (Cr ₹) vs Headcount monitoring</p>
+              </div>
+              <span className="text-[10px] font-semibold text-[#5B3CF5] bg-[#5B3CF5]/10 px-2.5 py-1 rounded-full uppercase tracking-wider">REAL-TIME TELEMETRY</span>
+            </div>
+
+            <div className="h-[260px] w-full mt-2">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={mockChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="payrollGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#5B3CF5" stopOpacity={0.2}/>
+                      <stop offset="95%" stopColor="#5B3CF5" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <XAxis dataKey="month" stroke="#8A82A5" fontSize={10} tickLine={false} axisLine={false} />
+                  <YAxis yAxisId="left" stroke="#8A82A5" fontSize={10} tickLine={false} axisLine={false} />
+                  <YAxis yAxisId="right" orientation="right" stroke="#8A82A5" fontSize={10} tickLine={false} axisLine={false} />
+                  <Tooltip
+                    contentStyle={{ background: '#1A1433', border: 'none', borderRadius: 8, color: '#fff', fontSize: 10 }}
+                    labelStyle={{ fontWeight: 'bold', color: '#FFB020' }}
+                  />
+                  <Line yAxisId="left" type="monotone" dataKey="payroll" stroke="#5B3CF5" strokeWidth={3} dot={{ fill: '#5B3CF5', r: 4 }} activeDot={{ r: 6 }} name="Payroll (Cr ₹)" />
+                  <Line yAxisId="right" type="monotone" dataKey="headcount" stroke="#00C48C" strokeWidth={2} dot={{ fill: '#00C48C', r: 3 }} name="Employees" />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="flex gap-4 border-t border-[#E4DFFF]/50 pt-4 mt-2 justify-center text-[10px]">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#5B3CF5]" />
+                <span className="text-ag-ink-2 font-medium">Payroll Cost (Cr ₹)</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-full bg-[#00C48C]" />
+                <span className="text-ag-ink-2 font-medium">Headcount (Active)</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="lg:col-span-5 space-y-6 text-left">
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#00C48C]/10 border border-[#00C48C]/20 text-xs font-semibold text-[#00C48C]">
+              <ChartBar size={16} />
+              <span>DECISIONS WITH INSIGHTS</span>
+            </div>
+            <AnimatedHeading
+              text="Enterprise Business Intelligence. Decoupled."
+              highlightWord="Intelligence."
+              highlightColor="text-[#5B3CF5]"
+              className="text-3xl md:text-4xl text-[#1A1433] tracking-tight font-black"
+            />
+            <p className="text-ag-ink-2 text-sm leading-relaxed">
+              Unlock deep cross-module correlation matrices. Query payroll trends, project completion timelines, resource allocation maps, and statutory tax liabilities with real-time accuracy.
+            </p>
+            <div className="space-y-4 pt-2">
+              {[
+                { title: 'Ad-hoc Custom Report Builder', desc: 'Drag, drop, pivot, and save complex data schemas. Export instantly to PDF, CSV, or live JSON webhooks.' },
+                { title: 'Predictive Cash Flow Modeling', desc: 'Simulate incremental CTC, bonus distribution cycles, and tax bracket hikes to see cost forecasts in real time.' },
+                { title: 'Automated Alert Policies', desc: 'Define budget and compliance limit thresholds. Automatically trigger manager alerts if rules are breached.' }
+              ].map((feat, i) => (
+                <div key={i} className="flex gap-3 text-left">
+                  <div className="w-5 h-5 rounded-full bg-[#5B3CF5]/10 flex items-center justify-center text-[#5B3CF5] text-xs mt-0.5 shrink-0">✦</div>
+                  <div>
+                    <h5 className="font-bold text-xs text-[#1A1433]">{feat.title}</h5>
+                    <p className="text-ag-ink-2 text-[11px] mt-0.5 leading-relaxed">{feat.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </motion.section>
+
+      {/* Wave transition: Analytics (Light) -> Security (Dark) */}
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <WaveDivider topColor="#F7F5FF" bottomColor="#1A1433" direction="down" height={100} />
       </div>
 
       {/* ── SECTION 10: SECURITY (dark bg) ── */}

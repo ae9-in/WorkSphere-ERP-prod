@@ -10,16 +10,19 @@ interface ModalProps {
   title?:      string;
   description?:string;
   children:    React.ReactNode;
-  maxWidth?:   'sm' | 'md' | 'lg' | 'xl' | '2xl';
+  maxWidth?:   'sm' | 'md' | 'lg' | 'xl' | '2xl' | 'full';
   showClose?:  boolean;
+  /** On mobile, render as bottom sheet instead of centered dialog */
+  mobileSheet?: boolean;
 }
 
 const maxWidthMap = {
-  sm:  'max-w-sm',
-  md:  'max-w-md',
-  lg:  'max-w-lg',
-  xl:  'max-w-xl',
-  '2xl': 'max-w-2xl',
+  sm:    'sm:max-w-sm',
+  md:    'sm:max-w-md',
+  lg:    'sm:max-w-lg',
+  xl:    'sm:max-w-xl',
+  '2xl': 'sm:max-w-2xl',
+  full:  'sm:max-w-full',
 };
 
 export function Modal({
@@ -30,6 +33,7 @@ export function Modal({
   children,
   maxWidth = 'md',
   showClose = true,
+  mobileSheet = true,
 }: ModalProps) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -44,6 +48,7 @@ export function Modal({
       <AnimatePresence>
         {isOpen && (
           <Dialog.Portal>
+            {/* Backdrop */}
             <Dialog.Overlay asChild>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -53,18 +58,48 @@ export function Modal({
                 className="fixed inset-0 bg-ag-ink/40 backdrop-blur-sm z-[100]"
               />
             </Dialog.Overlay>
+
             <Dialog.Content asChild>
-              <div className="fixed inset-0 z-[101] flex items-center justify-center p-4 overflow-y-auto">
+              {/* On mobile: bottom sheet. On sm+: centered dialog */}
+              <div className={cn(
+                'fixed z-[101]',
+                mobileSheet
+                  ? 'inset-x-0 bottom-0 flex flex-col sm:inset-0 sm:flex-row sm:items-center sm:justify-center sm:p-4'
+                  : 'inset-0 flex items-center justify-center p-4'
+              )}>
                 <motion.div
-                  initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.95, y: 10 }}
-                  transition={{ duration: 0.2, ease: 'easeOut' }}
+                  initial={mobileSheet
+                    ? { opacity: 0, y: '100%' }
+                    : { opacity: 0, scale: 0.95, y: 10 }
+                  }
+                  animate={mobileSheet
+                    ? { opacity: 1, y: 0 }
+                    : { opacity: 1, scale: 1, y: 0 }
+                  }
+                  exit={mobileSheet
+                    ? { opacity: 0, y: '100%' }
+                    : { opacity: 0, scale: 0.95, y: 10 }
+                  }
+                  transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
                   className={cn(
-                    'w-full bg-ag-surface rounded-xl border border-ag-border shadow-modal p-6 relative focus:outline-none',
-                    maxWidthMap[maxWidth]
+                    'w-full bg-ag-surface border border-ag-border shadow-modal relative focus:outline-none overflow-y-auto',
+                    // Mobile: bottom sheet style
+                    mobileSheet && 'rounded-t-2xl sm:rounded-xl max-h-[92vh] sm:max-h-[90vh]',
+                    // sm+: centered dialog
+                    !mobileSheet && 'rounded-xl',
+                    // Max width on sm+ screens
+                    maxWidthMap[maxWidth],
+                    // Padding
+                    'p-5 sm:p-6',
+                    // Safe area at bottom on mobile
+                    mobileSheet && '[padding-bottom:max(20px,env(safe-area-inset-bottom))] sm:pb-6'
                   )}
                 >
+                  {/* Bottom sheet drag handle (mobile only) */}
+                  {mobileSheet && (
+                    <div className="sm:hidden w-9 h-1 bg-ag-border-strong rounded-full mx-auto mb-4" aria-hidden="true" />
+                  )}
+
                   {(title || showClose) && (
                     <div className="flex items-start justify-between mb-4 gap-4">
                       <div>
@@ -83,7 +118,8 @@ export function Modal({
                         <Dialog.Close asChild>
                           <button
                             onClick={onClose}
-                            className="w-8 h-8 rounded-md flex items-center justify-center text-ag-ink-3 hover:text-ag-ink hover:bg-ag-surface-2 transition-colors"
+                            aria-label="Close dialog"
+                            className="w-9 h-9 min-w-[36px] rounded-md flex items-center justify-center text-ag-ink-3 hover:text-ag-ink hover:bg-ag-surface-2 transition-colors flex-shrink-0"
                           >
                             <X size={18} />
                           </button>

@@ -555,7 +555,7 @@ function UploadDrawer({ onClose, onSuccess, employees }: {
         <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
           <Input label="Document Name *" placeholder="e.g. Aadhaar Card - Rahul Mehta" required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} />
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Select
               label="Category *"
               value={form.category}
@@ -596,7 +596,7 @@ function UploadDrawer({ onClose, onSuccess, employees }: {
             ]}
           />
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Input label="File Size (bytes)" type="number" value={form.size} onChange={e => setForm({ ...form, size: Number(e.target.value) })} />
             <Input label="Expiry Date" type="date" value={form.expiryDate} onChange={e => setForm({ ...form, expiryDate: e.target.value })} />
           </div>
@@ -1677,3 +1677,4 @@ export default function DocumentsPage() {
     </PageContainer>
   );
 }
+

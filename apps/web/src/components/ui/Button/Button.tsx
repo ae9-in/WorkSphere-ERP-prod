@@ -28,15 +28,15 @@ const variantClasses: Record<ButtonVariant, string> = {
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
-  sm: 'h-8 px-3 text-xs gap-1.5',
-  md: 'h-11 px-6 text-sm gap-2',
-  lg: 'h-12 px-8 text-base gap-2',
+  sm: 'h-11 min-h-[44px] px-3 text-xs gap-1.5',
+  md: 'h-11 min-h-[44px] px-6 text-sm gap-2',
+  lg: 'h-12 min-h-[44px] px-8 text-base gap-2',
 };
 
 const iconSizeClasses: Record<ButtonSize, string> = {
-  sm: 'w-8 h-8 p-0',
-  md: 'w-10 h-10 p-0',
-  lg: 'w-12 h-12 p-0',
+  sm: 'w-11 h-11 min-w-[44px] min-h-[44px] p-0',
+  md: 'w-11 h-11 min-w-[44px] min-h-[44px] p-0',
+  lg: 'w-12 h-12 min-w-[44px] min-h-[44px] p-0',
 };
 
 // ── Component ─────────────────────────────────
@@ -48,7 +48,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     return (
       <motion.button
         ref={ref}
-        whileTap={{ scale: disabled || loading ? 1 : 0.96 }}
+        whileTap={{ scale: disabled || loading ? 1 : 0.95 }}
+        whileHover={{ scale: disabled || loading ? 1 : 1.01 }}
         transition={{ duration: 0.12 }}
         className={cn(
           // Base

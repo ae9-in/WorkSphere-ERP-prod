@@ -812,7 +812,7 @@ export default function AssetPage() {
             <Card className="p-5">
               <CardHeader title="Asset Checkout Allocation" subtitle="Assign assets directly to active employee profiles." />
               <form className="space-y-4 pt-2" onSubmit={handleAssign}>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-ag-ink uppercase tracking-wider mb-2">Select Asset *</label>
                     <select
@@ -841,7 +841,7 @@ export default function AssetPage() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Select
                     label="Checkout Condition"
                     options={[
@@ -920,7 +920,7 @@ export default function AssetPage() {
               {/* Left Column: Basic Info */}
               <div className="space-y-4">
                 <h4 className="font-bold text-xs uppercase text-ag-primary tracking-wider border-b border-ag-border pb-1">Basic Information</h4>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Select
                     label="Category *"
                     value={registerForm.category}
@@ -938,7 +938,7 @@ export default function AssetPage() {
                   <Input label="Asset Brand *" placeholder="Apple" required value={registerForm.brand} onChange={e => setRegisterForm({ ...registerForm, brand: e.target.value })} />
                 </div>
                 <Input label="Model Details *" placeholder="MacBook Pro 16" required value={registerForm.name} onChange={e => setRegisterForm({ ...registerForm, name: e.target.value })} />
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Input label="Asset Tag ID *" placeholder="TAG-2026-001" required value={registerForm.assetTag} onChange={e => setRegisterForm({ ...registerForm, assetTag: e.target.value })} />
                   <Input label="Serial Number *" placeholder="C02F812XMD6M" required value={registerForm.serialNumber} onChange={e => setRegisterForm({ ...registerForm, serialNumber: e.target.value })} />
                 </div>
@@ -947,7 +947,7 @@ export default function AssetPage() {
               {/* Right Column: Financial & Warranty */}
               <div className="space-y-4">
                 <h4 className="font-bold text-xs uppercase text-ag-primary tracking-wider border-b border-ag-border pb-1">Financial & Warranty</h4>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Input label="Procurement Value (INR) *" type="number" required value={registerForm.purchasePrice} onChange={e => setRegisterForm({ ...registerForm, purchasePrice: Number(e.target.value) })} />
                   <Select
                     label="Condition"
@@ -961,11 +961,11 @@ export default function AssetPage() {
                     ]}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Input label="Warranty Start Date" type="date" value={registerForm.warrantyStart} onChange={e => setRegisterForm({ ...registerForm, warrantyStart: e.target.value })} />
                   <Input label="Warranty End Date" type="date" value={registerForm.warrantyEnd} onChange={e => setRegisterForm({ ...registerForm, warrantyEnd: e.target.value })} />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Input label="Depreciation Rate (%)" type="number" value={registerForm.depreciationRate} onChange={e => setRegisterForm({ ...registerForm, depreciationRate: Number(e.target.value) })} />
                   <Input label="Residual / Scrap Value (INR)" type="number" value={registerForm.residualValue} onChange={e => setRegisterForm({ ...registerForm, residualValue: Number(e.target.value) })} />
                 </div>
@@ -1235,3 +1235,4 @@ export default function AssetPage() {
     </PageContainer>
   );
 }
+

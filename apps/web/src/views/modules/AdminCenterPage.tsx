@@ -1089,7 +1089,7 @@ export default function AdminCenterPage() {
             <div className="p-6 overflow-y-auto space-y-6 text-xs text-ag-ink-2 custom-scrollbar">
               
               {/* Personal details grid */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <span className="font-extrabold text-[10px] text-ag-ink-3 uppercase block mb-1">Employee ID</span>
                   <span className="font-bold text-ag-ink">{selectedUser.empId}</span>
@@ -1200,3 +1200,4 @@ export default function AdminCenterPage() {
     </PageContainer>
   );
 }
+

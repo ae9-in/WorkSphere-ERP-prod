@@ -5,6 +5,16 @@ export default {
     './apps/web/src/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
+    screens: {
+      'xs':  '360px',
+      'sm':  '640px',
+      'md':  '768px',
+      'lg':  '1024px',
+      'xl':  '1280px',
+      '2xl': '1536px',
+      '3xl': '1920px',
+      '4xl': '2560px',
+    },
     extend: {
       colors: {
         'ag-white':         '#FFFFFF',
@@ -60,6 +70,8 @@ export default {
         'fade-up':    'fadeUp 280ms ease forwards',
         'fade-in':    'fadeIn 200ms ease forwards',
         'slide-in-r': 'slideInRight 300ms ease forwards',
+        'slide-in-l': 'slideInLeft 300ms ease forwards',
+        'slide-up':   'slideUp 300ms ease forwards',
         'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
         'spin-slow':  'spin 3s linear infinite',
       },
@@ -79,6 +91,14 @@ export default {
         slideInRight: {
           from: { opacity: '0', transform: 'translateX(24px)' },
           to:   { opacity: '1', transform: 'translateX(0)' },
+        },
+        slideInLeft: {
+          from: { opacity: '0', transform: 'translateX(-100%)' },
+          to:   { opacity: '1', transform: 'translateX(0)' },
+        },
+        slideUp: {
+          from: { opacity: '0', transform: 'translateY(100%)' },
+          to:   { opacity: '1', transform: 'translateY(0)' },
         },
         pulseSoft: {
           '0%, 100%': { opacity: '1' },

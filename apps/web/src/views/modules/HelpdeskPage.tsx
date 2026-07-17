@@ -168,7 +168,7 @@ export default function HelpdeskPage() {
                 required
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-bold text-ag-ink-2 uppercase block mb-1">Category</label>
                 <select
@@ -340,3 +340,4 @@ export default function HelpdeskPage() {
     </PageContainer>
   );
 }
+

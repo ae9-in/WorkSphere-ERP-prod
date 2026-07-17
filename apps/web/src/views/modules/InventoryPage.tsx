@@ -1262,7 +1262,7 @@ export default function InventoryPage() {
                       value={selectedItem.name}
                       onChange={(e) => setSelectedItem({ ...selectedItem, name: e.target.value })}
                     />
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <Input
                         label="Brand"
                         value={selectedItem.brand || ''}
@@ -1274,7 +1274,7 @@ export default function InventoryPage() {
                         onChange={(e) => setSelectedItem({ ...selectedItem, manufacturer: e.target.value })}
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <Input
                         label="Min Stock"
                         type="number"
@@ -1288,7 +1288,7 @@ export default function InventoryPage() {
                         onChange={(e) => setSelectedItem({ ...selectedItem, reorderPoint: Number(e.target.value) })}
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <Input
                         label="Safety Stock"
                         type="number"
@@ -1302,7 +1302,7 @@ export default function InventoryPage() {
                         onChange={(e) => setSelectedItem({ ...selectedItem, maxStock: Number(e.target.value) })}
                       />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold text-ag-ink uppercase tracking-wider mb-2">Status</label>
                         <select
@@ -1426,7 +1426,7 @@ export default function InventoryPage() {
                       onChange={(e) => setItemForm({ ...itemForm, name: e.target.value })}
                     />
                     
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <Input
                         label="Brand"
                         placeholder="e.g. Polycab"
@@ -1441,7 +1441,7 @@ export default function InventoryPage() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold text-ag-ink uppercase tracking-wider mb-2">Category Code</label>
                         <select
@@ -1463,7 +1463,7 @@ export default function InventoryPage() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <Input
                         label="Min Stock"
                         type="number"
@@ -1478,7 +1478,7 @@ export default function InventoryPage() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <Input
                         label="Safety Stock"
                         type="number"
@@ -1493,7 +1493,7 @@ export default function InventoryPage() {
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-bold text-ag-ink uppercase tracking-wider mb-2">Default WH</label>
                         <select
@@ -1686,7 +1686,7 @@ export default function InventoryPage() {
                   onChange={(e) => setLocationForm({ ...locationForm, code: e.target.value })}
                 />
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
                     label="Zone"
                     placeholder="Z1"
@@ -1795,7 +1795,7 @@ export default function InventoryPage() {
                     </select>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-ag-ink uppercase tracking-wider mb-2">
                         {stockForm.type === 'transfer' ? 'From Warehouse *' : 'Warehouse *'}
@@ -1859,7 +1859,7 @@ export default function InventoryPage() {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Input
                       label="Quantity *"
                       type="number"
@@ -1875,7 +1875,7 @@ export default function InventoryPage() {
                     />
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Input
                       label="Batch Number"
                       placeholder="e.g. BATCH-01"
@@ -2007,7 +2007,7 @@ export default function InventoryPage() {
                     value={qaInspectionForm.batchNumber}
                     onChange={(e) => setQaInspectionForm({ ...qaInspectionForm, batchNumber: e.target.value })}
                   />
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <Input
                       label="Sample Size"
                       type="number"
@@ -2604,7 +2604,7 @@ export default function InventoryPage() {
               <Button variant="ghost" size="sm" onClick={() => setShowSupplierForm(false)} icon={<X size={16} />} />
             </h3>
             <form onSubmit={handleCreateSupplier} className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Input
                   label="Supplier Company Name"
                   value={supplierForm.companyName}
@@ -2619,7 +2619,7 @@ export default function InventoryPage() {
                   required
                 />
               </div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Input
                   label="GSTIN Number (Taxation)"
                   value={supplierForm.gst}
@@ -2633,7 +2633,7 @@ export default function InventoryPage() {
                   placeholder="ABCDE1234F"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Input
                   label="Contact Email Address"
                   type="email"
@@ -2646,7 +2646,7 @@ export default function InventoryPage() {
                   onChange={e => setSupplierForm({ ...supplierForm, phone: e.target.value })}
                 />
               </div>
-              <div className="grid grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <Input
                   label="Payment Terms"
                   value={supplierForm.paymentTerms}
@@ -2680,7 +2680,7 @@ export default function InventoryPage() {
               <Button variant="ghost" size="sm" onClick={() => setShowPOForm(false)} icon={<X size={16} />} />
             </h3>
             <form onSubmit={handleCreatePurchaseOrder} className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="w-full flex flex-col gap-1.5">
                   <label className="ag-label ag-label--required">Select Supplier Account</label>
                   <select
@@ -2703,7 +2703,7 @@ export default function InventoryPage() {
                   required
                 />
               </div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Input
                   label="Expected Delivery Date"
                   type="date"
@@ -2845,3 +2845,4 @@ export default function InventoryPage() {
     </PageContainer>
   );
 }
+

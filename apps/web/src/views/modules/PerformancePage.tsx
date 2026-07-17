@@ -605,7 +605,7 @@ export default function PerformancePage() {
                   <div className="space-y-3">
                     <Input label="Goal Objective / Title *" placeholder="e.g. Expand API response health to 99.9%" required value={newGoal.title} onChange={e => setNewGoal({ ...newGoal, title: e.target.value })} />
                     <Input label="Scope / Target Description" placeholder="Explain objective KPI definitions..." value={newGoal.description} onChange={e => setNewGoal({ ...newGoal, description: e.target.value })} />
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <Select
                         label="Goal Level *"
                         value={newGoal.type}
@@ -625,11 +625,11 @@ export default function PerformancePage() {
                     </div>
                   </div>
                   <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <Input label="Target Value Limit" type="number" value={newGoal.targetValue} onChange={e => setNewGoal({ ...newGoal, targetValue: Number(e.target.value) })} />
                       <Input label="Objective Weightage (%)" type="number" value={newGoal.weightage} onChange={e => setNewGoal({ ...newGoal, weightage: Number(e.target.value) })} />
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <Input label="Assessment Start" type="date" value={newGoal.startDate} onChange={e => setNewGoal({ ...newGoal, startDate: e.target.value })} />
                       <Input label="Assessment Target" type="date" value={newGoal.endDate} onChange={e => setNewGoal({ ...newGoal, endDate: e.target.value })} />
                     </div>
@@ -718,7 +718,7 @@ export default function PerformancePage() {
                       </div>
 
                       {/* 9-box parameters */}
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         {[
                           { label: 'Potential Score', val: 'High Potential', color: 'text-ag-primary' },
                           { label: 'Promotion Readiness', val: 'Ready Now (12m)', color: 'text-ag-mint' },
@@ -813,7 +813,7 @@ export default function PerformancePage() {
                       </select>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <Select
                         label="Meeting Format"
                         value={checkinForm.type}
@@ -1188,3 +1188,4 @@ export default function PerformancePage() {
     </PageContainer>
   );
 }
+

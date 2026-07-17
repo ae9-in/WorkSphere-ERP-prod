@@ -422,7 +422,7 @@ export default function RecruitmentPage() {
           </h3>
           <form onSubmit={handleConvert} className="space-y-4">
             <Input label="Work Email *" type="email" value={workEmail} onChange={e => setWorkEmail(e.target.value)} required />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Select label="Department" value={empDept} onChange={e => setEmpDept(e.target.value)}
                 options={['Engineering','HR','Finance','Marketing','Sales'].map(d => ({ value: d, label: d }))} />
               <Input label="Designation" value={empDesg} onChange={e => setEmpDesg(e.target.value)} />
@@ -821,12 +821,12 @@ export default function RecruitmentPage() {
             <Card className="p-5 max-w-2xl">
               <h3 className="font-bold text-base text-ag-ink border-b border-ag-border pb-3 mb-4">Post a New Job Opening</h3>
               <form onSubmit={handleCreateJob} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input label="Job Title *" value={jobTitle} onChange={e => setJobTitle(e.target.value)} required />
                   <Select label="Department" value={jobDept} onChange={e => setJobDept(e.target.value)}
                     options={['Engineering','HR','Finance','Marketing','Sales','Operations','Customer Support'].map(d => ({ value: d, label: d }))} />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input label="Location *" value={jobLocation} onChange={e => setJobLocation(e.target.value)} required />
                   <Select label="Employment Type" value={jobType} onChange={e => setJobType(e.target.value)}
                     options={[
@@ -836,11 +836,11 @@ export default function RecruitmentPage() {
                       { value: 'internship', label: 'Internship' },
                     ]} />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input label="Min Experience (years)" type="number" value={jobExp} onChange={e => setJobExp(e.target.value)} />
                   <Input label="Skills (comma-separated) *" value={jobSkills} onChange={e => setJobSkills(e.target.value)} required />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input label="Qualifications" value={jobQualifications} onChange={e => setJobQualifications(e.target.value)} placeholder="e.g. B.Tech in CS" />
                   <Input label="Deadline" type="date" value={jobDeadline} onChange={e => setJobDeadline(e.target.value)} />
                 </div>
@@ -864,17 +864,17 @@ export default function RecruitmentPage() {
             <Card className="p-5 max-w-2xl">
               <h3 className="font-bold text-base text-ag-ink border-b border-ag-border pb-3 mb-4">Create Workforce Hiring Plan</h3>
               <form onSubmit={handleCreatePlan} className="space-y-4">
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <Select label="Department" value={planDept} onChange={e => setPlanDept(e.target.value)}
                     options={['Engineering','HR','Finance','Marketing','Sales'].map(d => ({ value: d, label: d }))} />
                   <Input label="Branch" value={planBranch} onChange={e => setPlanBranch(e.target.value)} />
                   <Input label="Team" value={planTeam} onChange={e => setPlanTeam(e.target.value)} />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input label="Position Title *" value={planTitle} onChange={e => setPlanTitle(e.target.value)} required />
                   <Input label="Hiring Count" type="number" value={planCount} onChange={e => setPlanCount(e.target.value)} />
                 </div>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <Input label="Quarter *" value={planQuarter} onChange={e => setPlanQuarter(e.target.value)} placeholder="e.g. Q3-2026" required />
                   <Input label="Timeline" value={planTimeline} onChange={e => setPlanTimeline(e.target.value)} placeholder="Immediate" />
                   <Input label="Budget (CTC allocation) *" type="number" value={planBudget} onChange={e => setPlanBudget(e.target.value)} required />
@@ -901,16 +901,16 @@ export default function RecruitmentPage() {
             <Card className="p-5 max-w-2xl">
               <h3 className="font-bold text-base text-ag-ink border-b border-ag-border pb-3 mb-4">Register New Candidate</h3>
               <form onSubmit={handleAddCandidate} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input label="Full Name *" value={candName} onChange={e => setCandName(e.target.value)} required />
                   <Input label="Email *" type="email" value={candEmail} onChange={e => setCandEmail(e.target.value)} required />
                 </div>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <Input label="Phone" value={candPhone} onChange={e => setCandPhone(e.target.value)} />
                   <Input label="Current Company" value={candCurrentCo} onChange={e => setCandCurrentCo(e.target.value)} />
                   <Input label="Expected CTC (LPA)" type="number" value={candExpectedCtc} onChange={e => setCandExpectedCtc(e.target.value)} />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input label="Address" value={candAddress} onChange={e => setCandAddress(e.target.value)} />
                   <Select label="Source" value={candSource} onChange={e => setCandSource(e.target.value)}
                     options={['career_portal','linkedin','referral','job_portal','campus','agency'].map(s => ({ value: s, label: s.replace('_', ' ') }))} />
@@ -1039,11 +1039,11 @@ export default function RecruitmentPage() {
                 <Select label="Candidate *" value={offerCandId} onChange={e => setOfferCandId(e.target.value)}
                   options={[{ value: '', label: 'Select candidate...' }, ...candidates.filter(c => c.status === 'selected').map(c => ({ value: c.id, label: c.fullName }))] } />
                 <Input label="Position Title" value={offerTitle} onChange={e => setOfferTitle(e.target.value)} placeholder="e.g. Staff Engineer" />
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input label="CTC (LPA) *" type="number" value={offerCtc} onChange={e => setOfferCtc(e.target.value)} required />
                   <Input label="Fixed base" type="number" value={offerFixed} onChange={e => setOfferFixed(e.target.value)} />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input label="Joining Bonus" type="number" value={offerBonus} onChange={e => setOfferBonus(e.target.value)} />
                   <Input label="Probation (days)" type="number" value={offerProbation} onChange={e => setOfferProbation(e.target.value)} />
                 </div>
@@ -1131,3 +1131,4 @@ export default function RecruitmentPage() {
     </PageContainer>
   );
 }
+

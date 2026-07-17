@@ -813,7 +813,7 @@ export default function MaintenancePage() {
                   {/* Consume spare parts */}
                   <form onSubmit={handleConsumeSpares} className="p-4 bg-ag-surface-2 rounded-xl space-y-3">
                     <h4 className="text-xs font-bold text-ag-ink uppercase tracking-wider">Consume Catalog Spare Part</h4>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <Input
                         label="Part/Item Code *"
                         placeholder="e.g. SPARE-889"
@@ -1024,7 +1024,7 @@ export default function MaintenancePage() {
                       {assets.map(a => <option key={a._id} value={a._id}>{a.name} ({a.assetCode})</option>)}
                     </select>
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Input
                       label="Temperature (°C)"
                       type="number"
@@ -1055,3 +1055,4 @@ export default function MaintenancePage() {
     </PageContainer>
   );
 }
+

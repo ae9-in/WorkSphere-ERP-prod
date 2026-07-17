@@ -314,7 +314,7 @@ export default function SignUpPage() {
                 <div className="p-6 sm:p-8 rounded-card border border-ag-border bg-white/70 backdrop-blur-xl shadow-lvl2 space-y-5">
                   <form onSubmit={handleSubmit} className="space-y-4">
                     {/* Name Grid */}
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <Input
                         label="First Name"
                         value={firstName}
@@ -622,3 +622,4 @@ export default function SignUpPage() {
     </div>
   );
 }
+

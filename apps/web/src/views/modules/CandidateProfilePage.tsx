@@ -606,7 +606,7 @@ export default function CandidateProfilePage() {
           </h3>
           <form onSubmit={handleConvert} className="space-y-4">
             <Input label="Work Email *" type="email" value={workEmail} onChange={e => setWorkEmail(e.target.value)} required />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Select
                 label="Department"
                 value={empDept}
@@ -939,11 +939,11 @@ export default function CandidateProfilePage() {
               <form onSubmit={handleFeedback} className="space-y-4">
                 <Select label="Round" value={selectedIntId} onChange={e => setSelectedIntId(e.target.value)}
                   options={[{ value: '', label: 'Select round...' }, ...interviews.map(i => ({ value: i.id, label: i.title }))]} />
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input label="Tech (1-5)" type="number" value={ratingTech} onChange={e => setRatingTech(e.target.value)} />
                   <Input label="Comm (1-5)" type="number" value={ratingComm} onChange={e => setRatingComm(e.target.value)} />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input label="Problem Solving (1-5)" type="number" value={ratingProb} onChange={e => setRatingProb(e.target.value)} />
                   <Input label="Culture Fit (1-5)" type="number" value={ratingFit} onChange={e => setRatingFit(e.target.value)} />
                 </div>
@@ -1021,7 +1021,7 @@ export default function CandidateProfilePage() {
                 <Input label="Company" value={newRefCompany} onChange={e => setNewRefCompany(e.target.value)} />
                 <Select label="Relationship" value={newRefRelation} onChange={e => setNewRefRelation(e.target.value)}
                   options={[{ value: 'manager', label: 'Former Manager' }, { value: 'colleague', label: 'Former Colleague' }]} />
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input label="Email" type="email" value={newRefEmail} onChange={e => setNewRefEmail(e.target.value)} />
                   <Input label="Phone" value={newRefPhone} onChange={e => setNewRefPhone(e.target.value)} />
                 </div>
@@ -1088,7 +1088,7 @@ export default function CandidateProfilePage() {
               <h3 className="font-bold text-base text-ag-ink border-b border-ag-border pb-3 mb-4">Generate Offer Letter</h3>
               <form onSubmit={handleCreateOffer} className="space-y-4">
                 <Input label="Offer Position Title" value={offerTitle} onChange={e => setOfferTitle(e.target.value)} placeholder="e.g. Senior Software Engineer" required />
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input label="CTC (LPA) *" type="number" value={offerCtc} onChange={e => setOfferCtc(e.target.value)} required />
                   <Input label="Fixed Pay" type="number" value={offerFixed} onChange={e => setOfferFixed(e.target.value)} />
                 </div>
@@ -1134,3 +1134,4 @@ export default function CandidateProfilePage() {
     </PageContainer>
   );
 }
+

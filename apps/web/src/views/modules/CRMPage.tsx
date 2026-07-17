@@ -518,15 +518,15 @@ export default function CRMPage() {
               <Button variant="ghost" size="sm" onClick={() => setShowLeadForm(false)} icon={<X size={16} />} />
             </h3>
             <form onSubmit={handleCreateLead} className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Input label="Company Name" value={leadCompany} onChange={e => setLeadCompany(e.target.value)} required />
                 <Input label="Contact Person" value={leadContact} onChange={e => setLeadContact(e.target.value)} required />
               </div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Input label="Contact Email" type="email" value={leadEmail} onChange={e => setLeadEmail(e.target.value)} />
                 <Input label="Contact Phone" value={leadPhone} onChange={e => setLeadPhone(e.target.value)} />
               </div>
-              <div className="grid grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <Select
                   label="Lead Source"
                   value={leadSource}
@@ -558,7 +558,7 @@ export default function CRMPage() {
             </h3>
             <form onSubmit={handleCreateCustomer} className="space-y-6">
               <Input label="Company Name" value={custCompany} onChange={e => setCustCompany(e.target.value)} required />
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Input label="Primary Email" type="email" value={custEmail} onChange={e => setCustEmail(e.target.value)} />
                 <Input label="Primary Phone" value={custPhone} onChange={e => setCustPhone(e.target.value)} />
               </div>
@@ -579,7 +579,7 @@ export default function CRMPage() {
               <Button variant="ghost" size="sm" onClick={() => setShowQuoteForm(false)} icon={<X size={16} />} />
             </h3>
             <form onSubmit={handleCreateQuotation} className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Select
                   label="Select Customer Account"
                   value={quoteCustId}
@@ -624,7 +624,7 @@ export default function CRMPage() {
                         value={item.quantity}
                         onChange={e => {
                           const items = [...quoteItems];
-                          items[idx].quantity = parseInt(e.target.value || 1);
+                          items[idx].quantity = parseInt(e.target.value || '1');
                           setQuoteItems(items);
                         }}
                         required
@@ -637,7 +637,7 @@ export default function CRMPage() {
                         value={item.unitPrice}
                         onChange={e => {
                           const items = [...quoteItems];
-                          items[idx].unitPrice = parseFloat(e.target.value || 0);
+                          items[idx].unitPrice = parseFloat(e.target.value || '0');
                           setQuoteItems(items);
                         }}
                         required
@@ -668,7 +668,7 @@ export default function CRMPage() {
               <Button variant="ghost" size="sm" onClick={() => setShowOrderForm(false)} icon={<X size={16} />} />
             </h3>
             <form onSubmit={handleCreateOrder} className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Select
                   label="Select Customer Account"
                   value={orderCustId}
@@ -712,7 +712,7 @@ export default function CRMPage() {
                         value={item.quantity}
                         onChange={e => {
                           const items = [...orderItems];
-                          items[idx].quantity = parseInt(e.target.value || 1);
+                          items[idx].quantity = parseInt(e.target.value || '1');
                           setOrderItems(items);
                         }}
                         required
@@ -725,7 +725,7 @@ export default function CRMPage() {
                         value={item.unitPrice}
                         onChange={e => {
                           const items = [...orderItems];
-                          items[idx].unitPrice = parseFloat(e.target.value || 0);
+                          items[idx].unitPrice = parseFloat(e.target.value || '0');
                           setOrderItems(items);
                         }}
                         required
@@ -756,7 +756,7 @@ export default function CRMPage() {
               <Button variant="ghost" size="sm" onClick={() => setShowTaskForm(false)} icon={<X size={16} />} />
             </h3>
             <form onSubmit={handleCreateTask} className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Select
                   label="Select Related Lead"
                   value={taskLeadId}
@@ -770,7 +770,7 @@ export default function CRMPage() {
                   options={[{ value: '', label: 'None' }, ...customers.map(c => ({ value: c.id, label: c.companyName }))] }
                 />
               </div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Select
                   label="Activity Category"
                   value={taskType}
@@ -794,3 +794,4 @@ export default function CRMPage() {
     </PageContainer>
   );
 }
+

@@ -16,6 +16,8 @@ interface DataTableProps<TData> {
   onRowClick?: (row: TData) => void;
   emptyTitle?: string;
   emptySubtitle?: string;
+  /** Make table use minimum-width horizontal scroll container */
+  minWidth?: string;
 }
 
 export function DataTable<TData>({
@@ -25,6 +27,7 @@ export function DataTable<TData>({
   onRowClick,
   emptyTitle = 'No data found',
   emptySubtitle = 'There are no records matching your request.',
+  minWidth = '600px',
 }: DataTableProps<TData>) {
   const table = useReactTable({
     data,
@@ -52,8 +55,9 @@ export function DataTable<TData>({
   }
 
   return (
-    <div className="w-full overflow-x-auto bg-ag-surface rounded-xl border border-ag-border shadow-card">
-      <table className="ag-table">
+    /* Outer wrapper: clips and enables horizontal scroll with momentum on iOS */
+    <div className="w-full overflow-x-auto -webkit-overflow-scrolling-touch bg-ag-surface rounded-xl border border-ag-border shadow-card">
+      <table className="ag-table" style={{ minWidth }}>
         <thead>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>

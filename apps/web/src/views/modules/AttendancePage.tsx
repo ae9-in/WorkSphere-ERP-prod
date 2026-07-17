@@ -922,7 +922,7 @@ export default function AttendancePage() {
                     { value: 'other',          label: 'Other Exception' },
                   ]}
                 />
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Input label="Requested Check-In" value={regCheckIn} onChange={e => setRegCheckIn(e.target.value)} placeholder="09:00:00" />
                   <Input label="Requested Check-Out" value={regCheckOut} onChange={e => setRegCheckOut(e.target.value)} placeholder="18:00:00" />
                 </div>
@@ -1201,11 +1201,11 @@ export default function AttendancePage() {
               </div>
               {showShiftForm && (
                 <form onSubmit={handleCreateShift} className="space-y-3">
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Input label="Shift Name" required value={shiftName} onChange={e => setShiftName(e.target.value)} placeholder="Morning Shift" />
                     <Input label="Shift Code" required value={shiftCode} onChange={e => setShiftCode(e.target.value)} placeholder="MORN_9" />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <Input label="Start Time" value={shiftStart} onChange={e => setShiftStart(e.target.value)} />
                     <Input label="End Time" value={shiftEnd} onChange={e => setShiftEnd(e.target.value)} />
                   </div>
@@ -1410,7 +1410,7 @@ export default function AttendancePage() {
               Locking a date range will prevent all further check-ins, check-outs, and regularizations for those records. This action is used before payroll processing.
             </p>
             <form onSubmit={handleLockPeriod} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input label="Start Date" type="date" required value={lockStart} onChange={e => setLockStart(e.target.value)} />
                 <Input label="End Date"   type="date" required value={lockEnd}   onChange={e => setLockEnd(e.target.value)} />
               </div>
@@ -1484,3 +1484,4 @@ export default function AttendancePage() {
     </PageContainer>
   );
 }
+

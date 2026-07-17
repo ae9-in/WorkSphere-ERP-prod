@@ -714,7 +714,7 @@ export default function FinancePage() {
               <Button variant="ghost" size="sm" onClick={() => setShowAccountForm(false)} icon={<X size={14} />} />
             </h3>
             <form onSubmit={handleCreateAccount} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input label="Account Code *" value={accCode} onChange={e => setAccCode(e.target.value)} placeholder="e.g. 1202" required />
                 <Input label="Account Name *" value={accName} onChange={e => setAccName(e.target.value)} placeholder="e.g. ICICI Corporate" required />
               </div>
@@ -776,11 +776,11 @@ export default function FinancePage() {
               <Button variant="ghost" size="sm" onClick={() => setShowJournalForm(false)} icon={<X size={14} />} />
             </h3>
             <form onSubmit={handleCreateJournal} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input label="Voucher Date *" type="date" value={journalDate} onChange={e => setJournalDate(e.target.value)} required />
                 <Input label="Reference/Voucher Code" value={journalRef} onChange={e => setJournalRef(e.target.value)} placeholder="e.g. CHQ-8877" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input label="Narration Description" value={journalNarration} onChange={e => setJournalNarration(e.target.value)} placeholder="e.g. Seed operational capital" />
                 <Input label="Cost Center / Project" value={journalBranch} onChange={e => setJournalBranch(e.target.value)} />
               </div>
@@ -818,7 +818,7 @@ export default function FinancePage() {
                         value={item.debit}
                         onChange={e => {
                           const items = [...journalItems];
-                          items[idx].debit = parseFloat(e.target.value || 0);
+                          items[idx].debit = parseFloat(e.target.value || '0');
                           setJournalItems(items);
                         }}
                       />
@@ -830,7 +830,7 @@ export default function FinancePage() {
                         value={item.credit}
                         onChange={e => {
                           const items = [...journalItems];
-                          items[idx].credit = parseFloat(e.target.value || 0);
+                          items[idx].credit = parseFloat(e.target.value || '0');
                           setJournalItems(items);
                         }}
                       />
@@ -861,11 +861,11 @@ export default function FinancePage() {
               <Button variant="ghost" size="sm" onClick={() => setShowInvoiceForm(false)} icon={<X size={14} />} />
             </h3>
             <form onSubmit={handleCreateInvoice} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input label="Customer Name *" value={invCustomer} onChange={e => setInvCustomer(e.target.value)} placeholder="e.g. Google India" required />
                 <Input label="Customer Email" type="email" value={invEmail} onChange={e => setInvEmail(e.target.value)} placeholder="e.g. invoice@google.com" />
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 <Input label="Issue Date *" type="date" value={invIssueDate} onChange={e => setInvIssueDate(e.target.value)} required />
                 <Input label="Due Date *" type="date" value={invDueDate} onChange={e => setInvDueDate(e.target.value)} required />
                 <Select
@@ -915,7 +915,7 @@ export default function FinancePage() {
                         value={item.quantity}
                         onChange={e => {
                           const items = [...invItems];
-                          items[idx].quantity = parseInt(e.target.value || 1);
+                          items[idx].quantity = parseInt(e.target.value || '1');
                           setInvItems(items);
                         }}
                         required
@@ -928,7 +928,7 @@ export default function FinancePage() {
                         value={item.unitPrice}
                         onChange={e => {
                           const items = [...invItems];
-                          items[idx].unitPrice = parseFloat(e.target.value || 0);
+                          items[idx].unitPrice = parseFloat(e.target.value || '0');
                           setInvItems(items);
                         }}
                         required
@@ -1013,7 +1013,7 @@ export default function FinancePage() {
                         value={line.amount}
                         onChange={e => {
                           const lines = [...expLines];
-                          lines[idx].amount = parseFloat(e.target.value || 0);
+                          lines[idx].amount = parseFloat(e.target.value || '0');
                           setExpLines(lines);
                         }}
                         required
@@ -1051,7 +1051,7 @@ export default function FinancePage() {
                 onChange={e => setBudgetDept(e.target.value)}
                 options={['Engineering', 'Sales', 'Marketing', 'HR', 'Finance'].map(d => ({ value: d, label: d }))}
               />
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input label="Fiscal Year *" type="number" value={budgetYear} onChange={e => setBudgetYear(e.target.value)} required />
                 <Select
                   label="Period Quarter"
@@ -1076,7 +1076,7 @@ export default function FinancePage() {
               <Button variant="ghost" size="sm" onClick={() => setShowTaxForm(false)} icon={<X size={14} />} />
             </h3>
             <form onSubmit={handleCreateTax} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Select
                   label="Tax Type *"
                   value={taxType}
@@ -1085,7 +1085,7 @@ export default function FinancePage() {
                 />
                 <Input label="Return Form / Section" value={taxForm} onChange={e => setTaxForm(e.target.value)} placeholder="e.g. GSTR-3B" />
               </div>
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <Input label="Filing Period *" value={taxPeriod} onChange={e => setTaxPeriod(e.target.value)} placeholder="e.g. June 2026" required />
                 <Input label="Due Date *" type="date" value={taxDueDate} onChange={e => setTaxDueDate(e.target.value)} required />
               </div>
@@ -1098,3 +1098,4 @@ export default function FinancePage() {
     </PageContainer>
   );
 }
+

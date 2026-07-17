@@ -1360,7 +1360,7 @@ export default function ManufacturingPage() {
               <Card className="max-w-2xl w-full bg-ag-surface-1 max-h-[90vh] overflow-y-auto">
                 <CardHeader title={`Complete Job: ${selectedWorkOrder.workOrderNumber}`} subtitle={`Register material consumptions and good outputs for finished items.`} />
                 <form className="p-6 space-y-4" onSubmit={handleCompleteWorkOrder}>
-                  <div className="grid grid-cols-3 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <Input
                       label="Produced Qty *"
                       type="number"
@@ -1808,3 +1808,4 @@ export default function ManufacturingPage() {
     </PageContainer>
   );
 }
+

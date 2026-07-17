@@ -577,7 +577,7 @@ export default function WorkflowsPage() {
 
             <Card className="p-5">
               <h3 className="font-extrabold text-xs text-ag-ink uppercase tracking-wider mb-4 border-b border-ag-border pb-2">Add Step Node</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Button size="sm" variant="secondary" onClick={() => handleAddNode('condition')} icon={<GitBranch size={12} />}>If/Else</Button>
                 <Button size="sm" variant="secondary" onClick={() => handleAddNode('action')} icon={<Zap size={12} />}>Action</Button>
                 <Button size="sm" variant="secondary" onClick={() => handleAddNode('delay')} icon={<Clock size={12} />}>Delay</Button>
@@ -904,3 +904,4 @@ export default function WorkflowsPage() {
     </PageContainer>
   );
 }
+

@@ -441,7 +441,7 @@ export default function AnalyticsPage() {
           <div className="lg:col-span-1 space-y-6">
             <Card className="p-5">
               <h3 className="font-extrabold text-xs text-ag-ink uppercase tracking-wider mb-4 border-b border-ag-border pb-2">Add Analytics Widget</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Button size="sm" variant="secondary" onClick={() => handleAddWidget('kpi')} icon={<Plus size={12} />}>KPI Block</Button>
                 <Button size="sm" variant="secondary" onClick={() => handleAddWidget('line')} icon={<Plus size={12} />}>Line Chart</Button>
                 <Button size="sm" variant="secondary" onClick={() => handleAddWidget('bar')} icon={<Plus size={12} />}>Bar Chart</Button>
@@ -535,7 +535,7 @@ export default function AnalyticsPage() {
 
             <Card className="p-5">
               <h3 className="font-extrabold text-xs text-ag-ink uppercase tracking-wider mb-4 border-b border-ag-border pb-2">Export Document</h3>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Button size="sm" variant="secondary" icon={<Download size={12} />}>Export PDF</Button>
                 <Button size="sm" variant="secondary" icon={<Download size={12} />}>Export CSV</Button>
               </div>
@@ -669,7 +669,7 @@ export default function AnalyticsPage() {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="flex flex-col gap-1.5">
                     <label className="ag-label">Operator</label>
                     <select className="ag-input" value={newRuleOperator} onChange={e => setNewRuleOperator(e.target.value)}>
@@ -853,3 +853,4 @@ export default function AnalyticsPage() {
     </PageContainer>
   );
 }
+

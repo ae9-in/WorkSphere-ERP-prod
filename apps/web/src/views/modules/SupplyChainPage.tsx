@@ -762,7 +762,7 @@ export default function SupplyChainPage() {
                   value={shipmentForm.destinationAddress}
                   onChange={(e) => setShipmentForm({ ...shipmentForm, destinationAddress: e.target.value })}
                 />
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Input
                     label="Item Code *"
                     placeholder="e.g. ITEM-0001"
@@ -776,7 +776,7 @@ export default function SupplyChainPage() {
                     onChange={(e) => setShipmentForm({ ...shipmentForm, quantity: parseFloat(e.target.value) })}
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Input
                     label="Weight (kg)"
                     type="number"
@@ -1065,7 +1065,7 @@ export default function SupplyChainPage() {
                   <Card>
                     <CardHeader title="Transmit Mock GPS Coordinates" subtitle="Simulate device telemetry update." />
                     <form className="p-6 space-y-4" onSubmit={handleTelemetrySubmit}>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                         <Input
                           label="Latitude"
                           type="number"
@@ -1345,7 +1345,7 @@ export default function SupplyChainPage() {
                     {carriers.map(c => <option key={c._id} value={c._id}>{c.name} ({c.carrierCode})</option>)}
                   </select>
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Input
                     label="Origin Zone *"
                     value={carrierRateForm.originZone}
@@ -1363,7 +1363,7 @@ export default function SupplyChainPage() {
                   value={carrierRateForm.baseCharge}
                   onChange={(e) => setCarrierRateForm({ ...carrierRateForm, baseCharge: parseFloat(e.target.value) })}
                 />
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Input
                     label="Rate per KM (₹) *"
                     type="number"
@@ -1474,3 +1474,4 @@ export default function SupplyChainPage() {
     </PageContainer>
   );
 }
+

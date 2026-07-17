@@ -133,11 +133,30 @@ function renderIcon(name: string, size = 18, className = '') {
   return <IconComponent size={size} className={className} />;
 }
 
+const DESKTOP_BREAKPOINT = 1024;
+
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = React.useState(
+    () => typeof window !== 'undefined' && window.innerWidth >= DESKTOP_BREAKPOINT
+  );
+  React.useEffect(() => {
+    const mq = window.matchMedia(`(min-width: ${DESKTOP_BREAKPOINT}px)`);
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+  return isDesktop;
+}
+
 export function Sidebar() {
   const location = useLocation();
-  const { sidebarCollapsed, toggleSidebar, sidebarWidth, setSidebarWidth } = useUIStore();
+  const {
+    sidebarCollapsed, toggleSidebar, sidebarWidth, setSidebarWidth,
+    sidebarMobileOpen, setSidebarMobileOpen
+  } = useUIStore();
   const { user, logout } = useAuth();
-  
+  const isDesktop = useIsDesktop();
+
   const [pendingApprovals, setPendingApprovals] = React.useState<number>(0);
   const [searchQuery, setSearchQuery] = React.useState('');
   const [hoveredSection, setHoveredSection] = React.useState<string | null>(null);
@@ -173,7 +192,7 @@ export function Sidebar() {
 
   // Check section activation
   const isSectionActive = React.useCallback((section: DomainSection) => {
-    return section.items.some(item => 
+    return section.items.some(item =>
       item.href === '/dashboard'
         ? location.pathname === '/dashboard'
         : location.pathname.startsWith(item.href)
@@ -209,7 +228,7 @@ export function Sidebar() {
 
     return sectionsToVerify.map(sec => {
       const secMatches = sec.title.toLowerCase().includes(query);
-      const itemsToKeep = sec.items.filter(item => 
+      const itemsToKeep = sec.items.filter(item =>
         item.label.toLowerCase().includes(query) && checkPermission(item.roles)
       );
 
@@ -236,13 +255,20 @@ export function Sidebar() {
 
   const toggleSection = (title: string) => {
     setExpandedSections(prev => {
-      // Accordion mode: collapse others when expanding one
       const next = { [title]: !prev[title] };
       localStorage.setItem('ag-sidebar-expanded-sections', JSON.stringify(next));
       return next;
     });
   };
 
+  // Close mobile sidebar when nav item is clicked
+  const handleNavClick = () => {
+    if (!isDesktop) {
+      setSidebarMobileOpen(false);
+    }
+  };
+
+  // ── Desktop sidebar config ───────────────────────────────────────────────
   const widthVal = sidebarCollapsed ? 72 : sidebarWidth;
   const [isDragging, setIsDragging] = React.useState(false);
 
@@ -272,6 +298,175 @@ export function Sidebar() {
     window.addEventListener('touchend', stopResize);
   }, [setSidebarWidth]);
 
+  // ── Mobile: slide-in from left as full-height drawer ────────────────────
+  // ── Tablet: same as mobile ───────────────────────────────────────────────
+  // ── Desktop: permanent, collapsible, resizable ───────────────────────────
+
+  if (!isDesktop) {
+    return (
+      <AnimatePresence>
+        {sidebarMobileOpen && (
+          <motion.aside
+            key="mobile-sidebar"
+            role="navigation"
+            aria-label="Main navigation"
+            initial={{ x: '-100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '-100%' }}
+            transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="fixed top-0 left-0 bottom-0 w-72 max-w-[85vw] bg-ag-surface border-r border-ag-border z-40 flex flex-col justify-between overflow-hidden select-none shadow-2xl"
+            style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}
+          >
+            <style>{`
+              .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+              .custom-scrollbar::-webkit-scrollbar-thumb { background: transparent; border-radius: 4px; }
+              .custom-scrollbar:hover::-webkit-scrollbar-thumb { background: var(--ag-border-strong); }
+            `}</style>
+
+            {/* Mobile Header */}
+            <div className="h-16 flex items-center justify-between px-4 border-b border-ag-border flex-shrink-0">
+              <Link to={user?.role === 'super_admin' ? '/admin/dashboard' : '/dashboard'} className="flex items-center gap-3" onClick={handleNavClick}>
+                <Logo showText size={28} />
+              </Link>
+              <button
+                onClick={() => setSidebarMobileOpen(false)}
+                aria-label="Close navigation"
+                className="w-9 h-9 rounded-xl flex items-center justify-center text-ag-ink-3 hover:text-ag-ink hover:bg-ag-surface-2 transition-colors"
+              >
+                <Lucide.X size={18} />
+              </button>
+            </div>
+
+            {/* Search */}
+            <div className="px-3 pt-3 flex-shrink-0">
+              <div className="relative flex items-center bg-ag-surface-2 border border-ag-border hover:border-ag-primary-light focus-within:border-ag-primary focus-within:ring-2 focus-within:ring-ag-primary/20 rounded-xl px-3 py-2 transition-all">
+                <Lucide.Search size={14} className="text-ag-ink-3 mr-2" />
+                <input
+                  type="text"
+                  placeholder="Search ERP modules…"
+                  className="w-full bg-transparent text-xs text-ag-ink font-semibold focus:outline-none placeholder-ag-ink-3"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{ fontSize: '16px' }}
+                />
+              </div>
+            </div>
+
+            {/* Nav List */}
+            <div className="flex-1 overflow-y-auto px-3 py-4 space-y-3 custom-scrollbar">
+              <div className="space-y-1">
+                <Link to="/dashboard" onClick={handleNavClick}
+                  className={cn(
+                    'flex items-center gap-3 py-3 px-3 rounded-xl text-xs font-semibold text-ag-ink-2 hover:bg-ag-surface-2 hover:text-ag-ink transition-all',
+                    location.pathname === '/dashboard' && 'bg-gradient-to-r from-ag-primary to-ag-primary-dark text-white hover:text-white shadow-md shadow-ag-primary/25'
+                  )}
+                >
+                  {renderIcon('LayoutDashboard', 18, location.pathname === '/dashboard' ? 'text-white' : 'text-ag-ink-2')}
+                  <span className="truncate">Dashboard</span>
+                </Link>
+                <Link to="/employees" onClick={handleNavClick}
+                  className={cn(
+                    'flex items-center gap-3 py-3 px-3 rounded-xl text-xs font-semibold text-ag-ink-2 hover:bg-ag-surface-2 hover:text-ag-ink transition-all',
+                    location.pathname.startsWith('/employees') && 'bg-gradient-to-r from-ag-primary to-ag-primary-dark text-white hover:text-white shadow-md shadow-ag-primary/25'
+                  )}
+                >
+                  {renderIcon('Users', 18, location.pathname.startsWith('/employees') ? 'text-white' : 'text-ag-ink-2')}
+                  <span className="truncate">Employees</span>
+                </Link>
+              </div>
+
+              <hr className="border-t border-ag-border my-2" />
+
+              <div className="space-y-2">
+                {filteredSections.map((section) => {
+                  const isActive = isSectionActive(section);
+                  const isExpanded = !!expandedSections[section.title];
+
+                  return (
+                    <div key={section.title} className="relative rounded-xl overflow-visible">
+                      <button
+                        onClick={() => toggleSection(section.title)}
+                        className={cn(
+                          'w-full flex items-center justify-between py-3 px-3 rounded-xl text-xs font-semibold text-ag-ink-2 hover:bg-ag-surface-2 transition-all',
+                          isActive && !isExpanded && 'bg-ag-primary-light text-ag-primary'
+                        )}
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          {renderIcon(section.icon, 18, isActive ? 'text-ag-primary' : 'text-ag-ink-2')}
+                          <span className={cn('truncate', isActive && 'text-ag-primary font-bold')}>{section.title}</span>
+                        </div>
+                        <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                          <Lucide.ChevronDown size={14} className="text-ag-ink-3" />
+                        </motion.div>
+                      </button>
+                      <AnimatePresence initial={false}>
+                        {isExpanded && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.2, ease: 'easeInOut' }}
+                            className="overflow-hidden pl-4 mt-1 space-y-1"
+                          >
+                            {section.items.map((item) => {
+                              const isChildActive = location.pathname.startsWith(item.href);
+                              const displayBadge = item.badgeKey === 'approvals'
+                                ? (pendingApprovals > 0 ? pendingApprovals : undefined)
+                                : undefined;
+                              return (
+                                <Link
+                                  key={item.href}
+                                  to={item.href}
+                                  onClick={handleNavClick}
+                                  className={cn(
+                                    'flex items-center gap-3 py-2.5 px-3 rounded-lg text-[11px] font-semibold text-ag-ink-3 hover:bg-ag-surface-2/60 hover:text-ag-ink transition-all',
+                                    isChildActive && 'text-ag-primary bg-ag-primary-light/40 font-bold'
+                                  )}
+                                >
+                                  {renderIcon(item.icon, 14, isChildActive ? 'text-ag-primary' : 'text-ag-ink-3')}
+                                  <span className="flex-1 truncate">{item.label}</span>
+                                  {displayBadge !== undefined && (
+                                    <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-ag-accent-coral text-white shrink-0">
+                                      {displayBadge}
+                                    </span>
+                                  )}
+                                </Link>
+                              );
+                            })}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-3 border-t border-ag-border flex flex-col gap-2 flex-shrink-0 bg-ag-surface">
+              <div className="flex items-center gap-3 p-2 rounded-xl bg-ag-surface-2/60 min-w-0">
+                <Avatar name={user?.fullName || 'User'} src={user?.photo} size="sm" className="flex-shrink-0" />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-ag-ink truncate">{user?.fullName}</p>
+                  <p className="text-[11px] text-ag-ink-3 truncate capitalize">{user?.role?.replace('_', ' ')}</p>
+                </div>
+                <button
+                  onClick={logout}
+                  title="Sign Out"
+                  aria-label="Sign out"
+                  className="touch-target text-ag-ink-3 hover:text-ag-coral p-1 rounded-md transition-colors flex-shrink-0"
+                >
+                  <Lucide.LogOut size={18} />
+                </button>
+              </div>
+            </div>
+          </motion.aside>
+        )}
+      </AnimatePresence>
+    );
+  }
+
+  // ── Desktop Sidebar ───────────────────────────────────────────────────────
   return (
     <>
       <style>{`
@@ -295,6 +490,8 @@ export function Sidebar() {
       `}</style>
 
       <motion.aside
+        role="navigation"
+        aria-label="Main navigation"
         initial={false}
         animate={{ width: widthVal }}
         transition={{ duration: isDragging ? 0 : 0.2, ease: 'easeInOut' }}
@@ -309,6 +506,7 @@ export function Sidebar() {
           {!sidebarCollapsed && (
             <button
               onClick={toggleSidebar}
+              aria-label="Collapse sidebar"
               className="w-7 h-7 rounded-lg flex items-center justify-center text-ag-ink-3 hover:text-ag-ink hover:bg-ag-surface-2 transition-colors"
             >
               <Lucide.ChevronLeft size={16} />
@@ -316,7 +514,7 @@ export function Sidebar() {
           )}
         </div>
 
-        {/* Global Search Bar (Only shown when expanded) */}
+        {/* Global Search Bar */}
         {!sidebarCollapsed && (
           <div className="px-3 pt-3 flex-shrink-0">
             <div className="relative flex items-center bg-ag-surface-2 border border-ag-border hover:border-ag-primary-light focus-within:border-ag-primary focus-within:ring-2 focus-within:ring-ag-primary/20 rounded-xl px-3 py-2 transition-all">
@@ -334,7 +532,7 @@ export function Sidebar() {
 
         {/* Nav list container */}
         <div className="flex-1 overflow-y-auto px-3 py-4 space-y-3 custom-scrollbar">
-          {/* Main Dashboard & Employees (Root Items) */}
+          {/* Main Dashboard & Employees */}
           <div className="space-y-1">
             <Link
               to="/dashboard"
@@ -405,7 +603,7 @@ export function Sidebar() {
                     )}
                   </button>
 
-                  {/* Submenu links */}
+                  {/* Expanded submenu (desktop) */}
                   {!sidebarCollapsed && (
                     <AnimatePresence initial={false}>
                       {isExpanded && (
@@ -446,7 +644,7 @@ export function Sidebar() {
                     </AnimatePresence>
                   )}
 
-                  {/* Collapsed Tooltip Dropdown Submenu */}
+                  {/* Collapsed tooltip dropdown */}
                   <AnimatePresence>
                     {sidebarCollapsed && hoveredSection === section.title && (
                       <motion.div
@@ -488,6 +686,7 @@ export function Sidebar() {
           {sidebarCollapsed && (
             <button
               onClick={toggleSidebar}
+              aria-label="Expand sidebar"
               className="w-full h-9 rounded-lg flex items-center justify-center text-ag-ink-3 hover:text-ag-ink hover:bg-ag-surface-2 transition-colors mb-1"
             >
               <Lucide.ChevronRight size={16} />
@@ -505,6 +704,7 @@ export function Sidebar() {
               <button
                 onClick={logout}
                 title="Sign Out"
+                aria-label="Sign out"
                 className="text-ag-ink-3 hover:text-ag-coral p-1 rounded-md transition-colors flex-shrink-0"
               >
                 <Lucide.LogOut size={18} />

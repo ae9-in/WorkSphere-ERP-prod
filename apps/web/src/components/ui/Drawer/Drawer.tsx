@@ -60,6 +60,11 @@ export function Drawer({
                   'fixed top-0 right-0 bottom-0 w-full bg-ag-surface shadow-modal z-[101] flex flex-col focus:outline-none border-l border-ag-border',
                   widthMap[width]
                 )}
+                style={{
+                  paddingTop: 'env(safe-area-inset-top)',
+                  paddingBottom: 'env(safe-area-inset-bottom)',
+                  paddingRight: 'env(safe-area-inset-right)',
+                }}
               >
                 {title && (
                   <div className="flex items-center justify-between px-6 py-4 border-b border-ag-border">
@@ -76,7 +81,8 @@ export function Drawer({
                     <Dialog.Close asChild>
                       <button
                         onClick={onClose}
-                        className="w-8 h-8 rounded-md flex items-center justify-center text-ag-ink-3 hover:text-ag-ink hover:bg-ag-surface-2 transition-colors"
+                        aria-label="Close panel"
+                        className="w-11 h-11 min-w-[44px] min-h-[44px] rounded-lg flex items-center justify-center text-ag-ink-3 hover:text-ag-ink hover:bg-ag-surface-2 transition-colors"
                       >
                         <X size={18} />
                       </button>

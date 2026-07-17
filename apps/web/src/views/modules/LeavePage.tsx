@@ -553,7 +553,7 @@ export default function LeavePage() {
                   </select>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
                     label="Start Date"
                     type="date"
@@ -595,7 +595,7 @@ export default function LeavePage() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
                     label="Emergency Contact Number"
                     placeholder="e.g. +91 999999999"
@@ -865,7 +865,7 @@ export default function LeavePage() {
                   required
                 />
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
                     label="Days to Cash Out"
                     type="number"
@@ -1086,7 +1086,7 @@ export default function LeavePage() {
                 Computes expired unused leaves, caps eligible carry forward balances, and transfers them to the target year balances.
               </p>
               <form onSubmit={handleTriggerCarryForward} className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
                     label="Source Year"
                     required
@@ -1112,3 +1112,4 @@ export default function LeavePage() {
     </PageContainer>
   );
 }
+

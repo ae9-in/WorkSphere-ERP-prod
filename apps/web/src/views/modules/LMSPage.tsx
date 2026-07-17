@@ -273,7 +273,7 @@ export default function LMSPage() {
                     onChange={e => setNewCourse(prev => ({ ...prev, description: e.target.value }))}
                     placeholder="Enter course syllabus context..."
                   />
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-ag-ink-2 uppercase block">Category</label>
                       <select
@@ -316,3 +316,4 @@ export default function LMSPage() {
     </PageContainer>
   );
 }
+

@@ -8,7 +8,7 @@ import { projectService, employeeService } from '@/services/api.service';
 import { StatusBadge } from '@/components/ui/Badge/Badge';
 import {
   Folder, Kanban, Clock, Calendar, CheckSquare, Plus, Warning, X, ArrowsClockwise,
-  ArrowUpRight, Users, ChartLine, Notebook, ShieldAlert, Sparkle, ArrowRight
+  ArrowUpRight, Users, ChartLine, Notebook, Sparkle, ArrowRight
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -564,7 +564,7 @@ export default function ProjectsPage() {
                     <span className="text-ag-ink-3 block font-bold">Scope Description</span>
                     <p className="text-ag-ink-2 font-medium leading-relaxed">{selectedProject.description || 'No project scope description recorded.'}</p>
                   </div>
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <span className="text-ag-ink-3 block font-bold">Authorized Budget</span>
                       <span className="font-bold text-ag-ink font-mono text-sm">₹{selectedProject.budget.toLocaleString()}</span>
@@ -733,7 +733,7 @@ export default function ProjectsPage() {
                     ))}
                   </select>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
                     label="Log Date"
                     type="date"
@@ -749,7 +749,7 @@ export default function ProjectsPage() {
                     required
                   />
                 </div>
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <Input
                     label="Hourly Billing Rate (INR)"
                     type="number"
@@ -988,7 +988,7 @@ export default function ProjectsPage() {
               <Button variant="ghost" size="sm" onClick={() => setShowProjectForm(false)} icon={<X size={16} />} />
             </h3>
             <form onSubmit={handleCreateProject} className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Input
                   label="Project Title"
                   value={projectForm.name}
@@ -1003,7 +1003,7 @@ export default function ProjectsPage() {
                   required
                 />
               </div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Input
                   label="Account Client Name"
                   value={projectForm.client}
@@ -1017,7 +1017,7 @@ export default function ProjectsPage() {
                   placeholder="e.g. engineering, sales"
                 />
               </div>
-              <div className="grid grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <Input
                   label="Scope Budget (INR)"
                   type="number"
@@ -1039,7 +1039,7 @@ export default function ProjectsPage() {
                   onChange={(e) => setProjectForm({ ...projectForm, endDate: e.target.value })}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="w-full flex flex-col gap-1.5">
                   <label className="ag-label ag-label--required">Project Manager</label>
                   <select
@@ -1088,7 +1088,7 @@ export default function ProjectsPage() {
               <Button variant="ghost" size="sm" onClick={() => setShowTaskForm(false)} icon={<X size={16} />} />
             </h3>
             <form onSubmit={handleCreateTask} className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Input
                   label="Task Title"
                   value={taskForm.name}
@@ -1110,7 +1110,7 @@ export default function ProjectsPage() {
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="w-full flex flex-col gap-1.5">
                   <label className="ag-label ag-label--required">Assignee</label>
                   <select
@@ -1139,7 +1139,7 @@ export default function ProjectsPage() {
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 <Input
                   label="Est. Hours"
                   type="number"
@@ -1160,7 +1160,7 @@ export default function ProjectsPage() {
                   onChange={(e) => setTaskForm({ ...taskForm, dueDate: e.target.value })}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="w-full flex flex-col gap-1.5">
                   <label className="ag-label">Task Priority</label>
                   <select
@@ -1237,7 +1237,7 @@ export default function ProjectsPage() {
                   ))}
                 </select>
               </div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Input
                   label="Log Date"
                   type="date"
@@ -1253,7 +1253,7 @@ export default function ProjectsPage() {
                   required
                 />
               </div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Input
                   label="Hourly Billing Rate (INR)"
                   type="number"
@@ -1293,7 +1293,7 @@ export default function ProjectsPage() {
               <Button variant="ghost" size="sm" onClick={() => setShowMilestoneForm(false)} icon={<X size={16} />} />
             </h3>
             <form onSubmit={handleCreateMilestone} className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Input
                   label="Milestone Title"
                   value={milestoneForm.name}
@@ -1315,7 +1315,7 @@ export default function ProjectsPage() {
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Input
                   label="Due Delivery Date"
                   type="date"
@@ -1351,7 +1351,7 @@ export default function ProjectsPage() {
               <Button variant="ghost" size="sm" onClick={() => setShowRiskForm(false)} icon={<X size={16} />} />
             </h3>
             <form onSubmit={handleCreateRisk} className="space-y-6">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <Input
                   label="Risk Threat Title"
                   value={riskForm.name}
@@ -1373,7 +1373,7 @@ export default function ProjectsPage() {
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="w-full flex flex-col gap-1.5">
                   <label className="ag-label">Probability Rate</label>
                   <select
@@ -1413,3 +1413,4 @@ export default function ProjectsPage() {
     </>
   );
 }
+

@@ -3,14 +3,15 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { immer } from 'zustand/middleware/immer';
 
 interface UIState {
-  sidebarCollapsed:     boolean;
-  sidebarMobileOpen:    boolean;
-  globalSearchOpen:     boolean;
+  sidebarCollapsed:       boolean;
+  sidebarMobileOpen:      boolean;
+  globalSearchOpen:       boolean;
   notificationDrawerOpen: boolean;
-  sidebarWidth:         number;
+  sidebarWidth:           number;
 
   toggleSidebar:            () => void;
   setSidebarCollapsed:      (v: boolean) => void;
+  toggleMobileSidebar:      () => void;
   setSidebarMobileOpen:     (v: boolean) => void;
   setGlobalSearchOpen:      (v: boolean) => void;
   setNotificationDrawerOpen:(v: boolean) => void;
@@ -32,6 +33,10 @@ export const useUIStore = create<UIState>()(
 
       setSidebarCollapsed: (v) => set((state) => {
         state.sidebarCollapsed = v;
+      }),
+
+      toggleMobileSidebar: () => set((state) => {
+        state.sidebarMobileOpen = !state.sidebarMobileOpen;
       }),
 
       setSidebarMobileOpen: (v) => set((state) => {

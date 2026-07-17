@@ -86,30 +86,16 @@ const CONDITION_COLORS: Record<string, string> = {
 const STATS_PIE_COLORS = ['#5B3CF5', '#00C48C', '#FFB020', '#FF5F57', '#8E88A8'];
 
 // Mock Maintenance Schedules
-const MAINTENANCE_SCHEDULES = [
-  { id: '1', asset: 'TAG-2026-001', vendor: 'AppleCare Prime', date: '2026-08-15', cost: 12000, type: 'Annual AMC service Checkup' },
-  { id: '2', asset: 'TAG-2026-003', vendor: 'Dell Hardware Labs', date: '2026-09-02', cost: 8500, type: 'RAM & Battery Health Diagnostics' },
-  { id: '3', asset: 'TAG-2026-004', vendor: 'SysInfo Corp', date: '2026-07-28', cost: 3500, type: 'General hardware cleanup' },
-];
+const MAINTENANCE_SCHEDULES: any[] = [];
 
 // Mock Warranty items
-const WARRANTY_ALERTS = [
-  { id: '1', name: 'MacBook Pro 16', tag: 'TAG-2026-001', daysLeft: 12, status: 'Expiring Soon' },
-  { id: '2', name: 'Dell Latitude 5430', tag: 'TAG-2026-003', daysLeft: -5, status: 'Expired' },
-  { id: '3', name: 'iPhone 15 Pro', tag: 'TAG-2026-005', daysLeft: 45, status: 'Active' },
-];
+const WARRANTY_ALERTS: any[] = [];
 
 // Mock Transfers
-const TRANSFERS_LOG = [
-  { id: '1', tag: 'TAG-2026-001', from: 'EMP002 (HR)', to: 'EMP005 (Finance)', date: '2026-07-10', approvedBy: 'Admin Team' },
-  { id: '2', tag: 'TAG-2026-004', from: 'EMP009 (IT)', to: 'EMP001 (Sales)', date: '2026-07-02', approvedBy: 'IT Lead' },
-];
+const TRANSFERS_LOG: any[] = [];
 
 // Mock repairs
-const REPAIRS_LIST = [
-  { id: '1', tag: 'TAG-2026-003', issue: 'Broken screen replacement', cost: 18000, status: 'In Progress', center: 'Dell Authorized Service' },
-  { id: '2', tag: 'TAG-2026-006', issue: 'Battery bulging replacement', cost: 6500, status: 'Completed', center: 'Apple Repair Hub' },
-];
+const REPAIRS_LIST: any[] = [];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Component

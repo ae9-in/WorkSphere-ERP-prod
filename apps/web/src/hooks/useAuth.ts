@@ -19,15 +19,13 @@ export function useAuth() {
     }
   }, [setUser, setAccessToken]);
 
-  const logout = useCallback(async () => {
-    try {
-      await authService.logout();
-    } catch {
-      // ignore
-    } finally {
-      storeLogout();
-      window.location.href = '/login';
-    }
+  const logout = useCallback(() => {
+    // Fire backend logout in the background without awaiting it to avoid network delay blocks
+    authService.logout().catch(() => {});
+    
+    // Instantly clear local session states and redirect
+    storeLogout();
+    window.location.href = '/login';
   }, [storeLogout]);
 
   return { user, isAuthenticated, isLoading, login, logout };

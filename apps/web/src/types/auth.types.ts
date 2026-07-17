@@ -17,6 +17,7 @@ export interface AuthUser {
   userId: string;
   employeeId: string;
   companyId: string;
+  companySlug?: string;
   role: UserRole;
   permissions: string[];
   email: string;

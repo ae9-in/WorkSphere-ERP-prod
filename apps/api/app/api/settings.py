@@ -129,6 +129,48 @@ def update_settings(payload: CompanySettingsSchema, user: User = Depends(verify_
     return {"success": True, "data": settings}
 
 
+import json
+import os
+
+PROFILE_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "company_profile.json")
+
+def load_profile():
+    if os.path.exists(PROFILE_FILE):
+        try:
+            with open(PROFILE_FILE, "r") as f:
+                return json.load(f)
+        except Exception:
+            pass
+    return {
+        "companyName": "WorkSphere Technologies",
+        "legalName": "WorkSphere Technologies Private Limited",
+        "cin": "U72200KA2026PTC099120",
+        "gstin": "29AAAAA0000A1Z5",
+        "currency": "INR (₹)",
+        "locale": "English (India)",
+        "supportEmail": "ops@worksphere.co",
+        "phone": "+91 80 4390 0000"
+    }
+
+def save_profile(data):
+    try:
+        with open(PROFILE_FILE, "w") as f:
+            json.dump(data, f)
+    except Exception:
+        pass
+
+@router.get("/company")
+def get_company_profile(user: User = Depends(verify_tenant)):
+    return {"success": True, "data": load_profile()}
+
+@router.put("/company")
+def update_company_profile(payload: dict, user: User = Depends(verify_tenant)):
+    current = load_profile()
+    current.update(payload)
+    save_profile(current)
+    return {"success": True, "data": current}
+
+
 # ── DEPARTMENTS ───────────────────────────────────────────────────
 @router.get("/departments", response_model=List[DepartmentSchema])
 def get_departments(user: User = Depends(verify_tenant), db: Session = Depends(get_db)):

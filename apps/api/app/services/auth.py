@@ -41,6 +41,7 @@ class AuthService:
                     raise HTTPException(status_code=401, detail="Access denied. Please use the Employee portal.")
 
         # Tenant verification
+        company = None
         if user.role != "super_admin" and user.company_id:
             company = db.query(Company).filter(Company.id == user.company_id).first()
             if company and company.status == "suspended":
@@ -53,6 +54,7 @@ class AuthService:
                 "userId": str(user.id),
                 "employeeId": str(user.employee_id) if user.employee_id else None,
                 "companyId": str(user.company_id) if user.company_id else None,
+                "companySlug": company.slug if company else None,
                 "role": user.role,
                 "permissions": user.permissions or [],
                 "email": user.email,
@@ -153,7 +155,8 @@ class AuthService:
             "user": {
                 "userId": str(user.id),
                 "employeeId": emp_id_str,
-                "companyId": slug,
+                "companyId": str(company.id),
+                "companySlug": slug,
                 "role": user.role,
                 "permissions": user.permissions or [],
                 "email": user.email,

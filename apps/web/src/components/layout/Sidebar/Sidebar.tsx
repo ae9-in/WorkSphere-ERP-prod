@@ -150,6 +150,7 @@ function useIsDesktop() {
 
 export function Sidebar() {
   const location = useLocation();
+  const normPath = location.pathname.replace(/^\/w\/[^/]+/, '') || '/';
   const {
     sidebarCollapsed, toggleSidebar, sidebarWidth, setSidebarWidth,
     sidebarMobileOpen, setSidebarMobileOpen
@@ -194,10 +195,10 @@ export function Sidebar() {
   const isSectionActive = React.useCallback((section: DomainSection) => {
     return section.items.some(item =>
       item.href === '/dashboard'
-        ? location.pathname === '/dashboard'
-        : location.pathname.startsWith(item.href)
+        ? normPath === '/dashboard' || normPath === '/'
+        : normPath.startsWith(item.href)
     );
-  }, [location.pathname]);
+  }, [normPath]);
 
   // Auto-expand section on location change
   React.useEffect(() => {
@@ -409,7 +410,7 @@ export function Sidebar() {
                             className="overflow-hidden pl-4 mt-1 space-y-1"
                           >
                             {section.items.map((item) => {
-                              const isChildActive = location.pathname.startsWith(item.href);
+                              const isChildActive = normPath.startsWith(item.href);
                               const displayBadge = item.badgeKey === 'approvals'
                                 ? (pendingApprovals > 0 ? pendingApprovals : undefined)
                                 : undefined;
@@ -615,7 +616,7 @@ export function Sidebar() {
                           className="overflow-hidden pl-4 mt-1 space-y-1"
                         >
                           {section.items.map((item) => {
-                            const isChildActive = location.pathname.startsWith(item.href);
+                            const isChildActive = normPath.startsWith(item.href);
                             const displayBadge = item.badgeKey === 'approvals'
                               ? (pendingApprovals > 0 ? pendingApprovals : undefined)
                               : undefined;
@@ -657,7 +658,7 @@ export function Sidebar() {
                           {section.title}
                         </div>
                         {section.items.map((item) => {
-                          const isChildActive = location.pathname.startsWith(item.href);
+                          const isChildActive = normPath.startsWith(item.href);
                           return (
                             <Link
                               key={item.href}

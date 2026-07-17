@@ -4,7 +4,7 @@ import { PageContainer } from '@/components/layout/PageContainer/PageContainer';
 import { Card, CardHeader } from '@/components/ui/Card/Card';
 import { Button } from '@/components/ui/Button/Button';
 import { Input } from '@/components/ui/Input/Input';
-import { auditService, settingsService } from '@/services/api.service';
+import { auditService, settingsService, employeeService, api } from '@/services/api.service';
 import {
   Users, Shield, Building, CheckSquare, Bell, History, Settings, Share2, Lock,
   Cpu, Database, Key, Server, Plus, Trash, ShieldAlert, Sparkles, RefreshCw,
@@ -43,15 +43,8 @@ export default function AdminCenterPage() {
     navigate(`/admin/${tabId}`);
   };
 
-  // Mock State Managers
-  // 1. Users State
-  const [users, setUsers] = useState<any[]>([
-    { id: '1', name: 'Marcus Vance', empId: 'EMP-00001', email: 'admin@worksphere.com', phone: '+91 98765 43210', dept: 'Engineering', designation: 'Principal Architect', branch: 'Bangalore HQ', role: 'Super Admin', manager: 'None', status: 'active', lastLogin: '2026-07-17 11:20', device: 'Chrome on macOS', mfa: 'Enabled' },
-    { id: '2', name: 'Aria Bennett', empId: 'EMP-00002', email: 'aria.b@worksphere.com', phone: '+91 98765 43211', dept: 'HR', designation: 'HR Director', branch: 'Bangalore HQ', role: 'HR Admin', manager: 'Marcus Vance', status: 'active', lastLogin: '2026-07-17 10:15', device: 'Firefox on Windows', mfa: 'Enabled' },
-    { id: '3', name: 'Devin Karp', empId: 'EMP-00003', email: 'devin.k@worksphere.com', phone: '+91 98765 43212', dept: 'Sales', designation: 'Sales Manager', branch: 'San Francisco', role: 'Sales Manager', manager: 'Marcus Vance', status: 'active', lastLogin: '2026-07-16 18:40', device: 'Safari on iPhone', mfa: 'Disabled' },
-    { id: '4', name: 'Sarah Connor', empId: 'EMP-00004', email: 'sarah.c@worksphere.com', phone: '+91 98765 43213', dept: 'Finance', designation: 'Accountant', branch: 'London Office', role: 'Accountant', manager: 'Marcus Vance', status: 'suspended', lastLogin: '2026-07-10 09:00', device: 'Edge on Windows', mfa: 'Enabled' },
-    { id: '5', name: 'John Doe', empId: 'EMP-00005', email: 'john.d@worksphere.com', phone: '+91 98765 43214', dept: 'Operations', designation: 'Inventory Executive', branch: 'Bangalore HQ', role: 'Employee', manager: 'Marcus Vance', status: 'deactivated', lastLogin: '2026-06-30 14:10', device: 'Chrome on Linux', mfa: 'Disabled' }
-  ]);
+  // 1. Users State (connected to backend)
+  const [users, setUsers] = useState<any[]>([]);
   const [selectedUser, setSelectedUser] = useState<any | null>(null);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
@@ -68,10 +61,7 @@ export default function AdminCenterPage() {
   });
 
   // 3. Approval Workflows State
-  const [workflows, setWorkflows] = useState<any[]>([
-    { id: 'wf1', name: 'Leave Auto-Approval', module: 'Leave', condition: 'Days <= 3', type: 'Sequential', levels: ['Manager'], sla: '48h' },
-    { id: 'wf2', name: 'High Value Expenses', module: 'Expenses', condition: 'Amount > 50,000', type: 'Parallel', levels: ['Manager', 'Finance VP'], sla: '24h' }
-  ]);
+  const [workflows, setWorkflows] = useState<any[]>([]);
   const [newWorkflow, setNewWorkflow] = useState({ name: '', module: 'Leave', condition: '', type: 'Sequential', levels: '', sla: '48h' });
 
   // 4. Notifications Hub
@@ -93,43 +83,81 @@ export default function AdminCenterPage() {
   const [newIp, setNewIp] = useState('');
 
   // 7. Active Sessions
-  const [sessions, setSessions] = useState<any[]>([
-    { id: 's1', user: 'admin@worksphere.com', device: 'Chrome on macOS', ip: '103.45.21.11', location: 'India, Bangalore', lastActive: 'Just Now', isCurrent: true },
-    { id: 's2', user: 'admin@worksphere.com', device: 'Safari on iPad', ip: '103.45.21.11', location: 'India, Bangalore', lastActive: '12 mins ago', isCurrent: false },
-    { id: 's3', user: 'aria.b@worksphere.com', device: 'Firefox on Windows', ip: '122.164.12.87', location: 'India, Chennai', lastActive: '2 mins ago', isCurrent: false }
-  ]);
+  const [sessions, setSessions] = useState<any[]>([]);
 
   // 8. Backups
-  const [backups, setBackups] = useState<any[]>([
-    { id: 'b1', filename: 'worksphere_prod_2026-07-17.sql.gz', size: '142 MB', created: '2026-07-17 01:00', status: 'completed' },
-    { id: 'b2', filename: 'worksphere_prod_2026-07-16.sql.gz', size: '141 MB', created: '2026-07-16 01:00', status: 'completed' }
-  ]);
+  const [backups, setBackups] = useState<any[]>([]);
   const [backupSchedule, setBackupSchedule] = useState('daily');
 
   // 9. API Keys
-  const [apiKeys, setApiKeys] = useState<any[]>([
-    { id: 'k1', name: 'QuickBooks Sync Service', scopes: 'finance:read, finance:write', created: '2026-05-10', key: 'ws_live_••••••••••••34ef' },
-    { id: 'k2', name: 'Slack Notifications Hub', scopes: 'notifications:write', created: '2026-06-01', key: 'ws_live_••••••••••••9c82' }
-  ]);
+  const [apiKeys, setApiKeys] = useState<any[]>([]);
 
-  // Fetch real audit logs if available
+  // 10. Company Settings State
+  const [companyName, setCompanyName] = useState('WorkSphere Technologies');
+  const [legalName, setLegalName] = useState('WorkSphere Technologies Private Limited');
+  const [cin, setCin] = useState('U72200KA2026PTC099120');
+  const [gstin, setGstin] = useState('29AAAAA0000A1Z5');
+  const [currency, setCurrency] = useState('INR (₹)');
+  const [locale, setLocale] = useState('English (India)');
+  const [supportEmail, setSupportEmail] = useState('ops@worksphere.co');
+  const [phone, setPhone] = useState('+91 80 4390 0000');
+
+  // Fetch real data on mount
   useEffect(() => {
-    async function loadAudit() {
+    async function loadAdminData() {
       try {
-        const data = await auditService.getLogs({ page: 1, limit: 20 });
-        if (data && data.logs) {
-          setAuditLogs(data.logs);
+        const auditData = await auditService.getLogs({ page: 1, limit: 20 });
+        if (auditData && auditData.logs) {
+          setAuditLogs(auditData.logs);
         }
-      } catch {
-        // use mock
-        setAuditLogs([
-          { id: 'a1', action: 'SETTINGS_UPDATE', email: 'admin@worksphere.com', details: 'Updated general organization rules config', ipAddress: '127.0.0.1', createdAt: new Date().toISOString() },
-          { id: 'a2', action: 'USER_INVITED', email: 'admin@worksphere.com', details: 'Invited aria.b@worksphere.com to tenant workspace', ipAddress: '127.0.0.1', createdAt: new Date().toISOString() }
-        ]);
+      } catch (err) {
+        console.error("Error loading audit logs:", err);
+      }
+
+      try {
+        const empData = await employeeService.list({ limit: 100 });
+        if (empData && empData.employees) {
+          const mapped = empData.employees.map((emp: any) => ({
+            id: emp._id || emp.employeeId,
+            name: emp.fullName,
+            empId: emp.employeeId,
+            email: emp.contact?.personalEmail || emp.contact?.workEmail || '',
+            phone: emp.contact?.mobileNumber || '',
+            dept: emp.job?.departmentName || '',
+            designation: emp.job?.designationName || '',
+            branch: emp.official?.branch || 'Bangalore HQ',
+            role: emp.official?.role || 'Employee',
+            manager: emp.job?.reportingManagerName || 'None',
+            status: emp.status || 'active',
+            lastLogin: '—',
+            device: '—',
+            mfa: 'Disabled'
+          }));
+          setUsers(mapped);
+        }
+      } catch (err) {
+        console.error("Error loading user directory:", err);
+      }
+
+      try {
+        const companyData = await settingsService.getCompany();
+        if (companyData) {
+          setCompanyName(companyData.companyName || 'WorkSphere Technologies');
+          setLegalName(companyData.legalName || 'WorkSphere Technologies Private Limited');
+          setCin(companyData.cin || 'U72200KA2026PTC099120');
+          setGstin(companyData.gstin || '29AAAAA0000A1Z5');
+          setCurrency(companyData.currency || 'INR (₹)');
+          setLocale(companyData.locale || 'English (India)');
+          setSupportEmail(companyData.supportEmail || 'ops@worksphere.co');
+          setPhone(companyData.phone || '+91 80 4390 0000');
+        }
+      } catch (err) {
+        console.error("Error loading company settings:", err);
       }
     }
-    loadAudit();
+    loadAdminData();
   }, []);
+
 
   // 1. User Handlers
   const handleUserStatus = (userId: string, newStatus: string) => {
@@ -185,6 +213,25 @@ export default function AdminCenterPage() {
       setBulkSelection([...bulkSelection, userId]);
     } else {
       setBulkSelection(bulkSelection.filter(id => id !== userId));
+    }
+  };
+
+  const handleSaveCompanySettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await settingsService.updateCompany({
+        companyName,
+        legalName,
+        cin,
+        gstin,
+        currency,
+        locale,
+        supportEmail,
+        phone
+      });
+      toast.success('Company settings profile updated successfully');
+    } catch {
+      toast.error('Failed to update company profile');
     }
   };
 
@@ -483,15 +530,15 @@ export default function AdminCenterPage() {
             <div className="space-y-6 animate-fade-in">
               <Card className="p-6">
                 <CardHeader title="Corporate Entity Profile" subtitle="Verify registered credentials, address, and localized rules configurations." />
-                <form className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6" onSubmit={(e) => { e.preventDefault(); toast.success('Company settings updated'); }}>
-                  <Input label="Company Name" defaultValue="WorkSphere Technologies" />
-                  <Input label="Legal Registration Name" defaultValue="WorkSphere Technologies Private Limited" />
-                  <Input label="Company Registration Number (CIN)" defaultValue="U72200KA2026PTC099120" />
-                  <Input label="GST Number / Tax ID" defaultValue="29AAAAA0000A1Z5" />
-                  <Input label="Currency" defaultValue="INR (₹)" />
-                  <Input label="Language & Locale" defaultValue="English (India)" />
-                  <Input label="Primary Support Email" defaultValue="ops@worksphere.co" />
-                  <Input label="HQ Phone Line" defaultValue="+91 80 4390 0000" />
+                <form className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6" onSubmit={handleSaveCompanySettings}>
+                  <Input label="Company Name" value={companyName} onChange={e => setCompanyName(e.target.value)} />
+                  <Input label="Legal Registration Name" value={legalName} onChange={e => setLegalName(e.target.value)} />
+                  <Input label="Company Registration Number (CIN)" value={cin} onChange={e => setCin(e.target.value)} />
+                  <Input label="GST Number / Tax ID" value={gstin} onChange={e => setGstin(e.target.value)} />
+                  <Input label="Currency" value={currency} onChange={e => setCurrency(e.target.value)} />
+                  <Input label="Language & Locale" value={locale} onChange={e => setLocale(e.target.value)} />
+                  <Input label="Primary Support Email" value={supportEmail} onChange={e => setSupportEmail(e.target.value)} />
+                  <Input label="HQ Phone Line" value={phone} onChange={e => setPhone(e.target.value)} />
                   <div className="md:col-span-2 flex justify-end gap-2 pt-4">
                     <Button type="submit">Save Profile Settings</Button>
                   </div>

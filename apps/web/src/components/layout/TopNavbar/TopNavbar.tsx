@@ -125,14 +125,14 @@ export function TopNavbar() {
                 <p className="text-[11px] text-ag-ink-3 truncate">{user?.email}</p>
               </div>
               <DropdownMenu.Item
-                onClick={() => navigate(`/employees/${user?.employeeId}`)}
+                onSelect={() => navigate(`/employees/${user?.employeeId}`)}
                 className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-ag-ink-2 hover:text-ag-ink hover:bg-ag-surface-2 rounded-lg cursor-pointer outline-none transition-colors"
               >
                 <User size={16} />
                 <span>My Profile</span>
               </DropdownMenu.Item>
               <DropdownMenu.Item
-                onClick={() => navigate('/settings')}
+                onSelect={() => navigate('/settings')}
                 className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-ag-ink-2 hover:text-ag-ink hover:bg-ag-surface-2 rounded-lg cursor-pointer outline-none transition-colors"
               >
                 <Gear size={16} />
@@ -140,7 +140,7 @@ export function TopNavbar() {
               </DropdownMenu.Item>
               <DropdownMenu.Separator className="h-px bg-ag-border my-1" />
               <DropdownMenu.Item
-                onClick={logout}
+                onSelect={logout}
                 className="flex items-center gap-2 px-3 py-2 text-xs font-semibold text-ag-coral hover:bg-[#FFF0EF] rounded-lg cursor-pointer outline-none transition-colors"
               >
                 <SignOut size={16} />

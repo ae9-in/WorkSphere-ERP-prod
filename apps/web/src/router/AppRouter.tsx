@@ -133,6 +133,55 @@ export function AppRouter() {
             <Route path="/placeholder/:moduleKey" element={<ModulePlaceholderPage />} />
           </Route>
 
+          {/* Protected routes (with workspace slug namespace) */}
+          <Route
+            path="/w/:workspaceSlug"
+            element={
+              <PrivateRoute>
+                <AppShell />
+              </PrivateRoute>
+            }
+          >
+            <Route path="dashboard"        element={<DashboardPage />} />
+            <Route path="employees"        element={<EmployeeListPage />} />
+            <Route path="employees/new"    element={<EmployeeCreatePage />} />
+            <Route path="employees/:id"    element={<EmployeeProfilePage />} />
+
+            {/* Real Module Pages */}
+            <Route path="onboarding/new" element={<OnboardingWizardPage />} />
+            <Route path="onboarding/*"  element={<OnboardingPage />} />
+            <Route path="offboarding/*" element={<OffboardingPage />} />
+            <Route path="payroll/*"     element={<PayrollPage />} />
+            <Route path="attendance/*"  element={<AttendancePage />} />
+            <Route path="reports/*"     element={<ReportsPage />} />
+            <Route path="approvals"     element={<Navigate to="admin/approvals" replace />} />
+            <Route path="settings/*"    element={<Navigate to="admin/company-settings" replace />} />
+            <Route path="leave/*"       element={<LeavePage />} />
+            <Route path="documents/*"   element={<DocumentsPage />} />
+            <Route path="assets/*"      element={<AssetPage />} />
+            <Route path="inventory/*"   element={<InventoryPage />} />
+            <Route path="manufacturing/*" element={<ManufacturingPage />} />
+            <Route path="maintenance/*" element={<MaintenancePage />} />
+            <Route path="supply-chain/*" element={<SupplyChainPage />} />
+            <Route path="audit"         element={<Navigate to="admin/audit-logs" replace />} />
+            <Route path="notifications" element={<Navigate to="admin/notifications" replace />} />
+            <Route path="recruitment/candidates/:id" element={<CandidateProfilePage />} />
+            <Route path="recruitment/*" element={<RecruitmentPage />} />
+            <Route path="performance/*" element={<PerformancePage />} />
+            <Route path="lms/*" element={<LMSPage />} />
+            <Route path="community/*" element={<CommunityPage />} />
+            <Route path="helpdesk/*" element={<HelpdeskPage />} />
+            <Route path="workflows/*" element={<WorkflowsPage />} />
+
+            {/* Placeholder modules */}
+            <Route path="finance/:moduleKey" element={<FinancePage />} />
+            <Route path="sales/:moduleKey" element={<CRMPage />} />
+            <Route path="projects/*" element={<ProjectsPage />} />
+            <Route path="analytics/*" element={<AnalyticsPage />} />
+            <Route path="admin/*" element={<AdminCenterPage />} />
+            <Route path="placeholder/:moduleKey" element={<ModulePlaceholderPage />} />
+          </Route>
+
           {/* Fallback */}
           <Route path="*" element={<Navigate to={routes.DASHBOARD} replace />} />
         </Routes>

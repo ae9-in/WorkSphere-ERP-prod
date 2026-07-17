@@ -37,13 +37,15 @@ def logout(user: User = Depends(get_current_user)):
 
 
 @router.get("/me", response_model=UserResponse)
-def get_me(user: User = Depends(verify_tenant)):
+def get_me(user: User = Depends(verify_tenant), db: Session = Depends(get_db)):
+    company = db.query(Company).filter(Company.id == user.company_id).first() if user.company_id else None
     return {
         "success": True,
         "data": {
             "userId": str(user.id),
             "employeeId": str(user.employee_id) if user.employee_id else None,
             "companyId": str(user.company_id) if user.company_id else None,
+            "companySlug": company.slug if company else None,
             "role": user.role,
             "permissions": user.permissions or [],
             "email": user.email,

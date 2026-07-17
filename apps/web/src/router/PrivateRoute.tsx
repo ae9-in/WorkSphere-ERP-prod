@@ -10,6 +10,7 @@ interface PrivateRouteProps {
 export function PrivateRoute({ children }: PrivateRouteProps) {
   const isAuthenticated = useAuthStore(s => s.isAuthenticated);
   const isLoading       = useAuthStore(s => s.isLoading);
+  const user            = useAuthStore(s => s.user);
   const location        = useLocation();
 
   if (isLoading) {
@@ -27,6 +28,15 @@ export function PrivateRoute({ children }: PrivateRouteProps) {
 
   if (!isAuthenticated) {
     return <Navigate to={routes.LOGIN} state={{ from: location }} replace />;
+  }
+
+  // Redirect flat paths to /w/:workspaceSlug prefix
+  const pathParts = location.pathname.split('/').filter(Boolean);
+  const isWorkspacePath = pathParts[0] === 'w';
+
+  if (!isWorkspacePath && user?.companySlug) {
+    const newPath = `/w/${user.companySlug}${location.pathname === '/' ? '/dashboard' : location.pathname}${location.search}`;
+    return <Navigate to={newPath} replace />;
   }
 
   return <>{children}</>;

@@ -777,16 +777,13 @@ export default function InventoryPage() {
     }
   };
 
-  // Mock historical data for Area chart
-  const historyData = [
-    { name: 'Jan', value: 1200000 },
-    { name: 'Feb', value: 1350000 },
-    { name: 'Mar', value: 1280000 },
-    { name: 'Apr', value: 1450000 },
-    { name: 'May', value: 1600000 },
-    { name: 'Jun', value: 1550000 },
-    { name: 'Jul', value: dashboard?.totalValuation ?? 1550000 }
-  ];
+  // Dynamic historical data for Area chart based on database valuation
+  const historyData = dashboard?.totalValuation 
+    ? [
+        { name: 'Initial', value: 0 },
+        { name: 'Current Valuation', value: dashboard.totalValuation }
+      ]
+    : [];
 
   return (
     <PageContainer
@@ -796,7 +793,7 @@ export default function InventoryPage() {
         <div className="flex gap-2">
           {activeTab === 'items' && (
             <Button variant="secondary" onClick={handleMockCSVImport} icon={<FileArrowDown size={18} />}>
-              Import Mock CSV
+              Import CSV Catalog
             </Button>
           )}
           {activeTab === 'suppliers' && (

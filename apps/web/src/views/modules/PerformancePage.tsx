@@ -89,25 +89,13 @@ const NINE_BOX_CELLS = [
 ];
 
 // Mock Continuous check-ins
-const MOCK_CHECKINS = [
-  { id: '1', emp: 'Rahul Mehta', manager: 'Sanjay Kumar', type: 'Weekly 1:1', mood: '😀 Positive', rating: 4, date: '2026-07-14', topics: 'Sprint planning and feedback on presentation' },
-  { id: '2', emp: 'Priya Singh', manager: 'Sanjay Kumar', type: 'Monthly Review', mood: '😐 Neutral', rating: 3.5, date: '2026-07-12', topics: 'Discussing project bottlenecks and timelines' },
-  { id: '3', emp: 'John D.', manager: 'Sanjay Kumar', type: 'Quarterly OKR alignment', mood: '🤩 Excited', rating: 5, date: '2026-07-10', topics: 'Future roadmap and promotion case preparation' },
-];
+const MOCK_CHECKINS: any[] = [];
 
 // Mock Rewards & Recognition
-const MOCK_RECOGNITION = [
-  { id: '1', emp: 'Rahul Mehta', award: 'Star Performer', icon: <Trophy size={14} />, msg: 'Delivering the complex warehouse module ahead of timeline.' },
-  { id: '2', emp: 'Priya Singh', award: 'Innovation Award', icon: <Rocket size={14} />, msg: 'Rearchitecting the offline sync cache engine.' },
-  { id: '3', emp: 'Aisha Bose', award: 'Team Player', icon: <Handshake size={14} />, msg: 'Excellent onboarding coordination support.' },
-];
+const MOCK_RECOGNITION: any[] = [];
 
 // Mock Succession critical list
-const CRITICAL_POSITIONS = [
-  { id: '1', title: 'VP of Engineering', risk: 'High', bench: 2, successor: 'Rahul Mehta (Ready in 1 year)' },
-  { id: '2', title: 'Director of HR', risk: 'Medium', bench: 1, successor: 'Priya Singh (Ready now)' },
-  { id: '3', title: 'Chief Architect', risk: 'High', bench: 0, successor: 'None nominated' },
-];
+const CRITICAL_POSITIONS: any[] = [];
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Main Component

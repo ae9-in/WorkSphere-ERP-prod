@@ -23,6 +23,7 @@ class UserInfo(BaseModel):
     userId: str
     employeeId: Optional[str] = None
     companyId: Optional[str] = None
+    companySlug: Optional[str] = None
     role: str
     permissions: List[str]
     email: EmailStr

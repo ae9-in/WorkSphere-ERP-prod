@@ -58,11 +58,11 @@ class SalarySchema(BaseModel):
     paymentMode: str = "bank_transfer"
 
 class EducationSchema(BaseModel):
-    degree: str
-    field: str
-    institution: str
-    startYear: int
-    endYear: int
+    degree: Optional[str] = None
+    field: Optional[str] = None
+    institution: Optional[str] = None
+    startYear: Optional[int] = None
+    endYear: Optional[int] = None
     percentage: Optional[float] = None
     documentUrl: Optional[str] = None
 
@@ -71,9 +71,9 @@ class EducationSchema(BaseModel):
 
 
 class ExperienceSchema(BaseModel):
-    company: str
-    designation: str
-    startDate: str
+    company: Optional[str] = None
+    designation: Optional[str] = None
+    startDate: Optional[str] = None
     endDate: Optional[str] = None
     isCurrent: bool = False
     responsibilities: Optional[str] = None

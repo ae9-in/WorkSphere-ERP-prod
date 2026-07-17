@@ -87,8 +87,11 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 client_origin = settings.CLIENT_URL.rstrip('/')
 allowed_origins = [
     "http://localhost:3000",
+    "http://localhost:5173",
     "http://127.0.0.1:3000",
-    "https://work-sphere-erp-prod-web.vercel.app"
+    "http://127.0.0.1:5173",
+    "https://work-sphere-erp-prod-web.vercel.app",
+    "https://worksphere-erp-prod-web.vercel.app",
 ]
 if client_origin not in allowed_origins:
     allowed_origins.append(client_origin)
@@ -96,9 +99,10 @@ if client_origin not in allowed_origins:
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
+    allow_origin_regex=r"https://.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-    allow_headers=["Content-Type", "Authorization"],
+    allow_headers=["Content-Type", "Authorization", "X-Requested-With"],
     expose_headers=["Content-Range", "X-Content-Range"]
 )
 

@@ -1,13 +1,18 @@
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
 
-let apiBaseURL = process.env.NEXT_PUBLIC_API_URL || '';
-if (!apiBaseURL) {
-  apiBaseURL = 'http://localhost:5000/api';
-} else {
-  if (apiBaseURL !== '/api' && !apiBaseURL.endsWith('/api') && !apiBaseURL.endsWith('/api/')) {
-    apiBaseURL = apiBaseURL.replace(/\/$/, '') + '/api';
+// In production (Vercel), use relative /api — Vercel rewrites proxy these to NEXT_PUBLIC_API_URL
+// In local dev, NEXT_PUBLIC_API_URL=http://localhost:5000 so we append /api
+let apiBaseURL: string;
+if (process.env.NEXT_PUBLIC_API_URL) {
+  let base = process.env.NEXT_PUBLIC_API_URL.replace(/\/$/, '');
+  if (!base.endsWith('/api')) {
+    base = base + '/api';
   }
+  apiBaseURL = base;
+} else {
+  // No env variable set — use relative path (Vercel rewrite will handle it)
+  apiBaseURL = '/api';
 }
 
 const api = axios.create({

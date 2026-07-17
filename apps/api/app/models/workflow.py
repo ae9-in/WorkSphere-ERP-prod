@@ -58,3 +58,46 @@ class WorkflowInstanceStep(BaseModel):
     attachments = Column(JSON, default=list, nullable=True) # Array of strings
 
     instance = relationship("WorkflowInstance", back_populates="steps")
+
+
+class WorkflowAutomation(TenantBaseModel):
+    __tablename__ = "workflow_automations"
+
+    name            = Column(String, nullable=False)
+    description     = Column(String, nullable=True)
+    trigger_type    = Column(String, nullable=False) # e.g. employee_created, leave_applied, cron_schedule
+    trigger_config  = Column(JSON, default=dict, nullable=False) # trigger parameters (cron, conditions)
+    is_active       = Column(Boolean, default=True, nullable=False)
+    nodes           = Column(JSON, default=list, nullable=False) # JSON list of visual node details
+    connections     = Column(JSON, default=list, nullable=False) # JSON list of connection wires
+
+    executions      = relationship("WorkflowExecution", back_populates="workflow", cascade="all, delete-orphan")
+
+
+class WorkflowExecution(TenantBaseModel):
+    __tablename__ = "workflow_executions"
+
+    workflow_id     = Column(UUID(as_uuid=True), ForeignKey("workflow_automations.id", ondelete="CASCADE"), nullable=False, index=True)
+    started_at      = Column(DateTime, default=datetime.utcnow, nullable=False)
+    completed_at    = Column(DateTime, nullable=True)
+    status          = Column(String, default="running", nullable=False) # running, completed, failed, paused, approval_pending
+    variables       = Column(JSON, default=dict, nullable=False) # variable values for this run
+
+    workflow        = relationship("WorkflowAutomation", back_populates="executions")
+    logs            = relationship("WorkflowExecutionLog", back_populates="execution", cascade="all, delete-orphan")
+
+
+class WorkflowExecutionLog(BaseModel):
+    __tablename__ = "workflow_execution_logs"
+
+    execution_id    = Column(UUID(as_uuid=True), ForeignKey("workflow_executions.id", ondelete="CASCADE"), nullable=False, index=True)
+    node_id         = Column(String, nullable=False)
+    node_type       = Column(String, nullable=False) # trigger, action, condition, delay, ai
+    step_no         = Column(Integer, nullable=False)
+    status          = Column(String, nullable=False) # success, failed
+    message         = Column(String, nullable=True)
+    input_data      = Column(JSON, default=dict, nullable=True)
+    output_data     = Column(JSON, default=dict, nullable=True)
+
+    execution       = relationship("WorkflowExecution", back_populates="logs")
+

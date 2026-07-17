@@ -5,76 +5,154 @@ import { useUIStore } from '@/store/uiStore';
 import { useAuth } from '@/hooks/useAuth';
 import { Avatar } from '@/components/ui/Avatar/Avatar';
 import { Logo } from '@/components/ui/Logo/Logo';
-import {
-  House, Users, Rocket, SignOut, CurrencyInr,
-  CalendarCheck, ChartBar, CheckSquare, Bell, Gear, ShieldCheck,
-  CaretLeft, CaretRight, UserPlus, FileText, FolderOpen, Laptop, CalendarBlank, Briefcase, Target, GraduationCap, Chats, Headset, Package, Factory, Wrench, Truck
-} from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 import { approvalsService } from '@/services/api.service';
+import * as Lucide from 'lucide-react';
 
-interface NavSection {
-  title: string;
-  items: {
-    label: string;
-    icon: React.ReactNode;
-    href: string;
-    badge?: string | number;
-  }[];
+interface NavItem {
+  label: string;
+  href: string;
+  icon: string;
+  badgeKey?: 'approvals';
+  roles?: string[];
 }
 
-const navSections: NavSection[] = [
+interface DomainSection {
+  title: string;
+  icon: string;
+  items: NavItem[];
+  roles?: string[];
+}
+
+const domainSections: DomainSection[] = [
   {
-    title: 'MAIN',
+    title: 'Human Resources (HRMS)',
+    icon: 'Briefcase',
     items: [
-      { label: 'Dashboard', icon: <House size={20} />, href: '/dashboard' },
-      { label: 'Employees', icon: <Users size={20} />, href: '/employees' },
-    ],
+      { label: 'Recruitment (ATS)', href: '/recruitment', icon: 'Briefcase' },
+      { label: 'Onboarding', href: '/onboarding', icon: 'UserCheck' },
+      { label: 'Offboarding', href: '/offboarding', icon: 'UserCog' },
+      { label: 'Attendance', href: '/attendance', icon: 'Clock' },
+      { label: 'Leave Management', href: '/leave', icon: 'Calendar' },
+      { label: 'Payroll', href: '/payroll', icon: 'DollarSign' },
+      { label: 'Performance', href: '/performance', icon: 'TrendingUp' },
+      { label: 'Learning Management (LMS)', href: '/lms', icon: 'GraduationCap' },
+      { label: 'Employee Documents', href: '/documents', icon: 'FileText' }
+    ]
   },
   {
-    title: 'MODULES',
+    title: 'Finance',
+    icon: 'DollarSign',
     items: [
-      { label: 'Onboarding',  icon: <Rocket size={20} />,        href: '/onboarding' },
-      { label: 'Offboarding', icon: <UserPlus size={20} />,      href: '/offboarding' },
-      { label: 'Leave',       icon: <CalendarBlank size={20} />, href: '/leave' },
-      { label: 'Payroll',     icon: <CurrencyInr size={20} />,   href: '/payroll' },
-      { label: 'Attendance',  icon: <CalendarCheck size={20} />, href: '/attendance' },
-      { label: 'Documents',   icon: <FolderOpen size={20} />,    href: '/documents' },
-      { label: 'Assets',      icon: <Laptop size={20} />,        href: '/assets' },
-      { label: 'Inventory',   icon: <Package size={20} />,       href: '/inventory' },
-      { label: 'Manufacturing', icon: <Factory size={20} />,      href: '/manufacturing' },
-      { label: 'Maintenance', icon: <Wrench size={20} />,        href: '/maintenance' },
-      { label: 'Supply Chain', icon: <Truck size={20} />,        href: '/supply-chain' },
-      { label: 'Recruitment', icon: <Briefcase size={20} />,     href: '/recruitment' },
-      { label: 'Performance', icon: <Target size={20} />,        href: '/performance' },
-      { label: 'LMS',         icon: <GraduationCap size={20} />, href: '/lms' },
-      { label: 'Feeds',       icon: <Chats size={20} />,         href: '/community' },
-      { label: 'Helpdesk',    icon: <Headset size={20} />,      href: '/helpdesk' },
-    ],
+      { label: 'Accounting', href: '/finance/accounting', icon: 'CreditCard' },
+      { label: 'Expenses', href: '/finance/expenses', icon: 'Receipt' },
+      { label: 'Invoicing', href: '/finance/invoicing', icon: 'FileText' },
+      { label: 'Budgeting', href: '/finance/budgeting', icon: 'PieChart' },
+      { label: 'Tax Management', href: '/finance/tax', icon: 'ShieldAlert' }
+    ]
   },
   {
-    title: 'ANALYTICS',
+    title: 'Sales (CRM)',
+    icon: 'TrendingUp',
     items: [
-      { label: 'Reports', icon: <ChartBar size={20} />, href: '/reports' },
-    ],
+      { label: 'Leads', href: '/sales/leads', icon: 'TrendingUp' },
+      { label: 'Customers', href: '/sales/customers', icon: 'Users' },
+      { label: 'Quotations', href: '/sales/quotations', icon: 'FileText' },
+      { label: 'Sales Orders', href: '/sales/orders', icon: 'ShoppingCart' },
+      { label: 'Follow Ups', href: '/sales/follow-ups', icon: 'ArrowLeftRight' }
+    ]
   },
   {
-    title: 'ADMINISTRATION',
+    title: 'Inventory',
+    icon: 'Package',
     items: [
-      { label: 'Approvals',     icon: <CheckSquare size={20} />, href: '/approvals' },
-      { label: 'Notifications', icon: <Bell size={20} />,        href: '/notifications' },
-      { label: 'Settings',      icon: <Gear size={20} />,        href: '/settings' },
-      { label: 'Audit Logs',    icon: <ShieldCheck size={20} />, href: '/audit' },
-    ],
+      { label: 'Inventory', href: '/inventory', icon: 'Package' },
+      { label: 'Warehouse', href: '/inventory/warehouses', icon: 'Warehouse' },
+      { label: 'Purchase Orders', href: '/inventory/purchase-orders', icon: 'FileCheck' },
+      { label: 'Suppliers', href: '/inventory/suppliers', icon: 'Users2' },
+      { label: 'Stock Movement', href: '/inventory/operations', icon: 'ArrowUpDown' }
+    ]
   },
+  {
+    title: 'Projects',
+    icon: 'FolderKanban',
+    items: [
+      { label: 'Projects', href: '/projects/projects', icon: 'FolderKanban' },
+      { label: 'Tasks', href: '/projects/tasks', icon: 'ClipboardList' },
+      { label: 'Timesheets', href: '/projects/timesheets', icon: 'Clock' },
+      { label: 'Milestones', href: '/projects/milestones', icon: 'Compass' }
+    ]
+  },
+  {
+    title: 'Operations',
+    icon: 'Laptop',
+    items: [
+      { label: 'Assets', href: '/assets', icon: 'Laptop' },
+      { label: 'Manufacturing', href: '/manufacturing', icon: 'Factory' },
+      { label: 'Maintenance', href: '/maintenance', icon: 'Wrench' },
+      { label: 'Supply Chain', href: '/supply-chain', icon: 'Truck' },
+      { label: 'Helpdesk', href: '/helpdesk', icon: 'Headset' },
+      { label: 'Workflow Automation', href: '/workflows/dashboard', icon: 'GitBranch' }
+    ]
+  },
+  {
+    title: 'Collaboration',
+    icon: 'Rss',
+    items: [
+      { label: 'Feeds', href: '/community', icon: 'Rss' }
+    ]
+  },
+  {
+    title: 'Analytics',
+    icon: 'BarChart3',
+    items: [
+      { label: 'Reports', href: '/analytics/reports', icon: 'BarChart3' },
+      { label: 'Dashboards', href: '/analytics/dashboard', icon: 'LineChart' },
+      { label: 'Business Intelligence', href: '/analytics/ai', icon: 'Cpu' }
+    ]
+  },
+  {
+    title: 'Administration',
+    icon: 'UserCog',
+    roles: ['super_admin', 'admin', 'manager'],
+    items: [
+      { label: 'User Management', href: '/admin/users', icon: 'UserCog' },
+      { label: 'Roles & Permissions', href: '/admin/permissions', icon: 'Shield' },
+      { label: 'Company Settings', href: '/admin/company-settings', icon: 'Building2' },
+      { label: 'Approvals', href: '/admin/approvals', icon: 'CheckSquare', badgeKey: 'approvals' },
+      { label: 'Notifications', href: '/admin/notifications', icon: 'Bell' },
+      { label: 'Audit Logs', href: '/admin/audit-logs', icon: 'History', roles: ['super_admin', 'admin'] },
+      { label: 'Settings', href: '/admin/settings', icon: 'Settings' },
+      { label: 'Integrations', href: '/admin/integrations', icon: 'Share2' }
+    ]
+  }
 ];
+
+function renderIcon(name: string, size = 18, className = '') {
+  const IconComponent = (Lucide as any)[name] || Lucide.HelpCircle;
+  return <IconComponent size={size} className={className} />;
+}
 
 export function Sidebar() {
   const location = useLocation();
   const { sidebarCollapsed, toggleSidebar, sidebarWidth, setSidebarWidth } = useUIStore();
   const { user, logout } = useAuth();
+  
   const [pendingApprovals, setPendingApprovals] = React.useState<number>(0);
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [hoveredSection, setHoveredSection] = React.useState<string | null>(null);
 
+  // Load expanded states from localStorage
+  const [expandedSections, setExpandedSections] = React.useState<Record<string, boolean>>(() => {
+    try {
+      const stored = localStorage.getItem('ag-sidebar-expanded-sections');
+      return stored ? JSON.parse(stored) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // Approvals Count polling
   React.useEffect(() => {
     let active = true;
     async function loadCount() {
@@ -93,8 +171,79 @@ export function Sidebar() {
     };
   }, []);
 
-  const widthVal = sidebarCollapsed ? 72 : sidebarWidth;
+  // Check section activation
+  const isSectionActive = React.useCallback((section: DomainSection) => {
+    return section.items.some(item => 
+      item.href === '/dashboard'
+        ? location.pathname === '/dashboard'
+        : location.pathname.startsWith(item.href)
+    );
+  }, [location.pathname]);
 
+  // Auto-expand section on location change
+  React.useEffect(() => {
+    const activeSec = domainSections.find(isSectionActive);
+    if (activeSec) {
+      setExpandedSections(prev => {
+        if (prev[activeSec.title]) return prev;
+        const next = { ...prev, [activeSec.title]: true };
+        localStorage.setItem('ag-sidebar-expanded-sections', JSON.stringify(next));
+        return next;
+      });
+    }
+  }, [location.pathname, isSectionActive]);
+
+  // Role permissions checking
+  const checkPermission = React.useCallback((roles?: string[]) => {
+    if (!roles) return true;
+    if (!user?.role) return false;
+    return roles.includes(user.role);
+  }, [user?.role]);
+
+  // Filter sections based on search query
+  const filteredSections = React.useMemo(() => {
+    const query = searchQuery.toLowerCase().trim();
+    const sectionsToVerify = domainSections.filter(sec => checkPermission(sec.roles));
+
+    if (!query) return sectionsToVerify;
+
+    return sectionsToVerify.map(sec => {
+      const secMatches = sec.title.toLowerCase().includes(query);
+      const itemsToKeep = sec.items.filter(item => 
+        item.label.toLowerCase().includes(query) && checkPermission(item.roles)
+      );
+
+      if (secMatches) {
+        return sec;
+      }
+      if (itemsToKeep.length > 0) {
+        return { ...sec, items: itemsToKeep };
+      }
+      return null;
+    }).filter(Boolean) as DomainSection[];
+  }, [searchQuery, checkPermission]);
+
+  // Auto-expand searched matches
+  React.useEffect(() => {
+    if (searchQuery.trim()) {
+      const next: Record<string, boolean> = {};
+      filteredSections.forEach(sec => {
+        next[sec.title] = true;
+      });
+      setExpandedSections(next);
+    }
+  }, [searchQuery, filteredSections]);
+
+  const toggleSection = (title: string) => {
+    setExpandedSections(prev => {
+      // Accordion mode: collapse others when expanding one
+      const next = { [title]: !prev[title] };
+      localStorage.setItem('ag-sidebar-expanded-sections', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const widthVal = sidebarCollapsed ? 72 : sidebarWidth;
   const [isDragging, setIsDragging] = React.useState(false);
 
   const startResize = React.useCallback((mouseDownEvent: React.MouseEvent | React.TouchEvent) => {
@@ -123,29 +272,6 @@ export function Sidebar() {
     window.addEventListener('touchend', stopResize);
   }, [setSidebarWidth]);
 
-  const handleDoubleClick = () => {
-    setSidebarWidth(320);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'ArrowRight') {
-      e.preventDefault();
-      setSidebarWidth(Math.min(520, sidebarWidth + 10));
-    } else if (e.key === 'ArrowLeft') {
-      e.preventDefault();
-      setSidebarWidth(Math.max(280, sidebarWidth - 10));
-    } else if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      setSidebarWidth(320);
-    }
-  };
-
-  // Calculate logo typography variables
-  const logoFontSize = sidebarCollapsed
-    ? '0px'
-    : `${Math.max(16, Math.min(24, 16 + (sidebarWidth - 280) * 0.05))}px`;
-  const logoLetterSpacing = `${Math.min(-0.02, -0.05 + (sidebarWidth - 280) * 0.0003)}em`;
-
   return (
     <>
       <style>{`
@@ -154,9 +280,6 @@ export function Sidebar() {
           cursor: col-resize !important;
           user-select: none !important;
           transition: none !important;
-        }
-        .no-scrollbar::-webkit-scrollbar {
-          display: none;
         }
         .custom-scrollbar::-webkit-scrollbar {
           width: 4px;
@@ -175,13 +298,8 @@ export function Sidebar() {
         initial={false}
         animate={{ width: widthVal }}
         transition={{ duration: isDragging ? 0 : 0.2, ease: 'easeInOut' }}
-        style={{
-          width: widthVal,
-          '--sidebar-width': `${widthVal}px`,
-          '--logo-font-size': logoFontSize,
-          '--logo-letter-spacing': logoLetterSpacing,
-        } as any}
-        className="fixed top-0 left-0 bottom-0 bg-ag-surface border-r border-ag-border z-40 flex flex-col justify-between overflow-hidden select-none"
+        style={{ width: widthVal } as any}
+        className="fixed top-0 left-0 bottom-0 bg-ag-surface border-r border-ag-border z-40 flex flex-col justify-between overflow-hidden select-none shadow-lg"
       >
         {/* Top Logo Header */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-ag-border flex-shrink-0">
@@ -193,56 +311,176 @@ export function Sidebar() {
               onClick={toggleSidebar}
               className="w-7 h-7 rounded-lg flex items-center justify-center text-ag-ink-3 hover:text-ag-ink hover:bg-ag-surface-2 transition-colors"
             >
-              <CaretLeft size={16} />
+              <Lucide.ChevronLeft size={16} />
             </button>
           )}
         </div>
 
-        {/* Nav List */}
-        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-6 custom-scrollbar">
-          {navSections.map((section) => (
-            <div key={section.title} className="space-y-1">
-              {!sidebarCollapsed && (
-                <div className="ag-nav-section-label px-2 truncate">
-                  {section.title}
-                </div>
+        {/* Global Search Bar (Only shown when expanded) */}
+        {!sidebarCollapsed && (
+          <div className="px-3 pt-3 flex-shrink-0">
+            <div className="relative flex items-center bg-ag-surface-2 border border-ag-border hover:border-ag-primary-light focus-within:border-ag-primary focus-within:ring-2 focus-within:ring-ag-primary/20 rounded-xl px-3 py-2 transition-all">
+              <Lucide.Search size={14} className="text-ag-ink-3 mr-2" />
+              <input
+                type="text"
+                placeholder="Search ERP modules…"
+                className="w-full bg-transparent text-xs text-ag-ink font-semibold focus:outline-none placeholder-ag-ink-3"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Nav list container */}
+        <div className="flex-1 overflow-y-auto px-3 py-4 space-y-3 custom-scrollbar">
+          {/* Main Dashboard & Employees (Root Items) */}
+          <div className="space-y-1">
+            <Link
+              to="/dashboard"
+              className={cn(
+                'flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-ag-ink-2 hover:bg-ag-surface-2 hover:text-ag-ink transition-all',
+                location.pathname === '/dashboard' && 'bg-gradient-to-r from-ag-primary to-ag-primary-dark text-white hover:text-white hover:from-ag-primary hover:to-ag-primary-dark shadow-md shadow-ag-primary/25',
+                sidebarCollapsed && 'justify-center px-0'
               )}
-              {section.items.map((item) => {
-                const isActive = item.href === '/dashboard'
-                  ? location.pathname === '/dashboard'
-                  : location.pathname.startsWith(item.href);
+              title={sidebarCollapsed ? 'Dashboard' : undefined}
+            >
+              {renderIcon('LayoutDashboard', 18, location.pathname === '/dashboard' ? 'text-white' : 'text-ag-ink-2')}
+              {!sidebarCollapsed && <span className="truncate">Dashboard</span>}
+            </Link>
 
-                const displayBadge = item.label === 'Approvals'
-                  ? (pendingApprovals > 0 ? pendingApprovals : undefined)
-                  : item.badge;
+            <Link
+              to="/employees"
+              className={cn(
+                'flex items-center gap-3 py-2.5 px-3 rounded-xl text-xs font-semibold text-ag-ink-2 hover:bg-ag-surface-2 hover:text-ag-ink transition-all',
+                location.pathname.startsWith('/employees') && 'bg-gradient-to-r from-ag-primary to-ag-primary-dark text-white hover:text-white hover:from-ag-primary hover:to-ag-primary-dark shadow-md shadow-ag-primary/25',
+                sidebarCollapsed && 'justify-center px-0'
+              )}
+              title={sidebarCollapsed ? 'Employees' : undefined}
+            >
+              {renderIcon('Users', 18, location.pathname.startsWith('/employees') ? 'text-white' : 'text-ag-ink-2')}
+              {!sidebarCollapsed && <span className="truncate">Employees</span>}
+            </Link>
+          </div>
 
-                return (
-                  <Link
-                    key={item.href}
-                    to={item.href}
+          <hr className="border-t border-ag-border my-2" />
+
+          {/* Business Domains Accordion */}
+          <div className="space-y-2">
+            {filteredSections.map((section) => {
+              const isActive = isSectionActive(section);
+              const isExpanded = !!expandedSections[section.title];
+
+              return (
+                <div
+                  key={section.title}
+                  className="relative rounded-xl overflow-visible"
+                  onMouseEnter={() => setHoveredSection(section.title)}
+                  onMouseLeave={() => setHoveredSection(null)}
+                >
+                  {/* Category Header */}
+                  <button
+                    onClick={() => toggleSection(section.title)}
                     className={cn(
-                      'ag-nav-item flex items-center gap-3 py-2 px-3 rounded-lg text-xs font-semibold text-ag-ink-2 hover:bg-ag-surface-2 hover:text-ag-ink transition-colors',
-                      isActive && 'bg-ag-primary-light text-ag-primary hover:bg-ag-primary-light hover:text-ag-primary',
+                      'w-full flex items-center justify-between py-2.5 px-3 rounded-xl text-xs font-semibold text-ag-ink-2 hover:bg-ag-surface-2 transition-all',
+                      isActive && !isExpanded && 'bg-ag-primary-light text-ag-primary',
                       sidebarCollapsed && 'justify-center px-0'
                     )}
-                    title={sidebarCollapsed ? item.label : undefined}
                   >
-                    <span className={cn('flex-shrink-0', isActive ? 'text-ag-primary' : 'text-ag-ink-2')}>
-                      {item.icon}
-                    </span>
+                    <div className="flex items-center gap-3 min-w-0">
+                      {renderIcon(section.icon, 18, isActive ? 'text-ag-primary' : 'text-ag-ink-2')}
+                      {!sidebarCollapsed && (
+                        <span className={cn('truncate', isActive && 'text-ag-primary font-bold')}>
+                          {section.title}
+                        </span>
+                      )}
+                    </div>
                     {!sidebarCollapsed && (
-                      <span className="flex-1 truncate">{item.label}</span>
+                      <motion.div
+                        animate={{ rotate: isExpanded ? 180 : 0 }}
+                        transition={{ duration: 0.2 }}
+                      >
+                        <Lucide.ChevronDown size={14} className="text-ag-ink-3" />
+                      </motion.div>
                     )}
-                    {!sidebarCollapsed && displayBadge !== undefined && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-ag-accent-coral text-white shrink-0">
-                        {displayBadge}
-                      </span>
+                  </button>
+
+                  {/* Submenu links */}
+                  {!sidebarCollapsed && (
+                    <AnimatePresence initial={false}>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2, ease: 'easeInOut' }}
+                          className="overflow-hidden pl-4 mt-1 space-y-1"
+                        >
+                          {section.items.map((item) => {
+                            const isChildActive = location.pathname.startsWith(item.href);
+                            const displayBadge = item.badgeKey === 'approvals'
+                              ? (pendingApprovals > 0 ? pendingApprovals : undefined)
+                              : undefined;
+
+                            return (
+                              <Link
+                                key={item.href}
+                                to={item.href}
+                                className={cn(
+                                  'flex items-center gap-3 py-2 px-3 rounded-lg text-[11px] font-semibold text-ag-ink-3 hover:bg-ag-surface-2/60 hover:text-ag-ink transition-all',
+                                  isChildActive && 'text-ag-primary bg-ag-primary-light/40 font-bold'
+                                )}
+                              >
+                                {renderIcon(item.icon, 14, isChildActive ? 'text-ag-primary' : 'text-ag-ink-3')}
+                                <span className="flex-1 truncate">{item.label}</span>
+                                {displayBadge !== undefined && (
+                                  <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-ag-accent-coral text-white shrink-0">
+                                    {displayBadge}
+                                  </span>
+                                )}
+                              </Link>
+                            );
+                          })}
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  )}
+
+                  {/* Collapsed Tooltip Dropdown Submenu */}
+                  <AnimatePresence>
+                    {sidebarCollapsed && hoveredSection === section.title && (
+                      <motion.div
+                        initial={{ opacity: 0, x: 10 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        exit={{ opacity: 0, x: 10 }}
+                        className="absolute left-[64px] top-0 bg-ag-surface border border-ag-border rounded-xl shadow-2xl p-2 w-52 z-50 flex flex-col gap-1"
+                      >
+                        <div className="px-3 py-1.5 text-[10px] font-bold text-ag-primary uppercase tracking-wider border-b border-ag-border-light mb-1">
+                          {section.title}
+                        </div>
+                        {section.items.map((item) => {
+                          const isChildActive = location.pathname.startsWith(item.href);
+                          return (
+                            <Link
+                              key={item.href}
+                              to={item.href}
+                              className={cn(
+                                'flex items-center gap-2.5 py-1.5 px-3 rounded-lg text-xs font-semibold text-ag-ink-2 hover:bg-ag-surface-2 hover:text-ag-ink transition-all',
+                                isChildActive && 'bg-ag-primary-light text-ag-primary'
+                              )}
+                            >
+                              {renderIcon(item.icon, 14, isChildActive ? 'text-ag-primary' : 'text-ag-ink-2')}
+                              <span className="truncate">{item.label}</span>
+                            </Link>
+                          );
+                        })}
+                      </motion.div>
                     )}
-                  </Link>
-                );
-              })}
-            </div>
-          ))}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
+          </div>
         </div>
 
         {/* Footer / User Profile */}
@@ -252,7 +490,7 @@ export function Sidebar() {
               onClick={toggleSidebar}
               className="w-full h-9 rounded-lg flex items-center justify-center text-ag-ink-3 hover:text-ag-ink hover:bg-ag-surface-2 transition-colors mb-1"
             >
-              <CaretRight size={16} />
+              <Lucide.ChevronRight size={16} />
             </button>
           )}
           <div className={cn('flex items-center gap-3 p-2 rounded-xl bg-ag-surface-2/60 min-w-0', sidebarCollapsed && 'justify-center p-0 bg-transparent')}>
@@ -269,18 +507,16 @@ export function Sidebar() {
                 title="Sign Out"
                 className="text-ag-ink-3 hover:text-ag-coral p-1 rounded-md transition-colors flex-shrink-0"
               >
-                <SignOut size={18} />
+                <Lucide.LogOut size={18} />
               </button>
             )}
           </div>
         </div>
 
-        {/* Resize Handle */}
+        {/* Drag Resizer Handle */}
         <div
           onMouseDown={startResize}
           onTouchStart={startResize}
-          onDoubleClick={handleDoubleClick}
-          onKeyDown={handleKeyDown}
           tabIndex={0}
           role="separator"
           aria-valuenow={widthVal}

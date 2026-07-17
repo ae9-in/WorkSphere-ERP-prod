@@ -10,7 +10,9 @@ from app.schemas.supply_chain import (
     NetworkNodeCreateSchema, DistributionCenterCreateSchema,
     PartnerCreateSchema, CarrierCreateSchema, VehicleCreateSchema,
     DriverCreateSchema, ShipmentCreateSchema, DispatchConfirmSchema,
-    RouteCreateSchema, TelemetryUpdateSchema, PodSubmitSchema, ReturnLogSchema
+    RouteCreateSchema, TelemetryUpdateSchema, PodSubmitSchema, ReturnLogSchema,
+    CarrierRateCreateSchema, ContainerLoadingPlanCreateSchema, SCMDelayAlertCreateSchema,
+    SCMDelayAlertResolveSchema
 )
 
 router = APIRouter(prefix="/supply-chain", tags=["Supply Chain Management"])
@@ -183,3 +185,34 @@ def get_reports(db: Session = Depends(get_db), current_user: User = Depends(get_
             {"reportName": "Reverse Logistics Return Rates", "format": "CSV", "size": "150 KB"}
         ]
     }
+
+@router.post("/carrier-rates", status_code=status.HTTP_201_CREATED)
+def create_carrier_rate(payload: CarrierRateCreateSchema, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    data = SupplyChainService.create_carrier_rate(db, payload, current_user.company_id)
+    return {"status": "success", "data": data}
+
+@router.get("/carrier-rates")
+def list_carrier_rates(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    data = SupplyChainService.list_carrier_rates(db, current_user.company_id)
+    return {"status": "success", "data": data}
+
+@router.post("/container-loading", status_code=status.HTTP_201_CREATED)
+def generate_loading_plan(payload: ContainerLoadingPlanCreateSchema, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    data = SupplyChainService.generate_loading_plan(db, payload, current_user.company_id)
+    return {"status": "success", "data": data}
+
+@router.post("/shipments/{shipment_id}/delays", status_code=status.HTTP_201_CREATED)
+def create_delay_alert(shipment_id: str, payload: SCMDelayAlertCreateSchema, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    payload.shipmentId = shipment_id
+    data = SupplyChainService.create_delay_alert(db, payload, current_user.company_id, current_user.id)
+    return {"status": "success", "data": data}
+
+@router.put("/shipments/delays/{alert_id}")
+def resolve_delay_alert(alert_id: str, payload: SCMDelayAlertResolveSchema, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    data = SupplyChainService.resolve_delay_alert(db, alert_id, payload, current_user.company_id)
+    return {"status": "success", "data": data}
+
+@router.get("/shipments/{shipment_id}/delays")
+def list_delays(shipment_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    data = SupplyChainService.list_delays(db, shipment_id, current_user.company_id)
+    return {"status": "success", "data": data}

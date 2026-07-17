@@ -19,7 +19,10 @@ from app.models.payroll import (
 )
 from app.models.asset import Asset, AssetAssignment
 from app.models.document import DocumentModel
-from app.models.workflow import WorkflowDefinition, WorkflowDefinitionStep, WorkflowInstance, WorkflowInstanceStep
+from app.models.workflow import (
+    WorkflowDefinition, WorkflowDefinitionStep, WorkflowInstance, WorkflowInstanceStep,
+    WorkflowAutomation, WorkflowExecution, WorkflowExecutionLog
+)
 from app.models.notification import Notification
 from app.models.audit import AuditLog
 from app.models.onboarding import Onboarding
@@ -60,7 +63,10 @@ from app.models.inventory import (
     StockBalance, StockMovement, StockBatch, StockSerial,
     WarehouseTask, InventoryCount, InventoryCountItem,
     InventoryAdjustment, InventoryValuation, ReorderRecommendation,
-    InventoryForecast, InventoryTimeline
+    InventoryForecast, InventoryTimeline,
+    StockReservation, InventoryQualityInspection, LandedCostVoucher,
+    LandedCostItem, SerialAssetAssignment,
+    Supplier, PurchaseOrder, PurchaseOrderItem, GoodsReceipt
 )
 from app.models.manufacturing import (
     ManufacturingPlant, ProductionCalendar, BillOfMaterials, BOMComponent,
@@ -82,7 +88,26 @@ from app.models.supply_chain import (
     FleetVehicle, Driver, Shipment, ShipmentItem, DispatchOrder,
     DeliveryRoute, GPSTracking, ProofOfDelivery, ReverseLogistics,
     FreightCost, TransportationAnalytics, FleetPerformance,
-    SupplyChainTimeline, SupplyChainAuditLog
+    SupplyChainTimeline, SupplyChainAuditLog, CarrierRate, ContainerLoadingPlan, SCMDelayAlert
+)
+from app.models.finance import (
+    Account, JournalEntry, JournalItem,
+    ExpenseClaim, ExpenseLine, ExpensePolicy,
+    Invoice, InvoiceItem, InvoicePayment,
+    Budget, BudgetForecast, BudgetVariance,
+    TaxFiling, TaxTransaction
+)
+from app.models.crm import (
+    Lead, Customer, Contact,
+    Quotation, QuotationItem,
+    SalesOrder, SalesOrderItem,
+    CRMTask
+)
+from app.models.project import (
+    Project, Task, Subtask, TaskDependency, Timesheet, Milestone, ProjectRisk
+)
+from app.models.analytics import (
+    BIDashboard, BIDashboardWidget, BIReport, BIScheduledReport, BIAlertRule, BIAlertLog
 )
 
 

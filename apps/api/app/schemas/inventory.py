@@ -116,3 +116,102 @@ class CycleCountSubmitSchema(BaseModel):
 class PredictionRequestSchema(BaseModel):
     itemCode: str
     horizonDays: Optional[int] = 30
+
+# New Upgraded Inventory Schemas
+class InventoryItemUpdateSchema(BaseModel):
+    name: Optional[str] = None
+    brand: Optional[str] = None
+    manufacturer: Optional[str] = None
+    description: Optional[str] = None
+    minStock: Optional[float] = None
+    maxStock: Optional[float] = None
+    safetyStock: Optional[float] = None
+    reorderPoint: Optional[float] = None
+    preferredVendor: Optional[str] = None
+    defaultWarehouseCode: Optional[str] = None
+    status: Optional[str] = None
+
+class ReservationCreateSchema(BaseModel):
+    itemCode: str
+    warehouseCode: str
+    locationCode: Optional[str] = None
+    quantity: float
+    referenceType: str
+    referenceId: str
+    expiryDate: Optional[str] = None
+
+class QualityInspectionCreateSchema(BaseModel):
+    batchNumber: str
+    itemCode: str
+    sampleSize: float
+    failedQuantity: float
+    checklist: dict
+    status: str
+    remarks: Optional[str] = None
+
+class LandedCostItemSchema(BaseModel):
+    itemCode: str
+    purchaseReceiptId: str
+    receiptQuantity: float
+    allocatedExpense: float
+
+class LandedCostVoucherSchema(BaseModel):
+    voucherNumber: str
+    distributeBy: str
+    totalExpenses: float
+    items: List[LandedCostItemSchema]
+
+class AssetAssignmentSchema(BaseModel):
+    itemCode: str
+    serialNumber: str
+    employeeId: str
+    conditionOnAssign: Optional[str] = "good"
+
+class AssetReturnSchema(BaseModel):
+    itemCode: str
+    serialNumber: str
+    conditionOnReturn: str
+    status: Optional[str] = "returned"
+
+class ImportItemRowSchema(BaseModel):
+    name: str
+    sku: Optional[str] = None
+    brand: Optional[str] = None
+    categoryCode: Optional[str] = None
+    uom: Optional[str] = "piece"
+    minStock: Optional[float] = 0.0
+    maxStock: Optional[float] = 0.0
+    reorderPoint: Optional[float] = 0.0
+    preferredVendor: Optional[str] = None
+    defaultWarehouseCode: Optional[str] = None
+
+class ImportCSVSchema(BaseModel):
+    items: List[ImportItemRowSchema]
+
+class SupplierCreateSchema(BaseModel):
+    companyName: str
+    supplierCode: str
+    gst: Optional[str] = None
+    pan: Optional[str] = None
+    email: Optional[str] = None
+    phone: Optional[str] = None
+    address: Optional[str] = None
+    paymentTerms: Optional[str] = None
+    leadTimeDays: Optional[int] = 7
+
+class PurchaseOrderItemCreateSchema(BaseModel):
+    itemId: str
+    quantity: float
+    unitPrice: float
+
+class PurchaseOrderCreateSchema(BaseModel):
+    supplierId: str
+    orderDate: str  # YYYY-MM-DD
+    expectedDelivery: Optional[str] = None  # YYYY-MM-DD
+    shippingAddress: Optional[str] = None
+    items: List[PurchaseOrderItemCreateSchema]
+
+class GoodsReceiptCreateSchema(BaseModel):
+    purchaseOrderId: str
+    receiptDate: str  # YYYY-MM-DD
+    remarks: Optional[str] = None

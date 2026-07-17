@@ -591,6 +591,86 @@ export const inventoryService = {
   async getOptimization(): Promise<any[]> {
     const res = await api.get<{ success: boolean; data: any[] }>('/inventory/optimization');
     return res.data.data;
+  },
+
+  async updateItem(id: string, data: any): Promise<any> {
+    const res = await api.put<{ success: boolean; data: any }>(`/inventory/items/${id}`, data);
+    return res.data.data;
+  },
+
+  async deleteItem(id: string): Promise<any> {
+    const res = await api.delete<{ success: boolean }>(`/inventory/items/${id}`);
+    return res.data;
+  },
+
+  async getReservations(itemId?: string): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/inventory/reservations', { params: { itemId } });
+    return res.data.data;
+  },
+
+  async createReservation(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/inventory/reservations', data);
+    return res.data.data;
+  },
+
+  async cancelReservation(id: string): Promise<any> {
+    const res = await api.delete<{ success: boolean }>(`/inventory/reservations/${id}`);
+    return res.data;
+  },
+
+  async submitInspection(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/inventory/inspections', data);
+    return res.data.data;
+  },
+
+  async postLandedCosts(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/inventory/landed-costs', data);
+    return res.data.data;
+  },
+
+  async assignSerial(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/inventory/serials/assign', data);
+    return res.data.data;
+  },
+
+  async returnSerial(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/inventory/serials/return', data);
+    return res.data.data;
+  },
+
+  async importItems(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; importedCount: number }>('/inventory/items/import', data);
+    return res.data;
+  },
+
+  async getSuppliers(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/inventory/suppliers');
+    return res.data.data;
+  },
+
+  async createSupplier(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/inventory/suppliers', data);
+    return res.data.data;
+  },
+
+  async getPurchaseOrders(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/inventory/purchase-orders');
+    return res.data.data;
+  },
+
+  async createPurchaseOrder(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/inventory/purchase-orders', data);
+    return res.data.data;
+  },
+
+  async getGoodsReceipts(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/inventory/goods-receipts');
+    return res.data.data;
+  },
+
+  async createGoodsReceipt(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/inventory/goods-receipts', data);
+    return res.data.data;
   }
 };
 
@@ -955,9 +1035,38 @@ export const supplyChainService = {
     const res = await api.post<{ success: boolean; data: any }>('/supply-chain/drivers', data);
     return res.data.data;
   },
-
   async getDrivers(): Promise<any[]> {
     const res = await api.get<{ success: boolean; data: any[] }>('/supply-chain/drivers');
+    return res.data.data;
+  },
+
+  async createCarrierRate(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/supply-chain/carrier-rates', data);
+    return res.data.data;
+  },
+
+  async getCarrierRates(): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>('/supply-chain/carrier-rates');
+    return res.data.data;
+  },
+
+  async generateLoadingPlan(data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>('/supply-chain/container-loading', data);
+    return res.data.data;
+  },
+
+  async getShipmentDelays(shipmentId: string): Promise<any[]> {
+    const res = await api.get<{ success: boolean; data: any[] }>(`/supply-chain/shipments/${shipmentId}/delays`);
+    return res.data.data;
+  },
+
+  async createShipmentDelay(shipmentId: string, data: any): Promise<any> {
+    const res = await api.post<{ success: boolean; data: any }>(`/supply-chain/shipments/${shipmentId}/delays`, data);
+    return res.data.data;
+  },
+
+  async resolveShipmentDelay(alertId: string, data: any): Promise<any> {
+    const res = await api.put<{ success: boolean; data: any }>(`/supply-chain/shipments/delays/${alertId}`, data);
     return res.data.data;
   }
 };
@@ -1276,4 +1385,168 @@ export const onboardingService = {
     return res.data.data;
   },
 };
+
+// ── Project Management ────────────────────────────────────────────────────────
+
+export const projectService = {
+  async getDashboard(): Promise<any> {
+    const res = await api.get('/project/dashboard');
+    return res.data.data;
+  },
+
+  async getProjects(): Promise<any[]> {
+    const res = await api.get('/project/projects');
+    return res.data.data;
+  },
+
+  async createProject(data: any): Promise<any> {
+    const res = await api.post('/project/projects', data);
+    return res.data.data;
+  },
+
+  async getTasks(): Promise<any[]> {
+    const res = await api.get('/project/tasks');
+    return res.data.data;
+  },
+
+  async createTask(data: any): Promise<any> {
+    const res = await api.post('/project/tasks', data);
+    return res.data.data;
+  },
+
+  async updateTaskStatus(id: string, status: string): Promise<any> {
+    const res = await api.patch(`/project/tasks/${id}/status`, { status });
+    return res.data.data;
+  },
+
+  async getTimesheets(): Promise<any[]> {
+    const res = await api.get('/project/timesheets');
+    return res.data.data;
+  },
+
+  async createTimesheet(data: any): Promise<any> {
+    const res = await api.post('/project/timesheets', data);
+    return res.data.data;
+  },
+
+  async approveTimesheet(id: string, status: string): Promise<any> {
+    const res = await api.post(`/project/timesheets/${id}/approve`, { status });
+    return res.data.data;
+  },
+
+  async getMilestones(): Promise<any[]> {
+    const res = await api.get('/project/milestones');
+    return res.data.data;
+  },
+
+  async createMilestone(data: any): Promise<any> {
+    const res = await api.post('/project/milestones', data);
+    return res.data.data;
+  },
+
+  async getRisks(): Promise<any[]> {
+    const res = await api.get('/project/risks');
+    return res.data.data;
+  },
+
+  async createRisk(data: any): Promise<any> {
+    const res = await api.post('/project/risks', data);
+    return res.data.data;
+  }
+};
+
+// ── Workflow Automation ───────────────────────────────────────────────────────
+
+export const workflowAutomationService = {
+  async getStats(): Promise<any> {
+    const res = await api.get('/workflows/stats');
+    return res.data.data;
+  },
+
+  async getAutomations(): Promise<any[]> {
+    const res = await api.get('/workflows/automation');
+    return res.data.data;
+  },
+
+  async createAutomation(data: any): Promise<any> {
+    const res = await api.post('/workflows/automation', data);
+    return res.data.data;
+  },
+
+  async updateAutomation(id: string, data: any): Promise<any> {
+    const res = await api.put(`/workflows/automation/${id}`, data);
+    return res.data.data;
+  },
+
+  async triggerWorkflow(id: string, variables: any = {}): Promise<any> {
+    const res = await api.post(`/workflows/automation/${id}/trigger`, { variables });
+    return res.data.data;
+  },
+
+  async getExecutions(): Promise<any[]> {
+    const res = await api.get('/workflows/executions');
+    return res.data.data;
+  },
+
+  async getExecutionLogs(id: string): Promise<any[]> {
+    const res = await api.get(`/workflows/executions/${id}/logs`);
+    return res.data.data;
+  }
+};
+
+// ── Enterprise Business Intelligence & Analytics ─────────────────────────────
+
+export const analyticsService = {
+  async getStats(): Promise<any> {
+    const res = await api.get('/analytics/stats');
+    return res.data.data;
+  },
+
+  async getDashboards(): Promise<any[]> {
+    const res = await api.get('/analytics/dashboards');
+    return res.data.data;
+  },
+
+  async createDashboard(data: any): Promise<any> {
+    const res = await api.post('/analytics/dashboards', data);
+    return res.data.data;
+  },
+
+  async updateDashboard(id: string, data: any): Promise<any> {
+    const res = await api.put(`/analytics/dashboards/${id}`, data);
+    return res.data.data;
+  },
+
+  async deleteDashboard(id: string): Promise<any> {
+    const res = await api.delete(`/analytics/dashboards/${id}`);
+    return res.data.data;
+  },
+
+  async runReportBuilder(data: any): Promise<any[]> {
+    const res = await api.post('/analytics/reports/builder', data);
+    return res.data.data;
+  },
+
+  async runAIQuery(prompt: string): Promise<any> {
+    const res = await api.post('/analytics/ai-query', { prompt });
+    return res.data.data;
+  },
+
+  async runForecast(kpiName: string): Promise<any> {
+    const res = await api.post('/analytics/forecast', { kpiName });
+    return res.data.data;
+  },
+
+  async getAlertRules(): Promise<any[]> {
+    const res = await api.get('/analytics/alerts');
+    return res.data.data;
+  },
+
+  async createAlertRule(data: any): Promise<any> {
+    const res = await api.post('/analytics/alerts', data);
+    return res.data.data;
+  }
+};
+
+
 

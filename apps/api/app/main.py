@@ -28,6 +28,11 @@ from app.api.inventory import router as inventory_router
 from app.api.manufacturing import router as manufacturing_router
 from app.api.maintenance import router as maintenance_router
 from app.api.supply_chain import router as supply_chain_router
+from app.api.finance import router as finance_router
+from app.api.crm import router as crm_router
+from app.api.project import router as project_router
+from app.api.analytics import router as analytics_router
+
 
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -185,6 +190,10 @@ app.include_router(inventory_router, prefix="/api/v1")
 app.include_router(manufacturing_router, prefix="/api/v1")
 app.include_router(maintenance_router, prefix="/api/v1")
 app.include_router(supply_chain_router, prefix="/api/v1")
+app.include_router(finance_router, prefix="/api/v1")
+app.include_router(crm_router, prefix="/api/v1")
+app.include_router(project_router, prefix="/api/v1")
+app.include_router(analytics_router, prefix="/api/v1")
 
 # Include routers under /api (for compatibility with existing UI calls)
 app.include_router(auth_router, prefix="/api")
@@ -220,6 +229,10 @@ app.include_router(inventory_router, prefix="/api")
 app.include_router(manufacturing_router, prefix="/api")
 app.include_router(maintenance_router, prefix="/api")
 app.include_router(supply_chain_router, prefix="/api")
+app.include_router(finance_router, prefix="/api")
+app.include_router(crm_router, prefix="/api")
+app.include_router(project_router, prefix="/api")
+app.include_router(analytics_router, prefix="/api")
 
 # ── Public Stats & Career Portal (no auth required) ─────────────
 app.include_router(recruitment_public_router, prefix="/api")

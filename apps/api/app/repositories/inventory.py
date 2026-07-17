@@ -4,7 +4,9 @@ from app.models.inventory import (
     StockBalance, StockMovement, StockBatch, StockSerial,
     WarehouseTask, InventoryCount, InventoryCountItem,
     InventoryAdjustment, InventoryValuation, ReorderRecommendation,
-    InventoryForecast, InventoryTimeline
+    InventoryForecast, InventoryTimeline,
+    StockReservation, InventoryQualityInspection, LandedCostVoucher,
+    LandedCostItem, SerialAssetAssignment
 )
 from sqlalchemy.orm import Session
 from uuid import UUID
@@ -110,3 +112,23 @@ class StockMovementRepository(BaseRepository[StockMovement]):
 class WarehouseTaskRepository(BaseRepository[WarehouseTask]):
     def __init__(self):
         super().__init__(WarehouseTask)
+
+class StockReservationRepository(BaseRepository[StockReservation]):
+    def __init__(self):
+        super().__init__(StockReservation)
+
+class InventoryQualityInspectionRepository(BaseRepository[InventoryQualityInspection]):
+    def __init__(self):
+        super().__init__(InventoryQualityInspection)
+
+class LandedCostVoucherRepository(BaseRepository[LandedCostVoucher]):
+    def __init__(self):
+        super().__init__(LandedCostVoucher)
+
+class LandedCostItemRepository(BaseRepository[LandedCostItem]):
+    def __init__(self):
+        super().__init__(LandedCostItem)
+
+class SerialAssetAssignmentRepository(BaseRepository[SerialAssetAssignment]):
+    def __init__(self):
+        super().__init__(SerialAssetAssignment)

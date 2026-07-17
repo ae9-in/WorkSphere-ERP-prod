@@ -1,9 +1,9 @@
 import uuid
 from datetime import datetime
-from sqlalchemy import Column, String, Integer, Float, ForeignKey, DateTime, Boolean, JSON, UniqueConstraint, Date
+from sqlalchemy import Column, String, Integer, Float, ForeignKey, DateTime, Boolean, JSON, UniqueConstraint, Date, Text
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
-from app.models.base import TenantBaseModel
+from app.models.base import TenantBaseModel, BaseModel
 
 class InventoryCategory(TenantBaseModel):
     __tablename__ = "inventory_categories"
@@ -218,3 +218,118 @@ class InventoryTimeline(TenantBaseModel):
     event_type = Column(String, nullable=False) # created, stock_in, stock_out, transfer, count, adjusted
     details = Column(String, nullable=True)
     event_date = Column(DateTime, default=datetime.utcnow, nullable=False)
+
+class StockReservation(TenantBaseModel):
+    __tablename__ = "stock_reservations"
+    
+    item_id = Column(UUID(as_uuid=True), ForeignKey("inventory_items.id", ondelete="CASCADE"), nullable=False)
+    warehouse_id = Column(UUID(as_uuid=True), ForeignKey("warehouses.id", ondelete="CASCADE"), nullable=False)
+    location_id = Column(UUID(as_uuid=True), ForeignKey("warehouse_locations.id", ondelete="SET NULL"), nullable=True)
+    quantity = Column(Float, nullable=False)
+    reference_type = Column(String, nullable=False) # sales_order, work_order, project
+    reference_id = Column(String, nullable=False)
+    status = Column(String, default="active", nullable=False) # active, completed, cancelled
+    expiry_date = Column(DateTime, nullable=True)
+    reserved_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
+class InventoryQualityInspection(TenantBaseModel):
+    __tablename__ = "inventory_quality_inspections"
+    
+    batch_id = Column(UUID(as_uuid=True), ForeignKey("stock_batches.id", ondelete="CASCADE"), nullable=False)
+    inspector_id = Column(UUID(as_uuid=True), ForeignKey("employees.id", ondelete="SET NULL"), nullable=True)
+    inspection_date = Column(DateTime, default=datetime.utcnow, nullable=False)
+    checklist = Column(JSON, nullable=False) # {"packaging_intact": true, "dimensions_correct": true}
+    sample_size = Column(Float, nullable=False, default=1.0)
+    failed_quantity = Column(Float, nullable=False, default=0.0)
+    status = Column(String, default="pending", nullable=False) # pending, passed, failed
+    remarks = Column(String, nullable=True)
+    approved_by = Column(UUID(as_uuid=True), ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+
+class LandedCostVoucher(TenantBaseModel):
+    __tablename__ = "landed_cost_vouchers"
+    
+    voucher_number = Column(String, nullable=False)
+    posting_date = Column(DateTime, default=datetime.utcnow, nullable=False)
+    distribute_by = Column(String, default="quantity", nullable=False) # quantity, value, volume
+    total_expenses = Column(Float, default=0.0, nullable=False)
+    status = Column(String, default="draft", nullable=False) # draft, posted, cancelled
+    
+    __table_args__ = (
+        UniqueConstraint("tenant_id", "voucher_number", name="uq_tenant_lcv_number"),
+    )
+
+class LandedCostItem(TenantBaseModel):
+    __tablename__ = "landed_cost_items"
+    
+    voucher_id = Column(UUID(as_uuid=True), ForeignKey("landed_cost_vouchers.id", ondelete="CASCADE"), nullable=False)
+    item_id = Column(UUID(as_uuid=True), ForeignKey("inventory_items.id", ondelete="CASCADE"), nullable=False)
+    purchase_receipt_id = Column(String, nullable=False)
+    receipt_quantity = Column(Float, nullable=False)
+    allocated_expense = Column(Float, nullable=False, default=0.0)
+    adjusted_unit_cost = Column(Float, nullable=False, default=0.0)
+
+class SerialAssetAssignment(TenantBaseModel):
+    __tablename__ = "serial_asset_assignments"
+    
+    serial_id = Column(UUID(as_uuid=True), ForeignKey("stock_serials.id", ondelete="CASCADE"), nullable=False)
+    employee_id = Column(UUID(as_uuid=True), ForeignKey("employees.id", ondelete="CASCADE"), nullable=False)
+    assigned_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    returned_at = Column(DateTime, nullable=True)
+    condition_on_assign = Column(String, nullable=False, default="good")
+    condition_on_return = Column(String, nullable=True)
+    status = Column(String, default="assigned", nullable=False) # assigned, returned
+
+class Supplier(TenantBaseModel):
+    __tablename__ = "inventory_suppliers"
+
+    company_name  = Column(String, nullable=False)
+    supplier_code = Column(String, nullable=False, unique=True, index=True)
+    gst           = Column(String, nullable=True)
+    pan           = Column(String, nullable=True)
+    email         = Column(String, nullable=True)
+    phone         = Column(String, nullable=True)
+    address       = Column(Text, nullable=True)
+    payment_terms = Column(String, nullable=True)
+    lead_time_days = Column(Integer, default=7, nullable=False)
+    rating        = Column(Float, default=5.0, nullable=False)
+
+class PurchaseOrder(TenantBaseModel):
+    __tablename__ = "inventory_purchase_orders"
+
+    po_number     = Column(String, nullable=False, unique=True, index=True)
+    supplier_id   = Column(UUID(as_uuid=True), ForeignKey("inventory_suppliers.id", ondelete="CASCADE"), nullable=False)
+    order_date    = Column(Date, nullable=False)
+    expected_delivery = Column(Date, nullable=True)
+    status        = Column(String, default="draft", nullable=False)  # draft, pending, approved, delivered, cancelled
+    tax_rate      = Column(Float, default=18.0, nullable=False)
+    tax_amount    = Column(Float, default=0.0, nullable=False)
+    total_amount  = Column(Float, default=0.0, nullable=False)
+    shipping_address = Column(Text, nullable=True)
+
+    supplier      = relationship("Supplier")
+    items         = relationship("PurchaseOrderItem", back_populates="purchase_order", cascade="all, delete-orphan")
+
+class PurchaseOrderItem(BaseModel):
+    __tablename__ = "inventory_purchase_order_items"
+
+    purchase_order_id = Column(UUID(as_uuid=True), ForeignKey("inventory_purchase_orders.id", ondelete="CASCADE"), nullable=False)
+    item_id       = Column(UUID(as_uuid=True), ForeignKey("inventory_items.id", ondelete="CASCADE"), nullable=False)
+    quantity      = Column(Float, default=1.0, nullable=False)
+    unit_price    = Column(Float, default=0.0, nullable=False)
+    tax_rate      = Column(Float, default=18.0, nullable=False)
+    tax_amount    = Column(Float, default=0.0, nullable=False)
+    total_amount  = Column(Float, default=0.0, nullable=False)
+
+    purchase_order = relationship("PurchaseOrder", back_populates="items")
+    item          = relationship("InventoryItem")
+
+class GoodsReceipt(TenantBaseModel):
+    __tablename__ = "inventory_goods_receipts"
+
+    grn_number    = Column(String, nullable=False, unique=True, index=True)
+    purchase_order_id = Column(UUID(as_uuid=True), ForeignKey("inventory_purchase_orders.id", ondelete="CASCADE"), nullable=False)
+    receipt_date  = Column(Date, nullable=False)
+    status        = Column(String, default="completed", nullable=False)
+    remarks       = Column(Text, nullable=True)
+
+    purchase_order = relationship("PurchaseOrder")

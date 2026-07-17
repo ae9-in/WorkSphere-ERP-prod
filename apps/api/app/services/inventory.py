@@ -8,20 +8,26 @@ from typing import Optional, Dict, Any, List
 from app.repositories.inventory import (
     InventoryCategoryRepository, InventoryItemRepository, WarehouseRepository,
     WarehouseLocationRepository, StockBalanceRepository, StockBatchRepository,
-    StockSerialRepository, StockMovementRepository, WarehouseTaskRepository
+    StockSerialRepository, StockMovementRepository, WarehouseTaskRepository,
+    StockReservationRepository, InventoryQualityInspectionRepository,
+    LandedCostVoucherRepository, LandedCostItemRepository, SerialAssetAssignmentRepository
 )
 from app.models.inventory import (
     InventoryCategory, InventoryItem, Warehouse, WarehouseLocation,
     StockBalance, StockMovement, StockBatch, StockSerial,
     WarehouseTask, InventoryCount, InventoryCountItem,
     InventoryAdjustment, InventoryValuation, ReorderRecommendation,
-    InventoryForecast, InventoryTimeline
+    InventoryForecast, InventoryTimeline,
+    StockReservation, InventoryQualityInspection, LandedCostVoucher,
+    LandedCostItem, SerialAssetAssignment,
+    Supplier, PurchaseOrder, PurchaseOrderItem, GoodsReceipt
 )
 from app.models.audit import AuditLog
 from app.schemas.inventory import (
     CategoryCreateSchema, InventoryItemCreateSchema, WarehouseCreateSchema,
     LocationCreateSchema, StockInSchema, StockOutSchema, StockTransferSchema,
-    AdjustmentCreateSchema, CycleCountSubmitSchema, PredictionRequestSchema
+    AdjustmentCreateSchema, CycleCountSubmitSchema, PredictionRequestSchema,
+    SupplierCreateSchema, PurchaseOrderCreateSchema, GoodsReceiptCreateSchema
 )
 
 category_repo = InventoryCategoryRepository()
@@ -33,6 +39,11 @@ batch_repo = StockBatchRepository()
 serial_repo = StockSerialRepository()
 movement_repo = StockMovementRepository()
 task_repo = WarehouseTaskRepository()
+reservation_repo = StockReservationRepository()
+inspection_repo = InventoryQualityInspectionRepository()
+lcv_repo = LandedCostVoucherRepository()
+lcv_item_repo = LandedCostItemRepository()
+asset_assign_repo = SerialAssetAssignmentRepository()
 
 def serialize_category(cat: InventoryCategory) -> dict:
     return {
@@ -426,8 +437,21 @@ class InventoryService:
             location_id = loc.id
 
         bal = balance_repo.get_balance(db, item.id, wh.id, location_id, tenant_id)
-        if not bal or bal.quantity < payload.quantity:
+        if not bal:
             raise HTTPException(status_code=400, detail="Insufficient stock quantity available")
+
+        # Check active reservations
+        active_reservations = db.query(StockReservation).filter(
+            StockReservation.tenant_id == tenant_id,
+            StockReservation.item_id == item.id,
+            StockReservation.warehouse_id == wh.id,
+            StockReservation.status == "active"
+        ).all()
+        active_res_qty = sum(r.quantity for r in active_reservations)
+        
+        available_qty = bal.quantity - active_res_qty
+        if available_qty < payload.quantity:
+            raise HTTPException(status_code=400, detail=f"Insufficient stock quantity available (some quantity is reserved/locked. Reserved: {active_res_qty})")
 
         # Deduct stock
         bal.quantity -= payload.quantity
@@ -1242,3 +1266,653 @@ class InventoryService:
             "forecastHorizonDays": horizon_days,
             "points": forecast_points
         }
+
+    # ── New Upgrade Inventory Service Methods ─────────────────────────────────
+    @staticmethod
+    def update_item(db: Session, item_id: str, payload: dict, tenant_id: uuid.UUID) -> dict:
+        try:
+            item_uuid = uuid.UUID(item_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid item ID")
+        item = db.query(InventoryItem).filter(
+            InventoryItem.id == item_uuid,
+            InventoryItem.tenant_id == tenant_id,
+            InventoryItem.deleted_at == None
+        ).first()
+        if not item:
+            raise HTTPException(status_code=404, detail="Item not found")
+        
+        field_mapping = {
+            "minStock": "min_stock",
+            "maxStock": "max_stock",
+            "safetyStock": "safety_stock",
+            "reorderPoint": "reorder_point",
+            "preferredVendor": "preferred_vendor",
+            "taxCategory": "tax_category"
+        }
+        for k, v in payload.items():
+            if v is not None:
+                db_key = field_mapping.get(k, k)
+                if db_key == "categoryCode":
+                    cat = category_repo.get_by_code(db, v, tenant_id)
+                    if cat:
+                        item.category_id = cat.id
+                elif db_key == "defaultWarehouseCode":
+                    wh = warehouse_repo.get_by_code(db, v, tenant_id)
+                    if wh:
+                        item.default_warehouse_id = wh.id
+                else:
+                    try:
+                        setattr(item, db_key, v)
+                    except AttributeError:
+                        pass
+        item.updated_at = datetime.utcnow()
+        db.commit()
+        db.refresh(item)
+        return serialize_item(item, db)
+
+    @staticmethod
+    def delete_item(db: Session, item_id: str, tenant_id: uuid.UUID) -> bool:
+        try:
+            item_uuid = uuid.UUID(item_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid item ID")
+        item = db.query(InventoryItem).filter(
+            InventoryItem.id == item_uuid,
+            InventoryItem.tenant_id == tenant_id,
+            InventoryItem.deleted_at == None
+        ).first()
+        if not item:
+            raise HTTPException(status_code=404, detail="Item not found")
+        item.deleted_at = datetime.utcnow()
+        db.commit()
+        return True
+
+    @staticmethod
+    def create_reservation(db: Session, payload: dict, tenant_id: uuid.UUID, user_id: uuid.UUID) -> dict:
+        item = item_repo.get_by_code(db, payload["itemCode"], tenant_id)
+        if not item:
+            raise HTTPException(status_code=404, detail="Item not found")
+        wh = warehouse_repo.get_by_code(db, payload["warehouseCode"], tenant_id)
+        if not wh:
+            raise HTTPException(status_code=404, detail="Warehouse not found")
+        
+        loc_id = None
+        if payload.get("locationCode"):
+            loc = location_repo.get_by_code(db, wh.id, payload["locationCode"], tenant_id)
+            if not loc:
+                raise HTTPException(status_code=404, detail="Location not found")
+            loc_id = loc.id
+
+        bal = balance_repo.get_balance(db, item.id, wh.id, loc_id, tenant_id)
+        available_qty = (bal.quantity - bal.reserved_quantity) if bal else 0.0
+        if available_qty < payload["quantity"]:
+            raise HTTPException(status_code=400, detail=f"Insufficient available stock to reserve. Available: {available_qty}")
+        
+        if not bal:
+            bal = StockBalance(
+                tenant_id=tenant_id,
+                item_id=item.id,
+                warehouse_id=wh.id,
+                location_id=loc_id,
+                quantity=0.0,
+                reserved_quantity=0.0
+            )
+            db.add(bal)
+        bal.reserved_quantity += payload["quantity"]
+
+        expiry = None
+        if payload.get("expiryDate"):
+            try:
+                expiry = datetime.strptime(payload["expiryDate"], "%Y-%m-%d")
+            except ValueError:
+                pass
+
+        res = StockReservation(
+            tenant_id=tenant_id,
+            item_id=item.id,
+            warehouse_id=wh.id,
+            location_id=loc_id,
+            quantity=payload["quantity"],
+            reference_type=payload["referenceType"],
+            reference_id=payload["referenceId"],
+            status="active",
+            expiry_date=expiry,
+            reserved_by=user_id
+        )
+        db.add(res)
+        
+        timeline = InventoryTimeline(
+            tenant_id=tenant_id,
+            item_id=item.id,
+            event_type="transfer",
+            details=f"Reserved {payload['quantity']} {item.uom}(s) for {payload['referenceType']} #{payload['referenceId']}"
+        )
+        db.add(timeline)
+        
+        db.commit()
+        db.refresh(res)
+        return {
+            "_id": str(res.id),
+            "itemCode": item.item_code,
+            "quantity": res.quantity,
+            "referenceType": res.reference_type,
+            "referenceId": res.reference_id,
+            "status": res.status
+        }
+
+    @staticmethod
+    def cancel_reservation(db: Session, res_id: str, tenant_id: uuid.UUID) -> bool:
+        try:
+            res_uuid = uuid.UUID(res_id)
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid reservation ID")
+        res = db.query(StockReservation).filter(
+            StockReservation.id == res_uuid,
+            StockReservation.tenant_id == tenant_id,
+            StockReservation.status == "active"
+        ).first()
+        if not res:
+            raise HTTPException(status_code=404, detail="Active reservation not found")
+        
+        bal = balance_repo.get_balance(db, res.item_id, res.warehouse_id, res.location_id, tenant_id)
+        if bal:
+            bal.reserved_quantity = max(0.0, bal.reserved_quantity - res.quantity)
+        
+        res.status = "cancelled"
+        
+        timeline = InventoryTimeline(
+            tenant_id=tenant_id,
+            item_id=res.item_id,
+            event_type="transfer",
+            details=f"Cancelled reservation of {res.quantity} units (Reference: {res.reference_type} #{res.reference_id})"
+        )
+        db.add(timeline)
+        db.commit()
+        return True
+
+    @staticmethod
+    def submit_quality_inspection(db: Session, payload: dict, tenant_id: uuid.UUID, user_id: uuid.UUID) -> dict:
+        item = item_repo.get_by_code(db, payload["itemCode"], tenant_id)
+        if not item:
+            raise HTTPException(status_code=404, detail="Item not found")
+        
+        batch = batch_repo.get_batch(db, item.id, payload["batchNumber"], tenant_id)
+        if not batch:
+            raise HTTPException(status_code=404, detail="Batch not found")
+            
+        inspection = InventoryQualityInspection(
+            tenant_id=tenant_id,
+            batch_id=batch.id,
+            checklist=payload["checklist"],
+            sample_size=payload["sampleSize"],
+            failed_quantity=payload["failedQuantity"],
+            status=payload["status"],
+            remarks=payload.get("remarks"),
+            approved_by=user_id
+        )
+        db.add(inspection)
+        
+        if payload["status"] == "passed":
+            batch.status = "approved"
+        else:
+            batch.status = "rejected"
+            bals = db.query(StockBalance).filter(
+                StockBalance.item_id == item.id,
+                StockBalance.tenant_id == tenant_id
+            ).all()
+            for bal in bals:
+                if bal.quantity >= payload["failedQuantity"]:
+                    bal.quantity -= payload["failedQuantity"]
+                    mvt = StockMovement(
+                        tenant_id=tenant_id,
+                        item_id=item.id,
+                        warehouse_id=bal.warehouse_id,
+                        location_id=bal.location_id,
+                        type="stock_out",
+                        quantity=-payload["failedQuantity"],
+                        unit_cost=0.0,
+                        reference_type="inspection",
+                        reference_id=str(inspection.id),
+                        remarks=f"QA Failure: {payload.get('remarks')}"
+                    )
+                    db.add(mvt)
+                    break
+        
+        timeline = InventoryTimeline(
+            tenant_id=tenant_id,
+            item_id=item.id,
+            event_type="adjusted",
+            details=f"QA Inspection completed. Status: {payload['status'].upper()} (Batch: {payload['batchNumber']})"
+        )
+        db.add(timeline)
+        
+        db.commit()
+        db.refresh(inspection)
+        return {
+            "_id": str(inspection.id),
+            "batchNumber": payload["batchNumber"],
+            "status": inspection.status,
+            "inspectionDate": inspection.inspection_date.strftime("%Y-%m-%d %H:%M:%S")
+        }
+
+    @staticmethod
+    def allocate_landed_costs(db: Session, payload: dict, tenant_id: uuid.UUID) -> dict:
+        voucher = LandedCostVoucher(
+            tenant_id=tenant_id,
+            voucher_number=payload["voucherNumber"],
+            distribute_by=payload["distributeBy"],
+            total_expenses=payload["totalExpenses"],
+            status="posted"
+        )
+        db.add(voucher)
+        db.flush()
+        
+        total_quantity = sum([it["receiptQuantity"] for it in payload["items"]])
+        
+        allocated_items = []
+        for it in payload["items"]:
+            item = item_repo.get_by_code(db, it["itemCode"], tenant_id)
+            if not item:
+                continue
+            
+            if payload["distributeBy"] == "quantity":
+                factor = it["receiptQuantity"] / total_quantity if total_quantity > 0 else 0
+            else:
+                factor = 1.0 / len(payload["items"])
+                
+            allocated_share = payload["totalExpenses"] * factor
+            additional_unit_cost = allocated_share / it["receiptQuantity"] if it["receiptQuantity"] > 0 else 0
+            
+            recent_mvt = db.query(StockMovement).filter(
+                StockMovement.item_id == item.id,
+                StockMovement.tenant_id == tenant_id,
+                StockMovement.type == "stock_in",
+                StockMovement.reference_id == it["purchaseReceiptId"]
+            ).first()
+            
+            original_cost = recent_mvt.unit_cost if recent_mvt else 100.0
+            adjusted_cost = original_cost + additional_unit_cost
+            
+            if recent_mvt:
+                recent_mvt.unit_cost = adjusted_cost
+                
+            lc_item = LandedCostItem(
+                tenant_id=tenant_id,
+                voucher_id=voucher.id,
+                item_id=item.id,
+                purchase_receipt_id=it["purchaseReceiptId"],
+                receipt_quantity=it["receiptQuantity"],
+                allocated_expense=allocated_share,
+                adjusted_unit_cost=adjusted_cost
+            )
+            db.add(lc_item)
+            allocated_items.append({
+                "itemCode": it["itemCode"],
+                "allocatedExpense": allocated_share,
+                "adjustedUnitCost": adjusted_cost
+            })
+            
+            timeline = InventoryTimeline(
+                tenant_id=tenant_id,
+                item_id=item.id,
+                event_type="adjusted",
+                details=f"Landed Cost Voucher allocated: +₹{additional_unit_cost:.2f} per unit"
+            )
+            db.add(timeline)
+            
+        db.commit()
+        return {
+            "_id": str(voucher.id),
+            "voucherNumber": voucher.voucher_number,
+            "totalExpenses": voucher.total_expenses,
+            "items": allocated_items
+        }
+
+    @staticmethod
+    def assign_serial_asset(db: Session, payload: dict, tenant_id: uuid.UUID) -> dict:
+        item = item_repo.get_by_code(db, payload["itemCode"], tenant_id)
+        if not item:
+            raise HTTPException(status_code=404, detail="Item not found")
+        serial = serial_repo.get_serial(db, item.id, payload["serialNumber"], tenant_id)
+        if not serial:
+            raise HTTPException(status_code=404, detail="Serial number not found")
+        if serial.status != "available":
+            raise HTTPException(status_code=400, detail=f"Serial status is {serial.status}, not available")
+        
+        try:
+            emp_id = uuid.UUID(payload["employeeId"])
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid employee ID")
+            
+        assign = SerialAssetAssignment(
+            tenant_id=tenant_id,
+            serial_id=serial.id,
+            employee_id=emp_id,
+            condition_on_assign=payload.get("conditionOnAssign", "good"),
+            status="assigned"
+        )
+        db.add(assign)
+        
+        serial.status = "assigned"
+        serial.assigned_user_id = emp_id
+        
+        timeline = InventoryTimeline(
+            tenant_id=tenant_id,
+            item_id=item.id,
+            event_type="stock_out",
+            details=f"Serial {payload['serialNumber']} assigned to employee ID {payload['employeeId']}"
+        )
+        db.add(timeline)
+        
+        db.commit()
+        db.refresh(assign)
+        return {
+            "_id": str(assign.id),
+            "serialNumber": payload["serialNumber"],
+            "employeeId": payload["employeeId"],
+            "status": assign.status
+        }
+
+    @staticmethod
+    def return_serial_asset(db: Session, payload: dict, tenant_id: uuid.UUID) -> dict:
+        item = item_repo.get_by_code(db, payload["itemCode"], tenant_id)
+        if not item:
+            raise HTTPException(status_code=404, detail="Item not found")
+        serial = serial_repo.get_serial(db, item.id, payload["serialNumber"], tenant_id)
+        if not serial:
+            raise HTTPException(status_code=404, detail="Serial number not found")
+            
+        assign = db.query(SerialAssetAssignment).filter(
+            SerialAssetAssignment.serial_id == serial.id,
+            SerialAssetAssignment.tenant_id == tenant_id,
+            SerialAssetAssignment.status == "assigned"
+        ).first()
+        if not assign:
+            raise HTTPException(status_code=404, detail="No active checkout assignment record found")
+            
+        assign.status = "returned"
+        assign.returned_at = datetime.utcnow()
+        assign.condition_on_return = payload["conditionOnReturn"]
+        
+        serial.status = "available"
+        serial.assigned_user_id = None
+        
+        timeline = InventoryTimeline(
+            tenant_id=tenant_id,
+            item_id=item.id,
+            event_type="stock_in",
+            details=f"Serial {payload['serialNumber']} returned in {payload['conditionOnReturn']} condition"
+        )
+        db.add(timeline)
+        
+        db.commit()
+        db.refresh(assign)
+        return {
+            "_id": str(assign.id),
+            "serialNumber": payload["serialNumber"],
+            "status": assign.status,
+            "returnedAt": assign.returned_at.strftime("%Y-%m-%d %H:%M:%S")
+        }
+
+    @staticmethod
+    def import_items_csv(db: Session, payload: List[dict], tenant_id: uuid.UUID) -> int:
+        success_count = 0
+        initial_count = db.query(InventoryItem).filter(InventoryItem.tenant_id == tenant_id).count()
+        for row in payload:
+            try:
+                sku = row.get("sku")
+                if sku:
+                    exists = item_repo.get_by_sku(db, sku, tenant_id)
+                    if exists:
+                        continue
+                
+                category_id = None
+                if row.get("categoryCode"):
+                    cat = category_repo.get_by_code(db, row["categoryCode"], tenant_id)
+                    if cat:
+                        category_id = cat.id
+                
+                default_wh_id = None
+                if row.get("defaultWarehouseCode"):
+                    wh = warehouse_repo.get_by_code(db, row["defaultWarehouseCode"], tenant_id)
+                    if wh:
+                        default_wh_id = wh.id
+                
+                item_code = f"ITEM-{initial_count + success_count + 1:04d}"
+                if not sku:
+                    sku = f"GEN-{row['name'][:3].upper()}-{initial_count + success_count + 1:03d}"
+                
+                item = InventoryItem(
+                    tenant_id=tenant_id,
+                    item_code=item_code,
+                    sku=sku,
+                    name=row["name"],
+                    brand=row.get("brand"),
+                    category_id=category_id,
+                    uom=row.get("uom") or "piece",
+                    min_stock=row.get("minStock") or 0.0,
+                    max_stock=row.get("maxStock") or 0.0,
+                    reorder_point=row.get("reorderPoint") or 0.0,
+                    preferred_vendor=row.get("preferredVendor"),
+                    default_warehouse_id=default_wh_id,
+                    status="active"
+                )
+                db.add(item)
+                success_count += 1
+            except Exception:
+                continue
+        db.commit()
+        return success_count
+
+    @staticmethod
+    def create_supplier(db: Session, payload: SupplierCreateSchema, tenant_id: uuid.UUID) -> dict:
+        supplier = Supplier(
+            tenant_id=tenant_id,
+            company_name=payload.companyName,
+            supplier_code=payload.supplierCode,
+            gst=payload.gst,
+            pan=payload.pan,
+            email=payload.email,
+            phone=payload.phone,
+            address=payload.address,
+            payment_terms=payload.paymentTerms,
+            lead_time_days=payload.leadTimeDays or 7,
+            rating=5.0
+        )
+        db.add(supplier)
+        db.commit()
+        db.refresh(supplier)
+        return {
+            "_id": str(supplier.id),
+            "companyName": supplier.company_name,
+            "supplierCode": supplier.supplier_code,
+            "gst": supplier.gst,
+            "pan": supplier.pan,
+            "email": supplier.email,
+            "phone": supplier.phone,
+            "address": supplier.address,
+            "paymentTerms": supplier.payment_terms,
+            "leadTimeDays": supplier.lead_time_days,
+            "rating": supplier.rating
+        }
+
+    @staticmethod
+    def list_suppliers(db: Session, tenant_id: uuid.UUID) -> list:
+        suppliers = db.query(Supplier).filter(Supplier.tenant_id == tenant_id).all()
+        return [{
+            "_id": str(s.id),
+            "companyName": s.company_name,
+            "supplierCode": s.supplier_code,
+            "gst": s.gst,
+            "pan": s.pan,
+            "email": s.email,
+            "phone": s.phone,
+            "address": s.address,
+            "paymentTerms": s.payment_terms,
+            "leadTimeDays": s.lead_time_days,
+            "rating": s.rating
+        } for s in suppliers]
+
+    @staticmethod
+    def create_purchase_order(db: Session, payload: PurchaseOrderCreateSchema, tenant_id: uuid.UUID) -> dict:
+        po_number = f"PO-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        items_objs = []
+        total_amount = 0.0
+        for it in payload.items:
+            item_uuid = uuid.UUID(it.itemId)
+            item_obj = db.query(InventoryItem).filter(InventoryItem.id == item_uuid).first()
+            if not item_obj:
+                continue
+            tax_rate = 18.0
+            item_total = it.quantity * it.unitPrice
+            tax_amount = item_total * (tax_rate / 100.0)
+            line_total = item_total + tax_amount
+            total_amount += line_total
+            item_line = PurchaseOrderItem(
+                item_id=item_uuid,
+                quantity=it.quantity,
+                unit_price=it.unitPrice,
+                tax_rate=tax_rate,
+                tax_amount=tax_amount,
+                total_amount=line_total
+            )
+            items_objs.append(item_line)
+        po = PurchaseOrder(
+            tenant_id=tenant_id,
+            po_number=po_number,
+            supplier_id=uuid.UUID(payload.supplierId),
+            order_date=datetime.strptime(payload.orderDate, "%Y-%m-%d").date(),
+            expected_delivery=datetime.strptime(payload.expectedDelivery, "%Y-%m-%d").date() if payload.expectedDelivery else None,
+            status="draft",
+            tax_rate=18.0,
+            tax_amount=total_amount * (18.0 / 118.0),
+            total_amount=total_amount,
+            shipping_address=payload.shippingAddress,
+            items=items_objs
+        )
+        db.add(po)
+        db.commit()
+        db.refresh(po)
+        for it in items_objs:
+            timeline_event = InventoryTimeline(
+                tenant_id=tenant_id,
+                item_id=it.item_id,
+                event_type="purchase_order",
+                details=f"Drafted Purchase Order {po_number} for quantity {it.quantity}"
+            )
+            db.add(timeline_event)
+        db.commit()
+        return {
+            "_id": str(po.id),
+            "poNumber": po.po_number,
+            "supplierId": str(po.supplier_id),
+            "orderDate": str(po.order_date),
+            "expectedDelivery": str(po.expected_delivery) if po.expected_delivery else None,
+            "status": po.status,
+            "totalAmount": po.total_amount,
+            "shippingAddress": po.shipping_address
+        }
+
+    @staticmethod
+    def list_purchase_orders(db: Session, tenant_id: uuid.UUID) -> list:
+        pos = db.query(PurchaseOrder).filter(PurchaseOrder.tenant_id == tenant_id).all()
+        result = []
+        for po in pos:
+            supplier = db.query(Supplier).filter(Supplier.id == po.supplier_id).first()
+            result.append({
+                "_id": str(po.id),
+                "poNumber": po.po_number,
+                "supplierId": str(po.supplier_id),
+                "supplierName": supplier.company_name if supplier else "Unknown Supplier",
+                "orderDate": str(po.order_date),
+                "expectedDelivery": str(po.expected_delivery) if po.expected_delivery else None,
+                "status": po.status,
+                "totalAmount": po.total_amount,
+                "shippingAddress": po.shipping_address
+            })
+        return result
+
+    @staticmethod
+    def create_goods_receipt(db: Session, payload: GoodsReceiptCreateSchema, tenant_id: uuid.UUID) -> dict:
+        grn_number = f"GRN-{datetime.utcnow().strftime('%Y%m%d%H%M%S')}"
+        po_uuid = uuid.UUID(payload.purchaseOrderId)
+        po = db.query(PurchaseOrder).filter(PurchaseOrder.id == po_uuid).first()
+        if not po:
+            raise HTTPException(status_code=404, detail="Purchase Order not found")
+        po.status = "delivered"
+        grn = GoodsReceipt(
+            tenant_id=tenant_id,
+            grn_number=grn_number,
+            purchase_order_id=po_uuid,
+            receipt_date=datetime.strptime(payload.receiptDate, "%Y-%m-%d").date(),
+            status="completed",
+            remarks=payload.remarks
+        )
+        db.add(grn)
+        for po_item in po.items:
+            wh_id = po_item.item.default_warehouse_id if po_item.item.default_warehouse_id else None
+            if not wh_id:
+                first_wh = db.query(Warehouse).filter(Warehouse.tenant_id == tenant_id).first()
+                wh_id = first_wh.id if first_wh else None
+            if wh_id:
+                bal = db.query(StockBalance).filter(
+                    StockBalance.item_id == po_item.item_id,
+                    StockBalance.warehouse_id == wh_id
+                ).first()
+                if not bal:
+                    bal = StockBalance(
+                        tenant_id=tenant_id,
+                        item_id=po_item.item_id,
+                        warehouse_id=wh_id,
+                        quantity=0.0,
+                        reserved_quantity=0.0
+                    )
+                    db.add(bal)
+                bal.quantity += po_item.quantity
+                mvt = StockMovement(
+                    tenant_id=tenant_id,
+                    item_id=po_item.item_id,
+                    warehouse_id=wh_id,
+                    type="stock_in",
+                    quantity=po_item.quantity,
+                    unit_cost=po_item.unit_price,
+                    reference_type="po",
+                    reference_id=str(po.id),
+                    remarks=f"Received via GRN {grn_number}"
+                )
+                db.add(mvt)
+                timeline_event = InventoryTimeline(
+                    tenant_id=tenant_id,
+                    item_id=po_item.item_id,
+                    event_type="stock_in",
+                    details=f"Received {po_item.quantity} units from PO {po.po_number} via GRN {grn_number}"
+                )
+                db.add(timeline_event)
+        db.commit()
+        db.refresh(grn)
+        return {
+            "_id": str(grn.id),
+            "grnNumber": grn.grn_number,
+            "purchaseOrderId": str(grn.purchase_order_id),
+            "receiptDate": str(grn.receipt_date),
+            "status": grn.status,
+            "remarks": grn.remarks
+        }
+
+    @staticmethod
+    def list_goods_receipts(db: Session, tenant_id: uuid.UUID) -> list:
+        grns = db.query(GoodsReceipt).filter(GoodsReceipt.tenant_id == tenant_id).all()
+        result = []
+        for g in grns:
+            po = db.query(PurchaseOrder).filter(PurchaseOrder.id == g.purchase_order_id).first()
+            result.append({
+                "_id": str(g.id),
+                "grnNumber": g.grn_number,
+                "purchaseOrderId": str(g.purchase_order_id),
+                "poNumber": po.po_number if po else "Unknown PO",
+                "receiptDate": str(g.receipt_date),
+                "status": g.status,
+                "remarks": g.remarks
+            })
+        return result

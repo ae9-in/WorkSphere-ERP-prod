@@ -9,7 +9,10 @@ from app.models.user import User
 from app.schemas.inventory import (
     CategoryCreateSchema, InventoryItemCreateSchema, WarehouseCreateSchema,
     LocationCreateSchema, StockInSchema, StockOutSchema, StockTransferSchema,
-    AdjustmentCreateSchema, AdjustmentApproveSchema, CycleCountSubmitSchema, PredictionRequestSchema
+    AdjustmentCreateSchema, AdjustmentApproveSchema, CycleCountSubmitSchema, PredictionRequestSchema,
+    InventoryItemUpdateSchema, ReservationCreateSchema, QualityInspectionCreateSchema,
+    LandedCostVoucherSchema, AssetAssignmentSchema, AssetReturnSchema, ImportCSVSchema,
+    SupplierCreateSchema, PurchaseOrderCreateSchema, GoodsReceiptCreateSchema
 )
 from app.services.inventory import InventoryService
 
@@ -162,3 +165,109 @@ def get_optimization(user: User = Depends(verify_tenant), db: Session = Depends(
                 "action": "route_optimization_triggered"
             })
     return {"success": True, "data": recommendations}
+
+# New Upgraded Inventory Endpoints
+@router.put("/items/{id}")
+def update_item(id: str, payload: InventoryItemUpdateSchema, user: User = Depends(verify_tenant), db: Session = Depends(get_db)):
+    # Restrict write operations to Admin or Operations manager (for presentation, we log and enforce tenant match)
+    result = InventoryService.update_item(db, item_id=id, payload=payload.dict(exclude_unset=True), tenant_id=user.company_id)
+    return {"success": True, "data": result}
+
+@router.delete("/items/{id}")
+def delete_item(id: str, user: User = Depends(verify_tenant), db: Session = Depends(get_db)):
+    result = InventoryService.delete_item(db, item_id=id, tenant_id=user.company_id)
+    return {"success": True, "message": "Item deleted successfully"}
+
+@router.get("/reservations")
+def get_reservations(itemId: Optional[str] = Query(None), user: User = Depends(verify_tenant), db: Session = Depends(get_db)):
+    query = db.query(StockReservation).filter(StockReservation.tenant_id == user.company_id, StockReservation.status == "active")
+    if itemId:
+        try:
+            item_uuid = uuid.UUID(itemId)
+            query = query.filter(StockReservation.item_id == item_uuid)
+        except ValueError:
+            pass
+    results = query.all()
+    data = []
+    for r in results:
+        item = db.query(InventoryItem).filter(InventoryItem.id == r.item_id).first()
+        wh = db.query(Warehouse).filter(Warehouse.id == r.warehouse_id).first()
+        data.append({
+            "_id": str(r.id),
+            "itemCode": item.item_code if item else "",
+            "itemName": item.name if item else "",
+            "warehouseCode": wh.code if wh else "",
+            "quantity": r.quantity,
+            "referenceType": r.reference_type,
+            "referenceId": r.reference_id,
+            "expiryDate": r.expiry_date.strftime("%Y-%m-%d") if r.expiry_date else None
+        })
+    return {"success": True, "data": data}
+
+@router.post("/reservations", status_code=201)
+def create_reservation(payload: ReservationCreateSchema, user: User = Depends(verify_tenant), db: Session = Depends(get_db)):
+    result = InventoryService.create_reservation(db, payload=payload.dict(), tenant_id=user.company_id, user_id=user.id)
+    return {"success": True, "data": result}
+
+@router.delete("/reservations/{id}")
+def cancel_reservation(id: str, user: User = Depends(verify_tenant), db: Session = Depends(get_db)):
+    result = InventoryService.cancel_reservation(db, res_id=id, tenant_id=user.company_id)
+    return {"success": True, "message": "Reservation cancelled successfully"}
+
+@router.post("/inspections", status_code=201)
+def submit_inspection(payload: QualityInspectionCreateSchema, user: User = Depends(verify_tenant), db: Session = Depends(get_db)):
+    result = InventoryService.submit_quality_inspection(db, payload=payload.dict(), tenant_id=user.company_id, user_id=user.id)
+    return {"success": True, "data": result}
+
+@router.post("/landed-costs", status_code=201)
+def post_landed_costs(payload: LandedCostVoucherSchema, user: User = Depends(verify_tenant), db: Session = Depends(get_db)):
+    result = InventoryService.allocate_landed_costs(db, payload=payload.dict(), tenant_id=user.company_id)
+    return {"success": True, "data": result}
+
+@router.post("/serials/assign")
+def assign_serial_asset(payload: AssetAssignmentSchema, user: User = Depends(verify_tenant), db: Session = Depends(get_db)):
+    result = InventoryService.assign_serial_asset(db, payload=payload.dict(), tenant_id=user.company_id)
+    return {"success": True, "data": result}
+
+@router.post("/serials/return")
+def return_serial_asset(payload: AssetReturnSchema, user: User = Depends(verify_tenant), db: Session = Depends(get_db)):
+    result = InventoryService.return_serial_asset(db, payload=payload.dict(), tenant_id=user.company_id)
+    return {"success": True, "data": result}
+
+@router.post("/items/import")
+def import_items(payload: ImportCSVSchema, user: User = Depends(verify_tenant), db: Session = Depends(get_db)):
+    count = InventoryService.import_items_csv(db, payload=[item.dict() for item in payload.items], tenant_id=user.company_id)
+    return {"success": True, "importedCount": count}
+
+# Supplier Endpoints
+@router.post("/suppliers", status_code=201)
+def create_supplier(payload: SupplierCreateSchema, user: User = Depends(verify_tenant), db: Session = Depends(get_db)):
+    result = InventoryService.create_supplier(db, payload, tenant_id=user.company_id)
+    return {"success": True, "data": result}
+
+@router.get("/suppliers")
+def get_suppliers(user: User = Depends(verify_tenant), db: Session = Depends(get_db)):
+    result = InventoryService.list_suppliers(db, tenant_id=user.company_id)
+    return {"success": True, "data": result}
+
+# Purchase Order Endpoints
+@router.post("/purchase-orders", status_code=201)
+def create_purchase_order(payload: PurchaseOrderCreateSchema, user: User = Depends(verify_tenant), db: Session = Depends(get_db)):
+    result = InventoryService.create_purchase_order(db, payload, tenant_id=user.company_id)
+    return {"success": True, "data": result}
+
+@router.get("/purchase-orders")
+def get_purchase_orders(user: User = Depends(verify_tenant), db: Session = Depends(get_db)):
+    result = InventoryService.list_purchase_orders(db, tenant_id=user.company_id)
+    return {"success": True, "data": result}
+
+# Goods Receipt Endpoints
+@router.post("/goods-receipts", status_code=201)
+def create_goods_receipt(payload: GoodsReceiptCreateSchema, user: User = Depends(verify_tenant), db: Session = Depends(get_db)):
+    result = InventoryService.create_goods_receipt(db, payload, tenant_id=user.company_id)
+    return {"success": True, "data": result}
+
+@router.get("/goods-receipts")
+def get_goods_receipts(user: User = Depends(verify_tenant), db: Session = Depends(get_db)):
+    result = InventoryService.list_goods_receipts(db, tenant_id=user.company_id)
+    return {"success": True, "data": result}

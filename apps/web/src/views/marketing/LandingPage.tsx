@@ -170,6 +170,47 @@ export default function LandingPage() {
     setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
   };
 
+  const handleHeaderClick = (item: string) => {
+    const isAuthenticated = useAuthStore.getState().isAuthenticated;
+
+    if (item === 'Platform') {
+      document.getElementById('overview')?.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+    if (item === 'Modules') {
+      document.getElementById('modules')?.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+    if (item === 'Pricing') {
+      document.getElementById('pricing')?.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+    if (item === 'Objections') {
+      document.getElementById('objections')?.scrollIntoView({ behavior: 'smooth' });
+      return;
+    }
+
+    if (item === 'AI Console') {
+      if (isAuthenticated) {
+        navigate('/workflows');
+      } else {
+        toast.info('AI Console is available to registered enterprise workspace tenants.');
+        navigate('/login');
+      }
+      return;
+    }
+
+    if (item === 'Analytics') {
+      if (isAuthenticated) {
+        navigate('/analytics/dashboard');
+      } else {
+        toast.info('Analytics Center is available to registered enterprise workspace tenants.');
+        navigate('/login');
+      }
+      return;
+    }
+  };
+
   const handleFooterLinkClick = (title: string, item: string) => {
     if (title === 'Platform') {
       const elementId = item === 'Overview' ? 'overview'
@@ -290,15 +331,15 @@ export default function LandingPage() {
 
         <div className="hidden md:flex items-center gap-8">
           {['Platform', 'Modules', 'AI Console', 'Analytics', 'Pricing', 'Objections'].map((item) => (
-            <a
+            <button
               key={item}
-              href={`#${item.toLowerCase().replace(' ', '-')}`}
-              className={`relative text-xs font-semibold tracking-wider uppercase transition-colors py-1 ${
+              onClick={() => handleHeaderClick(item)}
+              className={`relative text-xs font-semibold tracking-wider uppercase transition-colors py-1 cursor-pointer focus:outline-none ${
                 scrolled ? 'text-ag-ink-2 hover:text-[#5B3CF5]' : 'text-white/80 hover:text-white'
               }`}
             >
               {item}
-            </a>
+            </button>
           ))}
         </div>
 

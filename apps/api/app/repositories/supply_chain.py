@@ -6,7 +6,8 @@ from app.models.supply_chain import (
     FleetVehicle, Driver, Shipment, ShipmentItem, DispatchOrder,
     DeliveryRoute, GPSTracking, ProofOfDelivery, ReverseLogistics,
     FreightCost, TransportationAnalytics, FleetPerformance,
-    SupplyChainTimeline, SupplyChainAuditLog
+    SupplyChainTimeline, SupplyChainAuditLog, CarrierRate,
+    ContainerLoadingPlan, SCMDelayAlert
 )
 
 class SupplyChainNetworkRepository:
@@ -130,3 +131,30 @@ class FreightCostRepository:
             FreightCost.shipment_id == shipment_id,
             FreightCost.tenant_id == tenant_id
         ).first()
+
+class CarrierRateRepository:
+    def get_by_carrier_route(self, db: Session, carrier_id: uuid.UUID, origin: str, dest: str, tenant_id: uuid.UUID) -> Optional[CarrierRate]:
+        return db.query(CarrierRate).filter(
+            CarrierRate.carrier_id == carrier_id,
+            CarrierRate.origin_zone == origin,
+            CarrierRate.destination_zone == dest,
+            CarrierRate.tenant_id == tenant_id,
+            CarrierRate.status == "active",
+            CarrierRate.deleted_at == None
+        ).first()
+
+class ContainerLoadingPlanRepository:
+    def get_by_shipment(self, db: Session, shipment_id: uuid.UUID, tenant_id: uuid.UUID) -> Optional[ContainerLoadingPlan]:
+        return db.query(ContainerLoadingPlan).filter(
+            ContainerLoadingPlan.shipment_id == shipment_id,
+            ContainerLoadingPlan.tenant_id == tenant_id,
+            ContainerLoadingPlan.deleted_at == None
+        ).first()
+
+class SCMDelayAlertRepository:
+    def get_by_shipment(self, db: Session, shipment_id: uuid.UUID, tenant_id: uuid.UUID) -> List[SCMDelayAlert]:
+        return db.query(SCMDelayAlert).filter(
+            SCMDelayAlert.shipment_id == shipment_id,
+            SCMDelayAlert.tenant_id == tenant_id,
+            SCMDelayAlert.deleted_at == None
+        ).all()

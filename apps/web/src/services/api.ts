@@ -95,7 +95,15 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry && !isAuthRequest) {
       originalRequest._retry = true;
       try {
-        const { data } = await axios.post(`${apiBaseURL}/auth/refresh`, {}, { withCredentials: true });
+        const token = useAuthStore.getState().accessToken;
+        const { data } = await axios.post(
+          `${apiBaseURL}/auth/refresh`,
+          {},
+          {
+            headers: token ? { Authorization: `Bearer ${token}` } : {},
+            withCredentials: true,
+          }
+        );
         useAuthStore.getState().setAccessToken(data.data.accessToken);
         originalRequest.headers.Authorization = `Bearer ${data.data.accessToken}`;
         return api(originalRequest);

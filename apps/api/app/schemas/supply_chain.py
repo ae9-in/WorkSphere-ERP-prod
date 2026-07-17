@@ -117,3 +117,27 @@ class ReturnLogSchema(SCMBaseSchema):
     quantity: float
     returnReason: Optional[str] = None
     inspectionRemarks: Optional[str] = None
+
+class CarrierRateCreateSchema(SCMBaseSchema):
+    carrierId: str
+    originZone: str
+    destinationZone: str
+    ratePerKm: float
+    ratePerKg: float
+    baseCharge: float
+    status: Optional[str] = "active"
+
+class ContainerLoadingPlanCreateSchema(SCMBaseSchema):
+    shipmentId: str
+    vehicleId: str
+
+class SCMDelayAlertCreateSchema(SCMBaseSchema):
+    shipmentId: str
+    delayType: str
+    durationMinutes: int
+    severity: Optional[str] = "medium"
+    remarks: Optional[str] = None
+
+class SCMDelayAlertResolveSchema(SCMBaseSchema):
+    resolved: bool
+    remarks: Optional[str] = None

@@ -203,3 +203,33 @@ class SupplyChainAuditLog(TenantBaseModel):
     action = Column(String, nullable=False)
     details = Column(String, nullable=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
+
+class CarrierRate(TenantBaseModel):
+    __tablename__ = "carrier_rates"
+
+    carrier_id = Column(UUID(as_uuid=True), ForeignKey("carriers.id", ondelete="CASCADE"), nullable=False)
+    origin_zone = Column(String, nullable=False)
+    destination_zone = Column(String, nullable=False)
+    rate_per_km = Column(Float, default=0.0, nullable=False)
+    rate_per_kg = Column(Float, default=0.0, nullable=False)
+    base_charge = Column(Float, default=0.0, nullable=False)
+    status = Column(String, default="active", nullable=False)
+
+class ContainerLoadingPlan(TenantBaseModel):
+    __tablename__ = "container_loading_plans"
+
+    shipment_id = Column(UUID(as_uuid=True), ForeignKey("shipments.id", ondelete="CASCADE"), nullable=False)
+    vehicle_id = Column(UUID(as_uuid=True), ForeignKey("fleet_vehicles.id", ondelete="CASCADE"), nullable=False)
+    utilization_percentage = Column(Float, default=0.0, nullable=False)
+    packing_instructions = Column(String, nullable=True)  # JSON-string of packing details
+
+class SCMDelayAlert(TenantBaseModel):
+    __tablename__ = "scm_delay_alerts"
+
+    shipment_id = Column(UUID(as_uuid=True), ForeignKey("shipments.id", ondelete="CASCADE"), nullable=False)
+    reported_by = Column(UUID(as_uuid=True), nullable=True)
+    delay_type = Column(String, nullable=False)  # breakdown, accident, traffic, weather, customs
+    duration_minutes = Column(Integer, default=0, nullable=False)
+    severity = Column(String, default="medium", nullable=False)  # low, medium, high, critical
+    resolved = Column(Boolean, default=False, nullable=False)
+    remarks = Column(String, nullable=True)

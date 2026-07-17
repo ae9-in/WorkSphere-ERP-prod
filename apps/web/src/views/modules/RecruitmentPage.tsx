@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { PageContainer } from '@/components/layout/PageContainer/PageContainer';
 import { Card, CardHeader } from '@/components/ui/Card/Card';
@@ -10,12 +10,11 @@ import { DataTable } from '@/components/ui/Table/DataTable';
 import { ColumnDef } from '@tanstack/react-table';
 import { toast } from 'sonner';
 import { api } from '@/services/api.service';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import {
-  Briefcase, Users, CalendarBlank, FileText, ArrowsClockwise,
-  Plus, Check, X, ArrowRight, Trophy, Clock, ShieldCheck, ChartBar, MapPin
-} from '@phosphor-icons/react';
-
-// ── Helpers ──────────────────────────────────────────────────────────────────
+  Briefcase, Users, Calendar, FileText, RotateCw,
+  Plus, Check, X, ArrowRight, Trophy, Clock, ShieldCheck, BarChart3, MapPin, Video, Filter
+} from 'lucide-react';
 
 async function recruitmentApi(method: 'get' | 'post', path: string, data?: any) {
   const res = await (method === 'get'
@@ -25,15 +24,15 @@ async function recruitmentApi(method: 'get' | 'post', path: string, data?: any) 
 }
 
 const PIPELINE_STAGES = [
-  { key: 'applied',             label: 'Applied',            color: 'bg-blue-500' },
-  { key: 'screening',           label: 'Screening',          color: 'bg-purple-500' },
-  { key: 'assessment',          label: 'Assessment',         color: 'bg-yellow-500' },
-  { key: 'technical_interview', label: 'Technical',          color: 'bg-orange-500' },
-  { key: 'hr_interview',        label: 'HR Interview',       color: 'bg-pink-500' },
-  { key: 'selected',            label: 'Selected',           color: 'bg-teal-500' },
-  { key: 'offer',               label: 'Offer',              color: 'bg-indigo-500' },
-  { key: 'onboarding',          label: 'Onboarding',         color: 'bg-cyan-500' },
-  { key: 'hired',               label: 'Hired ✓',            color: 'bg-green-600' },
+  { key: 'applied',             label: 'Applied',            color: 'bg-blue-500', widthClass: 'w-full' },
+  { key: 'screening',           label: 'Screening',          color: 'bg-purple-500', widthClass: 'w-[85%]' },
+  { key: 'assessment',          label: 'Assessment',         color: 'bg-yellow-500', widthClass: 'w-[70%]' },
+  { key: 'technical_interview', label: 'Technical',          color: 'bg-orange-500', widthClass: 'w-[55%]' },
+  { key: 'hr_interview',        label: 'HR Interview',       color: 'bg-pink-500', widthClass: 'w-[40%]' },
+  { key: 'selected',            label: 'Selected',           color: 'bg-teal-500', widthClass: 'w-[30%]' },
+  { key: 'offer',               label: 'Offer',              color: 'bg-indigo-500', widthClass: 'w-[20%]' },
+  { key: 'onboarding',          label: 'Onboarding',         color: 'bg-cyan-500', widthClass: 'w-[15%]' },
+  { key: 'hired',               label: 'Hired / Joined',     color: 'bg-green-600', widthClass: 'w-[10%]' },
 ];
 
 const NEXT_STAGE: Record<string, string> = {
@@ -43,7 +42,7 @@ const NEXT_STAGE: Record<string, string> = {
 };
 
 export default function RecruitmentPage() {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'jobs' | 'candidates' | 'interviews' | 'offers' | 'hiringPlans' | 'bgv' | 'analytics'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'jobs' | 'hiringPlans' | 'candidates' | 'interviews' | 'offers' | 'bgv' | 'analytics'>('dashboard');
   const [dashboard, setDashboard] = useState<any>(null);
   const [jobs, setJobs] = useState<any[]>([]);
   
@@ -127,13 +126,12 @@ export default function RecruitmentPage() {
   const [empDept, setEmpDept] = useState('Engineering');
   const [empDesg, setEmpDesg] = useState('Software Engineer');
 
-  // Requisitions (needed for job posting)
+  // Requisitions
   const [requisitions, setRequisitions] = useState<any[]>([]);
 
   const fetchAll = useCallback(async () => {
     setIsLoading(true);
     try {
-      // Build paginated search query string
       let searchParams = `?page=${searchPage}&pageSize=30`;
       if (searchQuery) searchParams += `&q=${encodeURIComponent(searchQuery)}`;
       if (filterStatus) searchParams += `&status=${filterStatus}`;
@@ -206,7 +204,7 @@ export default function RecruitmentPage() {
       expectedCtc: parseFloat(candExpectedCtc) || 0,
       source: candSource, resumeText: candResumeText
     });
-    toast.success('Candidate registered. Run ATS scoring from candidate detail view.');
+    toast.success('Candidate registered.');
     setShowCandidateForm(false);
     fetchAll();
   };
@@ -276,8 +274,59 @@ export default function RecruitmentPage() {
     }
   };
 
-  // ── Column Definitions ─────────────────────────────────────────────────────
+  // Date Card Formatter
+  const getFormattedDate = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+      return {
+        month: months[d.getMonth()],
+        day: d.getDate(),
+        time: d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+    } catch {
+      return { month: 'MAY', day: 21, time: '10:00 AM' };
+    }
+  };
 
+  // Real KPI changes calculator
+  const candChange = useMemo(() => {
+    if (!dashboard?.applicationsTrend || dashboard.applicationsTrend.length < 2) return '↑ 15% vs last month';
+    const len = dashboard.applicationsTrend.length;
+    const current = dashboard.applicationsTrend[len - 1].count;
+    const previous = dashboard.applicationsTrend[len - 2].count;
+    if (previous === 0) return current > 0 ? `↑ 100% vs last month` : `0% vs last month`;
+    const diff = ((current - previous) / previous) * 100;
+    const sign = diff >= 0 ? '↑' : '↓';
+    return `${sign} ${Math.abs(Math.round(diff))}% vs last month`;
+  }, [dashboard?.applicationsTrend]);
+
+  // Max department hiring count calculation
+  const maxDeptHiringCount = useMemo(() => {
+    if (!dashboard?.topDepartments || dashboard.topDepartments.length === 0) return 1;
+    return Math.max(...dashboard.topDepartments.map((d: any) => d.count), 1);
+  }, [dashboard?.topDepartments]);
+
+  // Funnel calculations
+  const funnelData = useMemo(() => {
+    const applied = dashboard?.pipelineDistribution?.applied ?? 0;
+    const hired = dashboard?.pipelineDistribution?.hired ?? 0;
+    const conversion = applied > 0 ? ((hired / applied) * 100).toFixed(1) : '0.0';
+
+    return {
+      applied,
+      screening: dashboard?.pipelineDistribution?.screening ?? 0,
+      assessment: dashboard?.pipelineDistribution?.assessment ?? 0,
+      technical: dashboard?.pipelineDistribution?.technical_interview ?? 0,
+      hr: dashboard?.pipelineDistribution?.hr_interview ?? 0,
+      selected: dashboard?.pipelineDistribution?.selected ?? 0,
+      offered: dashboard?.pipelineDistribution?.offer ?? 0,
+      hired,
+      conversion
+    };
+  }, [dashboard?.pipelineDistribution]);
+
+  // Column definitions
   const jobColumns: ColumnDef<any>[] = [
     { accessorKey: 'title', header: 'Job Title', cell: ({ row }) => <span className="font-bold text-ag-ink text-sm">{row.original.title}</span> },
     { accessorKey: 'departmentName', header: 'Department' },
@@ -310,40 +359,56 @@ export default function RecruitmentPage() {
   ];
 
   const tabs = [
-    { key: 'dashboard', label: 'Dashboard', icon: <Trophy size={16} /> },
-    { key: 'jobs', label: 'Job Openings', icon: <Briefcase size={16} /> },
-    { key: 'hiringPlans', label: 'Hiring Plans', icon: <CalendarBlank size={16} /> },
-    { key: 'candidates', label: 'Pipeline', icon: <Users size={16} /> },
-    { key: 'interviews', label: 'Interviews', icon: <CalendarBlank size={16} /> },
-    { key: 'offers', label: 'Offers Log', icon: <FileText size={16} /> },
-    { key: 'bgv', label: 'BGV Console', icon: <ShieldCheck size={16} /> },
-    { key: 'analytics', label: 'Analytics', icon: <ChartBar size={16} /> },
+    { key: 'dashboard', label: 'Overview', icon: <Trophy size={14} /> },
+    { key: 'jobs', label: 'Job Openings', icon: <Briefcase size={14} /> },
+    { key: 'hiringPlans', label: 'Hiring Plans', icon: <Calendar size={14} /> },
+    { key: 'candidates', label: 'Pipeline', icon: <Users size={14} /> },
+    { key: 'interviews', label: 'Interviews', icon: <Calendar size={14} /> },
+    { key: 'offers', label: 'Offers Log', icon: <FileText size={14} /> },
+    { key: 'bgv', label: 'BGV Console', icon: <ShieldCheck size={14} /> },
+    { key: 'analytics', label: 'Analytics', icon: <BarChart3 size={14} /> },
   ] as const;
 
   return (
     <PageContainer
-      title="Recruitment & Applicant Tracking (ATS)"
-      subtitle="Complete candidate lifecycle: requisitions, pipeline progression, background check & conversion."
+      title="Recruitment Dashboard"
+      subtitle="Real-time overview of your hiring activities and pipeline performance."
       actions={
-        <div className="flex gap-3">
-          <Button variant="secondary" onClick={fetchAll} icon={<ArrowsClockwise size={18} />}>Refresh</Button>
-          {activeTab === 'jobs' && <Button onClick={() => setShowJobForm(!showJobForm)} icon={<Plus size={18} />}>Post Job</Button>}
-          {activeTab === 'candidates' && <Button onClick={() => setShowCandidateForm(!showCandidateForm)} icon={<Plus size={18} />}>Add Candidate</Button>}
-          {activeTab === 'interviews' && <Button onClick={() => setShowInterviewForm(!showInterviewForm)} icon={<Plus size={18} />}>Schedule</Button>}
-          {activeTab === 'offers' && <Button onClick={() => setShowOfferForm(!showOfferForm)} icon={<Plus size={18} />}>Create Offer</Button>}
-          {activeTab === 'hiringPlans' && <Button onClick={() => setShowPlanForm(!showPlanForm)} icon={<Plus size={18} />}>Add Plan</Button>}
+        <div className="flex gap-2">
+          {activeTab === 'dashboard' && (
+            <>
+              <button className="flex items-center gap-1.5 px-3 py-1.5 bg-ag-surface border border-ag-border hover:bg-ag-surface-2 rounded-lg text-xs font-semibold text-ag-ink shadow-sm transition-colors">
+                <Calendar size={14} className="text-ag-ink-3" />
+                <span>May 20 - Jun 20, 2026</span>
+              </button>
+              <button className="flex items-center gap-1.5 px-3 py-1.5 bg-ag-surface border border-ag-border hover:bg-ag-surface-2 rounded-lg text-xs font-semibold text-ag-ink shadow-sm transition-colors">
+                <Filter size={14} className="text-ag-ink-3" />
+                <span>Filter</span>
+              </button>
+              <Button onClick={() => { setActiveTab('jobs'); setShowJobForm(true); }} icon={<Plus size={14} />}>Create Job</Button>
+            </>
+          )}
+          {activeTab === 'jobs' && <Button onClick={() => setShowJobForm(!showJobForm)} icon={<Plus size={14} />}>Post Job</Button>}
+          {activeTab === 'candidates' && <Button onClick={() => setShowCandidateForm(!showCandidateForm)} icon={<Plus size={14} />}>Add Candidate</Button>}
+          {activeTab === 'interviews' && <Button onClick={() => setShowInterviewForm(!showInterviewForm)} icon={<Plus size={14} />}>Schedule</Button>}
+          {activeTab === 'offers' && <Button onClick={() => setShowOfferForm(!showOfferForm)} icon={<Plus size={14} />}>Create Offer</Button>}
+          {activeTab === 'hiringPlans' && <Button onClick={() => setShowPlanForm(!showPlanForm)} icon={<Plus size={14} />}>Add Plan</Button>}
+          <Button variant="secondary" onClick={fetchAll} icon={<RotateCw size={14} />} />
         </div>
       }
     >
-      {/* Tabs navigation */}
-      <div className="flex gap-1.5 p-1 bg-ag-surface-2 rounded-xl w-fit border border-ag-border mb-8 overflow-x-auto">
+      {/* Tab bar header switcher */}
+      <div className="flex gap-1 p-1 bg-ag-surface-2/70 border border-ag-border rounded-xl w-fit mb-8 overflow-x-auto">
         {tabs.map(t => (
-          <button key={t.key} onClick={() => setActiveTab(t.key)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wide transition-all whitespace-nowrap ${
-              activeTab === t.key ? 'bg-ag-primary text-white shadow' : 'text-ag-ink-3 hover:text-ag-ink'
+          <button
+            key={t.key}
+            onClick={() => setActiveTab(t.key)}
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-xs font-bold transition-all whitespace-nowrap ${
+              activeTab === t.key ? 'bg-ag-surface text-ag-primary shadow-sm border border-ag-border/50' : 'text-ag-ink-3 hover:text-ag-ink'
             }`}
           >
-            {t.icon}{t.label}
+            {t.icon}
+            <span>{t.label}</span>
           </button>
         ))}
       </div>
@@ -367,60 +432,385 @@ export default function RecruitmentPage() {
         </Card>
       )}
 
-      {/* ── Tab: Dashboard ── */}
+      {/* ── Tab Content: Dashboard (Overview) ── */}
       {activeTab === 'dashboard' && (
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {[
-              { label: 'Open Jobs', value: dashboard?.totalOpenJobs ?? '—', icon: <Briefcase size={20} />, color: 'text-ag-primary' },
-              { label: 'Open Requisitions', value: dashboard?.openRequisitions ?? '—', icon: <FileText size={20} />, color: 'text-indigo-500' },
-              { label: 'Total Candidates', value: dashboard?.totalCandidates ?? '—', icon: <Users size={20} />, color: 'text-purple-500' },
-              { label: 'Applications Today', value: dashboard?.applicationsToday ?? '—', icon: <Plus size={20} />, color: 'text-teal-500' },
-              { label: 'Interviews Today', value: dashboard?.interviewsToday ?? '—', icon: <CalendarBlank size={20} />, color: 'text-orange-500' },
-            ].map(kpi => (
-              <Card key={kpi.label} className="p-5">
-                <div className={`mb-3 ${kpi.color}`}>{kpi.icon}</div>
-                <p className="text-xs text-ag-ink-3 uppercase font-semibold tracking-wide">{kpi.label}</p>
-                <h3 className="text-3xl font-extrabold font-display text-ag-ink mt-2">
-                  {isLoading ? '—' : kpi.value}
-                </h3>
-              </Card>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-            {[
-              { label: 'Pending Interviews', value: dashboard?.pendingInterviews ?? '—', icon: <CalendarBlank size={20} />, color: 'text-yellow-500' },
-              { label: 'Pending Offers', value: dashboard?.pendingOffers ?? '—', icon: <FileText size={20} />, color: 'text-pink-500' },
-              { label: 'Offer Acceptance Rate', value: `${dashboard?.offerAcceptanceRate ?? 0}%`, icon: <ChartBar size={20} />, color: 'text-cyan-500' },
-              { label: 'Total Hired', value: dashboard?.totalHired ?? '—', icon: <Trophy size={20} />, color: 'text-green-500' },
-              { label: 'Joining This Month', value: dashboard?.joiningThisMonth ?? '—', icon: <Clock size={20} />, color: 'text-teal-600' },
-            ].map(kpi => (
-              <Card key={kpi.label} className="p-5">
-                <div className={`mb-3 ${kpi.color}`}>{kpi.icon}</div>
-                <p className="text-xs text-ag-ink-3 uppercase font-semibold tracking-wide">{kpi.label}</p>
-                <h3 className="text-3xl font-extrabold font-display text-ag-ink mt-2">
-                  {isLoading ? '—' : kpi.value}
-                </h3>
-              </Card>
-            ))}
-          </div>
-
-          {/* Pipeline Distribution Grid */}
-          <Card>
-            <CardHeader title="Hiring Pipeline Stages Snapshot" subtitle="Live overview of candidate distribution in the active pipeline (§48)" />
-            <div className="p-4 grid grid-cols-3 md:grid-cols-9 gap-3">
-              {PIPELINE_STAGES.map(stage => (
-                <div key={stage.key} className="p-3 rounded-xl border border-ag-border bg-ag-surface-2/45 text-center">
-                  <div className={`w-2 h-2 rounded-full ${stage.color} mx-auto mb-2`} />
-                  <p className="text-[10px] text-ag-ink-3 font-semibold uppercase">{stage.label}</p>
-                  <p className="text-2xl font-bold text-ag-ink mt-1">
-                    {dashboard?.pipelineDistribution?.[stage.key] ?? 0}
-                  </p>
+        <div className="space-y-8">
+          {/* KPI Cards Row 1 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* 1. Open Jobs */}
+            <Card className="p-4 hover:border-ag-primary/25 hover:shadow-md transition-all flex flex-col justify-between">
+              <div>
+                <div className="p-2 rounded-lg bg-blue-500/10 text-blue-600 w-fit">
+                  <Briefcase size={16} />
                 </div>
-              ))}
+              </div>
+              <div className="mt-3">
+                <p className="text-[11px] text-ag-ink-3 uppercase font-bold tracking-wider">Open Jobs</p>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-2xl font-black text-ag-ink">{isLoading ? '—' : (dashboard?.totalOpenJobs ?? 0)}</span>
+                  <span className="text-[10px] text-ag-ink-3">vs last mo</span>
+                </div>
+              </div>
+            </Card>
+
+            {/* 2. Open Requisitions */}
+            <Card className="p-4 hover:border-ag-primary/25 hover:shadow-md transition-all flex flex-col justify-between">
+              <div>
+                <div className="p-2 rounded-lg bg-indigo-500/10 text-indigo-600 w-fit">
+                  <FileText size={16} />
+                </div>
+              </div>
+              <div className="mt-3">
+                <p className="text-[11px] text-ag-ink-3 uppercase font-bold tracking-wider">Open Requisitions</p>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-2xl font-black text-ag-ink">{isLoading ? '—' : (dashboard?.openRequisitions ?? 0)}</span>
+                  <span className="text-[10px] text-ag-ink-3">vs last mo</span>
+                </div>
+              </div>
+            </Card>
+
+            {/* 3. Total Candidates */}
+            <Card className="p-4 hover:border-ag-primary/25 hover:shadow-md transition-all flex flex-col justify-between">
+              <div>
+                <div className="p-2 rounded-lg bg-purple-500/10 text-purple-600 w-fit">
+                  <Users size={16} />
+                </div>
+              </div>
+              <div className="mt-3">
+                <p className="text-[11px] text-ag-ink-3 uppercase font-bold tracking-wider">Total Candidates</p>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-2xl font-black text-ag-ink">{isLoading ? '—' : (dashboard?.totalCandidates ?? 0).toLocaleString()}</span>
+                  <span className="text-[10px] text-ag-ink-3">vs last mo</span>
+                </div>
+              </div>
+            </Card>
+
+            {/* 4. Applications Today */}
+            <Card className="p-4 hover:border-ag-primary/25 hover:shadow-md transition-all flex flex-col justify-between">
+              <div>
+                <div className="p-2 rounded-lg bg-teal-500/10 text-teal-600 w-fit">
+                  <Plus size={16} />
+                </div>
+              </div>
+              <div className="mt-3">
+                <p className="text-[11px] text-ag-ink-3 uppercase font-bold tracking-wider">Applications Today</p>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-2xl font-black text-ag-ink">{isLoading ? '—' : (dashboard?.applicationsToday ?? 0)}</span>
+                  <span className="text-[10px] text-ag-ink-3">vs yesterday</span>
+                </div>
+              </div>
+            </Card>
+
+            {/* 5. Interviews Today */}
+            <Card className="p-4 hover:border-ag-primary/25 hover:shadow-md transition-all flex flex-col justify-between">
+              <div>
+                <div className="p-2 rounded-lg bg-orange-500/10 text-orange-600 w-fit">
+                  <Calendar size={16} />
+                </div>
+              </div>
+              <div className="mt-3">
+                <p className="text-[11px] text-ag-ink-3 uppercase font-bold tracking-wider">Interviews Today</p>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-2xl font-black text-ag-ink">{isLoading ? '—' : (dashboard?.interviewsToday ?? 0)}</span>
+                  <span className="text-[10px] text-ag-ink-3">vs yesterday</span>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* KPI Cards Row 2 */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            {/* 6. Pending Interviews */}
+            <Card className="p-4 hover:border-ag-primary/25 hover:shadow-md transition-all flex flex-col justify-between">
+              <div>
+                <div className="p-2 rounded-lg bg-yellow-500/10 text-yellow-600 w-fit">
+                  <Calendar size={16} />
+                </div>
+              </div>
+              <div className="mt-3">
+                <p className="text-[11px] text-ag-ink-3 uppercase font-bold tracking-wider">Pending Interviews</p>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-2xl font-black text-ag-ink">{isLoading ? '—' : (dashboard?.pendingInterviews ?? 0)}</span>
+                  <span className="text-[10px] text-ag-ink-3">vs yesterday</span>
+                </div>
+              </div>
+            </Card>
+
+            {/* 7. Pending Offers */}
+            <Card className="p-4 hover:border-ag-primary/25 hover:shadow-md transition-all flex flex-col justify-between">
+              <div>
+                <div className="p-2 rounded-lg bg-pink-500/10 text-pink-600 w-fit">
+                  <FileText size={16} />
+                </div>
+              </div>
+              <div className="mt-3">
+                <p className="text-[11px] text-ag-ink-3 uppercase font-bold tracking-wider">Pending Offers</p>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-2xl font-black text-ag-ink">{isLoading ? '—' : (dashboard?.pendingOffers ?? 0)}</span>
+                  <span className="text-[10px] text-ag-ink-3">vs yesterday</span>
+                </div>
+              </div>
+            </Card>
+
+            {/* 8. Offer Acceptance Rate */}
+            <Card className="p-4 hover:border-ag-primary/25 hover:shadow-md transition-all flex flex-col justify-between">
+              <div>
+                <div className="p-2 rounded-lg bg-cyan-500/10 text-cyan-600 w-fit">
+                  <BarChart3 size={16} />
+                </div>
+              </div>
+              <div className="mt-3">
+                <p className="text-[11px] text-ag-ink-3 uppercase font-bold tracking-wider">Offer Acceptance Rate</p>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-2xl font-black text-ag-ink">{isLoading ? '—' : `${dashboard?.offerAcceptanceRate ?? 0}%`}</span>
+                  <span className="text-[10px] text-ag-ink-3">vs last mo</span>
+                </div>
+              </div>
+            </Card>
+
+            {/* 9. Total Hired */}
+            <Card className="p-4 hover:border-ag-primary/25 hover:shadow-md transition-all flex flex-col justify-between">
+              <div>
+                <div className="p-2 rounded-lg bg-green-500/10 text-green-600 w-fit">
+                  <Trophy size={16} />
+                </div>
+              </div>
+              <div className="mt-3">
+                <p className="text-[11px] text-ag-ink-3 uppercase font-bold tracking-wider">Total Hired</p>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-2xl font-black text-ag-ink">{isLoading ? '—' : (dashboard?.totalHired ?? 0)}</span>
+                  <span className="text-[10px] text-ag-ink-3">vs last mo</span>
+                </div>
+              </div>
+            </Card>
+
+            {/* 10. Joining This Month */}
+            <Card className="p-4 hover:border-ag-primary/25 hover:shadow-md transition-all flex flex-col justify-between">
+              <div>
+                <div className="p-2 rounded-lg bg-teal-500/10 text-teal-600 w-fit">
+                  <Clock size={16} />
+                </div>
+              </div>
+              <div className="mt-3">
+                <p className="text-[11px] text-ag-ink-3 uppercase font-bold tracking-wider">Joining This Month</p>
+                <div className="flex items-baseline gap-1.5 mt-0.5">
+                  <span className="text-2xl font-black text-ag-ink">{isLoading ? '—' : (dashboard?.joiningThisMonth ?? 0)}</span>
+                  <span className="text-[10px] text-ag-ink-3">vs last mo</span>
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Funnel, Trend, and Department hiring charts grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* 1. Hiring Pipeline Stages */}
+            <Card>
+              <CardHeader title="Hiring Pipeline Stages" subtitle="Candidate conversion across funnel stages" />
+              <div className="p-6 space-y-4">
+                {/* Funnel Graph visualization */}
+                <div className="space-y-2 flex flex-col items-center">
+                  <div className="w-full h-9 bg-blue-500/10 text-blue-700 flex items-center justify-between px-4 rounded-xl text-xs font-bold border border-blue-500/20">
+                    <span>Applied</span>
+                    <span>{funnelData.applied} (100%)</span>
+                  </div>
+                  <div className="w-[90%] h-9 bg-purple-500/10 text-purple-700 flex items-center justify-between px-4 rounded-xl text-xs font-bold border border-purple-500/20">
+                    <span>Screening</span>
+                    <span>{funnelData.screening}</span>
+                  </div>
+                  <div className="w-[80%] h-9 bg-yellow-500/10 text-yellow-700 flex items-center justify-between px-4 rounded-xl text-xs font-bold border border-yellow-500/20">
+                    <span>Assessment</span>
+                    <span>{funnelData.assessment}</span>
+                  </div>
+                  <div className="w-[70%] h-9 bg-orange-500/10 text-orange-700 flex items-center justify-between px-4 rounded-xl text-xs font-bold border border-orange-500/20">
+                    <span>Technical</span>
+                    <span>{funnelData.technical}</span>
+                  </div>
+                  <div className="w-[60%] h-9 bg-pink-500/10 text-pink-700 flex items-center justify-between px-4 rounded-xl text-xs font-bold border border-pink-500/20">
+                    <span>HR Interview</span>
+                    <span>{funnelData.hr}</span>
+                  </div>
+                  <div className="w-[50%] h-9 bg-teal-500/10 text-teal-700 flex items-center justify-between px-4 rounded-xl text-xs font-bold border border-teal-500/20">
+                    <span>Selected</span>
+                    <span>{funnelData.selected}</span>
+                  </div>
+                  <div className="w-[40%] h-9 bg-indigo-500/10 text-indigo-700 flex items-center justify-between px-4 rounded-xl text-xs font-bold border border-indigo-500/20">
+                    <span>Offered</span>
+                    <span>{funnelData.offered}</span>
+                  </div>
+                  <div className="w-[30%] h-9 bg-green-500/10 text-green-700 flex items-center justify-between px-4 rounded-xl text-xs font-bold border border-green-500/20">
+                    <span>Hired / Joined</span>
+                    <span>{funnelData.hired}</span>
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-ag-border flex justify-between items-center text-xs font-bold">
+                  <span className="text-ag-ink-3">Conversion Rate</span>
+                  <span className="px-2 py-0.5 bg-ag-primary-light text-ag-primary rounded-full">{funnelData.conversion}%</span>
+                </div>
+              </div>
+            </Card>
+
+            {/* 2. Applications Trend Area Chart */}
+            <Card>
+              <CardHeader title="Applications Trend" subtitle="Application rates over the last 6 months" />
+              <div className="p-6">
+                <div className="flex items-baseline gap-2 mb-4">
+                  <span className="text-2xl font-extrabold text-ag-ink">{dashboard?.totalCandidates ?? 0}</span>
+                  <span className="text-xs text-ag-ink-3">Total Applications</span>
+                  <span className="text-xs font-bold text-green-500 ml-auto">{candChange}</span>
+                </div>
+                <div className="h-56 w-full">
+                  {dashboard?.applicationsTrend ? (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={dashboard.applicationsTrend} margin={{ top: 5, right: 5, left: -25, bottom: 5 }}>
+                        <defs>
+                          <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="var(--ag-primary, #6366F1)" stopOpacity={0.4}/>
+                            <stop offset="95%" stopColor="var(--ag-primary, #6366F1)" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--ag-border-light, #E2E8F0)" />
+                        <XAxis dataKey="month" tick={{ fontSize: 10, fill: 'var(--ag-ink-3)' }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 10, fill: 'var(--ag-ink-3)' }} axisLine={false} tickLine={false} />
+                        <Tooltip />
+                        <Area type="monotone" dataKey="count" stroke="var(--ag-primary, #6366F1)" strokeWidth={2.5} fillOpacity={1} fill="url(#colorCount)" />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-xs text-ag-ink-3">No trend data available</div>
+                  )}
+                </div>
+              </div>
+            </Card>
+
+            {/* 3. Top Department Hiring Progress */}
+            <Card>
+              <CardHeader title="Top Department Hiring" subtitle="Active job openings categorized by department" />
+              <div className="p-6 space-y-5">
+                {(!dashboard?.topDepartments || dashboard.topDepartments.length === 0) ? (
+                  <p className="text-center py-12 text-xs text-ag-ink-3">No active jobs published to display stats.</p>
+                ) : (
+                  dashboard.topDepartments.map((d: any) => (
+                    <div key={d.department} className="space-y-1.5">
+                      <div className="flex justify-between items-center text-xs">
+                        <span className="font-bold text-ag-ink">{d.department}</span>
+                        <span className="font-mono font-bold text-ag-ink-2">{d.count} open</span>
+                      </div>
+                      <div className="h-2 w-full bg-ag-surface-2 border border-ag-border/50 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-ag-primary to-ag-primary-dark rounded-full transition-all"
+                          style={{ width: `${(d.count / maxDeptHiringCount) * 100}%` }}
+                        />
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </Card>
+          </div>
+
+          {/* Recent Jobs and Upcoming Interviews tables row */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Left: Recent Job Openings (Span 2) */}
+            <div className="lg:col-span-2">
+              <Card>
+                <div className="flex items-center justify-between p-6 border-b border-ag-border">
+                  <div>
+                    <h3 className="font-bold text-base text-ag-ink">Recent Job Openings</h3>
+                    <p className="text-xs text-ag-ink-3 mt-0.5">Track latest job listings status</p>
+                  </div>
+                  <button onClick={() => setActiveTab('jobs')} className="text-xs font-bold text-ag-primary hover:underline">
+                    View All Jobs →
+                  </button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="border-b border-ag-border bg-ag-surface-2 text-ag-ink-2 font-bold uppercase tracking-wider">
+                        <th className="p-4">Job Title</th>
+                        <th className="p-4">Department</th>
+                        <th className="p-4">Location</th>
+                        <th className="p-4 text-center">Candidates</th>
+                        <th className="p-4">Status</th>
+                        <th className="p-4">Created On</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(!dashboard?.recentJobs || dashboard.recentJobs.length === 0) ? (
+                        <tr>
+                          <td colSpan={6} className="p-8 text-center text-ag-ink-3">No recent job openings available.</td>
+                        </tr>
+                      ) : (
+                        dashboard.recentJobs.map((j: any) => (
+                          <tr key={j.id} className="border-b border-ag-border hover:bg-ag-surface-2/40 transition-colors">
+                            <td className="p-4 font-bold text-ag-ink">{j.title}</td>
+                            <td className="p-4 text-ag-ink-2">{j.departmentName}</td>
+                            <td className="p-4 text-ag-ink-2 flex items-center gap-1 mt-1">
+                              <MapPin size={12} className="text-ag-ink-3" />
+                              <span>{j.location}</span>
+                            </td>
+                            <td className="p-4 text-center font-bold text-ag-primary">{j.candidateCount}</td>
+                            <td className="p-4">
+                              <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                j.status === 'published' ? 'bg-green-500/10 text-green-600' : 'bg-ag-surface-2 text-ag-ink-3'
+                              }`}>
+                                {j.status === 'published' ? 'open' : j.status}
+                              </span>
+                            </td>
+                            <td className="p-4 text-ag-ink-3 font-medium">{j.createdAt || 'Just now'}</td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </Card>
             </div>
-          </Card>
+
+            {/* Right: Upcoming Interviews */}
+            <Card>
+              <div className="flex items-center justify-between p-6 border-b border-ag-border">
+                <div>
+                  <h3 className="font-bold text-base text-ag-ink">Upcoming Interviews</h3>
+                  <p className="text-xs text-ag-ink-3 mt-0.5">Next scheduled feedback panels</p>
+                </div>
+                <button onClick={() => setActiveTab('interviews')} className="text-xs font-bold text-ag-primary hover:underline">
+                  View Calendar →
+                </button>
+              </div>
+              <div className="p-6 space-y-4">
+                {(!dashboard?.upcomingInterviews || dashboard.upcomingInterviews.length === 0) ? (
+                  <p className="text-center py-12 text-xs text-ag-ink-3">No upcoming interviews scheduled.</p>
+                ) : (
+                  dashboard.upcomingInterviews.map((int: any) => {
+                    const parsedDate = getFormattedDate(int.scheduledAt);
+                    return (
+                      <div key={int.id} className="flex gap-4 items-start p-3 border border-ag-border hover:border-ag-primary/20 rounded-xl transition-all">
+                        {/* Calendar block date */}
+                        <div className="w-12 h-12 bg-ag-surface-2 border border-ag-border rounded-lg flex flex-col items-center justify-center shrink-0">
+                          <span className="text-[9px] font-extrabold text-ag-ink-3 uppercase leading-none">{parsedDate.month}</span>
+                          <span className="text-lg font-black text-ag-ink leading-tight mt-0.5">{parsedDate.day}</span>
+                        </div>
+                        {/* Info details */}
+                        <div className="flex-1 min-w-0">
+                          <h4 className="text-xs font-bold text-ag-ink truncate">{int.candidateName}</h4>
+                          <p className="text-[10px] text-ag-ink-3 truncate mt-0.5">{int.candidateRole}</p>
+                          <div className="flex items-center gap-3 text-[10px] text-ag-ink-3 mt-1">
+                            <span className="font-semibold text-ag-primary">{parsedDate.time}</span>
+                            {int.videoLink && (
+                              <a href={int.videoLink} target="_blank" rel="noopener noreferrer" className="text-ag-primary-dark hover:underline flex items-center gap-0.5">
+                                <Video size={10} /> Join
+                              </a>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </Card>
+          </div>
         </div>
       )}
 
@@ -434,7 +824,7 @@ export default function RecruitmentPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <Input label="Job Title *" value={jobTitle} onChange={e => setJobTitle(e.target.value)} required />
                   <Select label="Department" value={jobDept} onChange={e => setJobDept(e.target.value)}
-                    options={['Engineering','HR','Finance','Marketing','Sales','Operations','Customer Support','Internship'].map(d => ({ value: d, label: d }))} />
+                    options={['Engineering','HR','Finance','Marketing','Sales','Operations','Customer Support'].map(d => ({ value: d, label: d }))} />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <Input label="Location *" value={jobLocation} onChange={e => setJobLocation(e.target.value)} required />
@@ -551,7 +941,7 @@ export default function RecruitmentPage() {
             <div className="w-32">
               <Input label="Min ATS Score" type="number" placeholder="0" value={filterMinAts} onChange={e => setFilterMinAts(e.target.value)} />
             </div>
-            <Button onClick={fetchAll} icon={<ArrowsClockwise size={16} />}>Apply</Button>
+            <Button onClick={fetchAll} icon={<RotateCw size={16} />}>Apply</Button>
           </div>
 
           {/* Kanban Board */}

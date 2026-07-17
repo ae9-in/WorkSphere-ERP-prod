@@ -99,12 +99,10 @@ client_secrets.json
 secrets.json
 config.json
 settings.json
-*secret*
-*token*
-*password*
-*credential*
 passwd
 shadow
+recovered.txt
+*recovered.txt
 .npmrc
 yarn.lock
 pnpm-lock.yaml

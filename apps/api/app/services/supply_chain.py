@@ -9,7 +9,8 @@ from app.models.supply_chain import (
     FleetVehicle, Driver, Shipment, ShipmentItem, DispatchOrder,
     DeliveryRoute, GPSTracking, ProofOfDelivery, ReverseLogistics,
     FreightCost, TransportationAnalytics, FleetPerformance,
-    SupplyChainTimeline, SupplyChainAuditLog
+    SupplyChainTimeline, SupplyChainAuditLog, CarrierRate,
+    ContainerLoadingPlan, SCMDelayAlert
 )
 from app.repositories.supply_chain import (
     SupplyChainNetworkRepository, DistributionCenterRepository,
@@ -17,7 +18,8 @@ from app.repositories.supply_chain import (
     FleetVehicleRepository, DriverRepository, ShipmentRepository,
     DispatchOrderRepository, DeliveryRouteRepository,
     GPSTrackingRepository, ProofOfDeliveryRepository,
-    ReverseLogisticsRepository, FreightCostRepository
+    ReverseLogisticsRepository, FreightCostRepository,
+    CarrierRateRepository, ContainerLoadingPlanRepository, SCMDelayAlertRepository
 )
 from app.services.inventory import InventoryService
 from app.schemas.inventory import StockInSchema, StockOutSchema
@@ -26,7 +28,9 @@ from app.schemas.supply_chain import (
     NetworkNodeCreateSchema, DistributionCenterCreateSchema,
     PartnerCreateSchema, CarrierCreateSchema, VehicleCreateSchema,
     DriverCreateSchema, ShipmentCreateSchema, DispatchConfirmSchema,
-    RouteCreateSchema, TelemetryUpdateSchema, PodSubmitSchema, ReturnLogSchema
+    RouteCreateSchema, TelemetryUpdateSchema, PodSubmitSchema, ReturnLogSchema,
+    CarrierRateCreateSchema, ContainerLoadingPlanCreateSchema, SCMDelayAlertCreateSchema,
+    SCMDelayAlertResolveSchema
 )
 
 # Repository Instances
@@ -43,6 +47,9 @@ tracking_repo = GPSTrackingRepository()
 pod_repo = ProofOfDeliveryRepository()
 reverse_repo = ReverseLogisticsRepository()
 cost_repo = FreightCostRepository()
+rate_repo = CarrierRateRepository()
+loading_repo = ContainerLoadingPlanRepository()
+delay_repo = SCMDelayAlertRepository()
 
 class SupplyChainService:
 
@@ -313,8 +320,8 @@ class SupplyChainService:
     # ── Shipments Planning & Consolidation ──
     @staticmethod
     def create_shipment(db: Session, payload: ShipmentCreateSchema, tenant_id: uuid.UUID) -> dict:
-        count = db.query(Shipment).filter(Shipment.tenant_id == tenant_id).count()
-        ship_num = f"SHP-{count + 1:04d}"
+        count = db.query(Shipment).count()
+        ship_num = f"SHP-{count + 1:04d}-{uuid.uuid4().hex[:4].upper()}"
 
         carrier_uuid = uuid.UUID(payload.carrierId) if payload.carrierId else None
         vehicle_uuid = uuid.UUID(payload.vehicleId) if payload.vehicleId else None
@@ -429,8 +436,8 @@ class SupplyChainService:
             InventoryService.stock_out(db, stock_out_payload, tenant_id, author_email)
 
         # Create Dispatch order record
-        count = db.query(DispatchOrder).filter(DispatchOrder.tenant_id == tenant_id).count()
-        disp_num = f"DISP-{count + 1:04d}"
+        count = db.query(DispatchOrder).count()
+        disp_num = f"DISP-{count + 1:04d}-{uuid.uuid4().hex[:4].upper()}"
 
         dep_time = datetime.strptime(payload.departureTime, "%Y-%m-%d %H:%M:%S") if payload.departureTime else datetime.utcnow()
         arr_time = datetime.strptime(payload.expectedArrival, "%Y-%m-%d %H:%M:%S") if payload.expectedArrival else (dep_time + timedelta(hours=12))
@@ -477,16 +484,38 @@ class SupplyChainService:
         )
         db.add(aud)
 
-        # Initialize Freight costs entry
+        # Initialize Freight costs entry with dynamic Carrier rates sheet lookup
+        carrier_rate = db.query(CarrierRate).filter(
+            CarrierRate.carrier_id == shipment.carrier_id,
+            CarrierRate.tenant_id == tenant_id,
+            CarrierRate.status == "active",
+            CarrierRate.deleted_at == None
+        ).first() if shipment.carrier_id else None
+
+        if carrier_rate:
+            distance = 150.0
+            route = db.query(DeliveryRoute).filter(DeliveryRoute.shipment_id == shipment.id).first()
+            if route:
+                distance = route.total_distance
+            carrier_charge = carrier_rate.base_charge + (carrier_rate.rate_per_km * distance) + (carrier_rate.rate_per_kg * shipment.total_weight)
+        else:
+            carrier_charge = 250.0
+
+        toll_cost = 45.0
+        fuel_cost = 180.0
+        driver_allowance = 100.0
+        maint = 25.0
+        total = carrier_charge + toll_cost + fuel_cost + driver_allowance + maint
+
         cost = FreightCost(
             tenant_id=tenant_id,
             shipment_id=shipment.id,
-            fuel_cost=180.0,
-            toll_cost=45.0,
-            driver_allowance=100.0,
-            carrier_charge=250.0,
-            maintenance_cost_share=25.0,
-            total_cost=600.0
+            fuel_cost=fuel_cost,
+            toll_cost=toll_cost,
+            driver_allowance=driver_allowance,
+            carrier_charge=carrier_charge,
+            maintenance_cost_share=maint,
+            total_cost=total
         )
         db.add(cost)
 
@@ -506,8 +535,8 @@ class SupplyChainService:
         if not shipment:
             raise HTTPException(status_code=404, detail="Shipment not found")
 
-        count = db.query(DeliveryRoute).filter(DeliveryRoute.tenant_id == tenant_id).count()
-        route_num = f"RTE-{count + 1:04d}"
+        count = db.query(DeliveryRoute).count()
+        route_num = f"RTE-{count + 1:04d}-{uuid.uuid4().hex[:4].upper()}"
 
         route = DeliveryRoute(
             tenant_id=tenant_id,
@@ -651,8 +680,8 @@ class SupplyChainService:
     # ── Reverse Logistics & Returns ──
     @staticmethod
     def process_return(db: Session, payload: ReturnLogSchema, tenant_id: uuid.UUID, author_email: str) -> dict:
-        count = db.query(ReverseLogistics).filter(ReverseLogistics.tenant_id == tenant_id).count()
-        ret_num = f"RET-SCM-{count + 1:04d}"
+        count = db.query(ReverseLogistics).count()
+        ret_num = f"RET-SCM-{count + 1:04d}-{uuid.uuid4().hex[:4].upper()}"
 
         ship_uuid = uuid.UUID(payload.originalShipmentId) if payload.originalShipmentId else None
 
@@ -728,4 +757,204 @@ class SupplyChainService:
             "delayedDeliveries": 0,
             "deliverySuccessRate": 100.0 if total_ships == 0 else 98.5,
             "totalFreightCost": total_freight_cost
+        }
+
+    # ── Carrier Rates ──
+    @staticmethod
+    def create_carrier_rate(db: Session, payload: CarrierRateCreateSchema, tenant_id: uuid.UUID) -> dict:
+        carrier_uuid = uuid.UUID(payload.carrierId)
+        rate = CarrierRate(
+            tenant_id=tenant_id,
+            carrier_id=carrier_uuid,
+            origin_zone=payload.originZone,
+            destination_zone=payload.destinationZone,
+            rate_per_km=payload.ratePerKm,
+            rate_per_kg=payload.ratePerKg,
+            base_charge=payload.baseCharge,
+            status=payload.status or "active"
+        )
+        db.add(rate)
+        db.commit()
+        db.refresh(rate)
+        return {
+            "_id": str(rate.id),
+            "carrierId": str(rate.carrier_id),
+            "originZone": rate.origin_zone,
+            "destinationZone": rate.destination_zone,
+            "ratePerKm": rate.rate_per_km,
+            "ratePerKg": rate.rate_per_kg,
+            "baseCharge": rate.base_charge,
+            "status": rate.status
+        }
+
+    @staticmethod
+    def list_carrier_rates(db: Session, tenant_id: uuid.UUID) -> list:
+        rates = db.query(CarrierRate).filter(
+            CarrierRate.tenant_id == tenant_id,
+            CarrierRate.deleted_at == None
+        ).all()
+        return [{
+            "_id": str(r.id),
+            "carrierId": str(r.carrier_id),
+            "originZone": r.origin_zone,
+            "destinationZone": r.destination_zone,
+            "ratePerKm": r.rate_per_km,
+            "ratePerKg": r.rate_per_kg,
+            "baseCharge": r.base_charge,
+            "status": r.status
+        } for r in rates]
+
+    # ── SCM Delay Alerts ──
+    @staticmethod
+    def create_delay_alert(db: Session, payload: SCMDelayAlertCreateSchema, tenant_id: uuid.UUID, user_id: uuid.UUID) -> dict:
+        shipment_uuid = uuid.UUID(payload.shipmentId)
+        shipment = db.query(Shipment).filter(Shipment.id == shipment_uuid, Shipment.tenant_id == tenant_id).first()
+        if not shipment:
+            raise HTTPException(status_code=404, detail="Shipment not found")
+
+        alert = SCMDelayAlert(
+            tenant_id=tenant_id,
+            shipment_id=shipment_uuid,
+            reported_by=user_id,
+            delay_type=payload.delayType,
+            duration_minutes=payload.durationMinutes,
+            severity=payload.severity or "medium",
+            resolved=False,
+            remarks=payload.remarks
+        )
+        db.add(alert)
+        
+        # Mark shipment status delayed
+        shipment.status = "delayed"
+
+        # Log timeline event
+        tl = SupplyChainTimeline(
+            tenant_id=tenant_id,
+            shipment_id=shipment_uuid,
+            event_type="delay",
+            details=f"Delay reported: {payload.delayType} ({payload.durationMinutes} mins). Severity: {alert.severity}."
+        )
+        db.add(tl)
+
+        db.commit()
+        db.refresh(alert)
+        return {
+            "_id": str(alert.id),
+            "shipmentId": str(alert.shipment_id),
+            "delayType": alert.delay_type,
+            "durationMinutes": alert.duration_minutes,
+            "severity": alert.severity,
+            "resolved": alert.resolved
+        }
+
+    @staticmethod
+    def resolve_delay_alert(db: Session, alert_id: str, payload: SCMDelayAlertResolveSchema, tenant_id: uuid.UUID) -> dict:
+        alert_uuid = uuid.UUID(alert_id)
+        alert = db.query(SCMDelayAlert).filter(SCMDelayAlert.id == alert_uuid, SCMDelayAlert.tenant_id == tenant_id).first()
+        if not alert:
+            raise HTTPException(status_code=404, detail="Delay alert not found")
+
+        alert.resolved = payload.resolved
+        if payload.remarks:
+            alert.remarks = payload.remarks
+
+        # Restore shipment status to in_transit if all resolved
+        shipment = db.query(Shipment).filter(Shipment.id == alert.shipment_id).first()
+        if shipment:
+            shipment.status = "in_transit"
+
+        # Log timeline milestone
+        tl = SupplyChainTimeline(
+            tenant_id=tenant_id,
+            shipment_id=alert.shipment_id,
+            event_type="milestone",
+            details=f"Delay alert resolved. Remarks: {payload.remarks or 'N/A'}."
+        )
+        db.add(tl)
+
+        db.commit()
+        db.refresh(alert)
+        return {
+            "_id": str(alert.id),
+            "resolved": alert.resolved,
+            "remarks": alert.remarks
+        }
+
+    @staticmethod
+    def list_delays(db: Session, shipment_id: str, tenant_id: uuid.UUID) -> list:
+        shipment_uuid = uuid.UUID(shipment_id)
+        alerts = db.query(SCMDelayAlert).filter(
+            SCMDelayAlert.shipment_id == shipment_uuid,
+            SCMDelayAlert.tenant_id == tenant_id,
+            SCMDelayAlert.deleted_at == None
+        ).all()
+        return [{
+            "_id": str(a.id),
+            "shipmentId": str(a.shipment_id),
+            "delayType": a.delay_type,
+            "durationMinutes": a.duration_minutes,
+            "severity": a.severity,
+            "resolved": a.resolved,
+            "remarks": a.remarks
+        } for a in alerts]
+
+    # ── 3D Container Loading plan (Cubing) ──
+    @staticmethod
+    def generate_loading_plan(db: Session, payload: ContainerLoadingPlanCreateSchema, tenant_id: uuid.UUID) -> dict:
+        shipment_uuid = uuid.UUID(payload.shipmentId)
+        vehicle_uuid = uuid.UUID(payload.vehicleId)
+
+        shipment = db.query(Shipment).filter(Shipment.id == shipment_uuid, Shipment.tenant_id == tenant_id).first()
+        if not shipment:
+            raise HTTPException(status_code=404, detail="Shipment not found")
+
+        vehicle = db.query(FleetVehicle).filter(FleetVehicle.id == vehicle_uuid).first()
+        if not vehicle:
+            raise HTTPException(status_code=404, detail="Fleet vehicle not found")
+
+        # packing instructions mock simulator math:
+        # Sum items volume vs vehicle capacity
+        ship_items = db.query(ShipmentItem).filter(ShipmentItem.shipment_id == shipment.id).all()
+        total_vol = sum([item.volume * item.quantity for item in ship_items])
+
+        # calculate utilization percentage
+        util_pct = min(100.0, (total_vol / vehicle.capacity_volume) * 100.0) if vehicle.capacity_volume > 0 else 85.0
+
+        # generate instructions JSON layout
+        instr_list = []
+        for idx, s_item in enumerate(ship_items):
+            instr_list.append({
+                "itemCode": s_item.item_code,
+                "quantity": s_item.quantity,
+                "boxCoordinates": [0.0, 0.0, idx * 0.5],
+                "stackingSequence": idx + 1
+            })
+
+        plan = db.query(ContainerLoadingPlan).filter(
+            ContainerLoadingPlan.shipment_id == shipment_uuid,
+            ContainerLoadingPlan.tenant_id == tenant_id
+        ).first()
+
+        if not plan:
+            plan = ContainerLoadingPlan(
+                tenant_id=tenant_id,
+                shipment_id=shipment_uuid,
+                vehicle_id=vehicle_uuid,
+                utilization_percentage=util_pct,
+                packing_instructions=json.dumps(instr_list)
+            )
+            db.add(plan)
+        else:
+            plan.vehicle_id = vehicle_uuid
+            plan.utilization_percentage = util_pct
+            plan.packing_instructions = json.dumps(instr_list)
+
+        db.commit()
+        db.refresh(plan)
+        return {
+            "_id": str(plan.id),
+            "shipmentId": str(plan.shipment_id),
+            "vehicleId": str(plan.vehicle_id),
+            "utilizationPercentage": plan.utilization_percentage,
+            "packingInstructions": plan.packing_instructions
         }

@@ -158,3 +158,155 @@ def test_inventory_operations_lifecycle():
     dash_res = client.get("/api/inventory/dashboard", headers=headers)
     assert dash_res.status_code == 200
     assert dash_res.json()["data"]["totalQuantity"] == 135.0 # Adjusted balance
+
+def test_inventory_upgrades_lifecycle():
+    # 1. Sign up to get auth headers
+    email = f"upgrade_mgr_{random_string()}@testcompany.com"
+    signup_res = client.post("/api/v1/auth/signup", json={
+        "email": email,
+        "password": "SecurePassword123!",
+        "firstName": "Upgrade",
+        "lastName": "Manager",
+        "fullName": "Upgrade Manager",
+        "companyName": f"Enterprise Warehouse {random_string().upper()}",
+        "domain": f"warehouse_{random_string()}.com"
+    })
+    assert signup_res.status_code == 201
+    token = signup_res.json()["data"]["accessToken"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    client.post("/api/v1/settings/initialize", json={}, headers=headers)
+
+    # 2. Create Warehouse
+    wh_code = f"WH-{random_string(4).upper()}"
+    client.post("/api/inventory/warehouses", json={
+        "code": wh_code,
+        "name": "Upgraded Warehouse Hub",
+        "capacity": 5000.0,
+        "type": "distribution"
+      }, headers=headers)
+
+    # Create Location
+    loc_code = "BIN-A1"
+    client.post("/api/inventory/locations", json={
+        "warehouseCode": wh_code,
+        "code": loc_code,
+        "zone": "Z1",
+        "aisle": "A1"
+    }, headers=headers)
+
+    # 3. Create Item
+    item_res = client.post("/api/inventory/items", json={
+        "name": "Upgrade Test SKU",
+        "brand": "GenBrand",
+        "uom": "piece",
+        "minStock": 10.0,
+        "reorderPoint": 25.0,
+        "defaultWarehouseCode": wh_code
+    }, headers=headers)
+    item_data = item_res.json()["data"]
+    item_id = item_data["_id"]
+    item_code = item_data["itemCode"]
+
+    # 4. PUT Update item config
+    update_res = client.put(f"/api/inventory/items/{item_id}", json={
+        "name": "Updated Upgrade Test SKU",
+        "safetyStock": 20.0,
+        "maxStock": 1000.0
+    }, headers=headers)
+    assert update_res.status_code == 200
+    assert update_res.json()["data"]["name"] == "Updated Upgrade Test SKU"
+    assert update_res.json()["data"]["safetyStock"] == 20.0
+
+    # Receive Stock
+    client.post("/api/inventory/stock-in", json={
+        "itemCode": item_code,
+        "warehouseCode": wh_code,
+        "locationCode": loc_code,
+        "quantity": 100.0,
+        "unitCost": 120.0,
+        "batchNumber": "B-UPGRADE-01"
+    }, headers=headers)
+
+    # 5. Create reservation (reserve 40 units)
+    res_res = client.post("/api/inventory/reservations", json={
+        "itemCode": item_code,
+        "warehouseCode": wh_code,
+        "locationCode": loc_code,
+        "quantity": 40.0,
+        "referenceType": "sales_order",
+        "referenceId": "SO-MOCK-999"
+    }, headers=headers)
+    assert res_res.status_code == 201
+    res_id = res_res.json()["data"]["_id"]
+
+    # Try to stock-out 80 units (total 100, 40 reserved, only 60 available - should fail with 400)
+    stock_out_res = client.post("/api/inventory/stock-out", json={
+        "itemCode": item_code,
+        "warehouseCode": wh_code,
+        "locationCode": loc_code,
+        "quantity": 80.0
+    }, headers=headers)
+    assert stock_out_res.status_code == 400
+
+    # Cancel reservation
+    cancel_res = client.delete(f"/api/inventory/reservations/{res_id}", headers=headers)
+    assert cancel_res.status_code == 200
+
+    # Stock-out should now pass
+    stock_out_pass = client.post("/api/inventory/stock-out", json={
+        "itemCode": item_code,
+        "warehouseCode": wh_code,
+        "locationCode": loc_code,
+        "quantity": 80.0
+    }, headers=headers)
+    assert stock_out_pass.status_code == 201
+
+    # 6. Quality Inspection (fail 5 units of B-UPGRADE-01 batch)
+    qa_res = client.post("/api/inventory/inspections", json={
+        "itemCode": item_code,
+        "batchNumber": "B-UPGRADE-01",
+        "sampleSize": 5,
+        "failedQuantity": 5,
+        "checklist": {"purity_pass": False},
+        "status": "failed",
+        "remarks": "Checklist failed purity tests"
+    }, headers=headers)
+    assert qa_res.status_code == 201
+    assert qa_res.json()["data"]["status"] == "failed"
+
+    # 7. Landed Cost Voucher
+    lcv_res = client.post("/api/inventory/landed-costs", json={
+        "voucherNumber": f"LCV-{random_string(4).upper()}",
+        "distributeBy": "quantity",
+        "totalExpenses": 1000.0,
+        "items": [
+            {
+                "itemCode": item_code,
+                "purchaseReceiptId": "MOCK-RECEIPT-1",
+                "receiptQuantity": 10.0,
+                "allocatedExpense": 1000.0
+            }
+        ]
+    }, headers=headers)
+    assert lcv_res.status_code == 201
+    assert len(lcv_res.json()["data"]["items"]) == 1
+
+    # 8. CSV Import
+    import_res = client.post("/api/inventory/items/import", json={
+        "items": [
+            {
+                "name": "CSV Item 1",
+                "sku": f"CSV-SKU-{random_string(4).upper()}",
+                "uom": "piece",
+                "minStock": 5.0
+            },
+            {
+                "name": "CSV Item 2",
+                "uom": "kg"
+            }
+        ]
+    }, headers=headers)
+    assert import_res.status_code == 200
+    assert import_res.json()["importedCount"] == 2
+

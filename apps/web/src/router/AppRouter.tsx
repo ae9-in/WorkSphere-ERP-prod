@@ -47,6 +47,13 @@ const PerformancePage = lazy(() => import('@/views/modules/PerformancePage'));
 const LMSPage = lazy(() => import('@/views/modules/LMSPage'));
 const CommunityPage = lazy(() => import('@/views/modules/CommunityPage'));
 const HelpdeskPage = lazy(() => import('@/views/modules/HelpdeskPage'));
+const ModulePlaceholderPage = lazy(() => import('@/views/modules/ModulePlaceholderPage'));
+const FinancePage = lazy(() => import('@/views/modules/FinancePage'));
+const CRMPage = lazy(() => import('@/views/modules/CRMPage'));
+const ProjectsPage = lazy(() => import('@/views/modules/ProjectsPage'));
+const WorkflowsPage = lazy(() => import('@/views/modules/WorkflowsPage'));
+const AnalyticsPage = lazy(() => import('@/views/modules/AnalyticsPage'));
+const AdminCenterPage = lazy(() => import('@/views/modules/AdminCenterPage'));
 
 // ── Page loader ────────────────────────────────
 function PageLoader() {
@@ -98,8 +105,8 @@ export function AppRouter() {
             <Route path="/payroll/*"     element={<PayrollPage />} />
             <Route path="/attendance/*"  element={<AttendancePage />} />
             <Route path="/reports/*"     element={<ReportsPage />} />
-            <Route path="/approvals"     element={<ApprovalsPage />} />
-            <Route path="/settings/*"    element={<SettingsPage />} />
+            <Route path="/approvals"     element={<Navigate to="/admin/approvals" replace />} />
+            <Route path="/settings/*"    element={<Navigate to="/admin/company-settings" replace />} />
             <Route path="/leave/*"       element={<LeavePage />} />
             <Route path="/documents/*"   element={<DocumentsPage />} />
             <Route path="/assets/*"      element={<AssetPage />} />
@@ -107,14 +114,23 @@ export function AppRouter() {
             <Route path="/manufacturing/*" element={<ManufacturingPage />} />
             <Route path="/maintenance/*" element={<MaintenancePage />} />
             <Route path="/supply-chain/*" element={<SupplyChainPage />} />
-            <Route path="/audit"         element={<AuditPage />} />
-            <Route path="/notifications" element={<NotificationsPage />} />
+            <Route path="/audit"         element={<Navigate to="/admin/audit-logs" replace />} />
+            <Route path="/notifications" element={<Navigate to="/admin/notifications" replace />} />
             <Route path="/recruitment/candidates/:id" element={<CandidateProfilePage />} />
             <Route path="/recruitment/*" element={<RecruitmentPage />} />
             <Route path="/performance/*" element={<PerformancePage />} />
             <Route path="/lms/*" element={<LMSPage />} />
             <Route path="/community/*" element={<CommunityPage />} />
             <Route path="/helpdesk/*" element={<HelpdeskPage />} />
+            <Route path="/workflows/*" element={<WorkflowsPage />} />
+
+            {/* Placeholder modules */}
+            <Route path="/finance/:moduleKey" element={<FinancePage />} />
+            <Route path="/sales/:moduleKey" element={<CRMPage />} />
+            <Route path="/projects/*" element={<ProjectsPage />} />
+            <Route path="/analytics/*" element={<AnalyticsPage />} />
+            <Route path="/admin/*" element={<AdminCenterPage />} />
+            <Route path="/placeholder/:moduleKey" element={<ModulePlaceholderPage />} />
           </Route>
 
           {/* Fallback */}

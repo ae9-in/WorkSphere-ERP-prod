@@ -191,3 +191,188 @@ def test_supply_chain_lifecycle():
     assert dash_res.status_code == 200
     assert dash_res.json()["data"]["shipmentsToday"] == 1
     assert dash_res.json()["data"]["totalFreightCost"] == 600.0
+
+
+def test_scm_upgrades_lifecycle():
+    # Signup & Authenticate
+    email = f"scm_upg_{random_string()}@testcompany.com"
+    signup_res = client.post("/api/v1/auth/signup", json={
+        "email": email,
+        "password": "SecurePassword123!",
+        "firstName": "Supply",
+        "lastName": "Upg",
+        "fullName": "Supply Chain Expert",
+        "companyName": f"Upgrades Corp {random_string().upper()}",
+        "domain": f"scm_upg_{random_string()}.com"
+    })
+    assert signup_res.status_code == 201, signup_res.text
+    token = signup_res.json()["data"]["accessToken"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    # Initialize company settings
+    client.post("/api/v1/settings/initialize", json={}, headers=headers)
+
+    # Register Carrier
+    carrier_res = client.post("/api/v1/supply-chain/carriers", json={
+        "carrierCode": "FEDEX-EXP",
+        "name": "FedEx Ground SCM",
+        "carrierType": "3PL"
+    }, headers=headers)
+    assert carrier_res.status_code == 201
+    carrier_id = carrier_res.json()["data"]["_id"]
+
+    # Register Driver
+    driver_res = client.post("/api/v1/supply-chain/drivers", json={
+        "driverNumber": "DRV-1005",
+        "name": "John Doe",
+        "licenseNumber": "DL-15-2026-999",
+        "licenseExpiry": "2032-12-31",
+        "certifications": "Standard Cargo",
+        "contactPhone": "+1 555 123 4567"
+    }, headers=headers)
+    assert driver_res.status_code == 201
+    driver_id = driver_res.json()["data"]["_id"]
+
+    # Register Vehicle
+    vehicle_res = client.post("/api/v1/supply-chain/fleet", json={
+        "vehicleNumber": "DL-01-XY-9999",
+        "vehicleType": "Van",
+        "capacityWeight": 2000.0,
+        "capacityVolume": 40.0,
+        "fuelType": "Electric",
+        "gpsDeviceId": "GPS-TRK-9999",
+        "driverId": driver_id,
+        "status": "available",
+        "maintenanceStatus": "good"
+    }, headers=headers)
+    assert vehicle_res.status_code == 201
+    vehicle_id = vehicle_res.json()["data"]["_id"]
+
+    # Initialize category, warehouse and item
+    client.post("/api/inventory/categories", json={
+        "code": "PROD",
+        "name": "Finished Products",
+        "description": "Stock items"
+    }, headers=headers)
+
+    client.post("/api/inventory/warehouses", json={
+        "code": "WH-MUM",
+        "name": "Mumbai DC",
+        "capacity": 1000.0,
+        "type": "distribution"
+    }, headers=headers)
+
+    client.post("/api/inventory/locations", json={
+        "warehouseCode": "WH-MUM",
+        "code": "BIN-A",
+        "zone": "Zone A"
+    }, headers=headers)
+
+    item_res = client.post("/api/inventory/items", json={
+        "name": "Widget SCM",
+        "categoryCode": "PROD",
+        "uom": "piece",
+        "minStock": 1.0,
+        "reorderPoint": 2.0,
+        "defaultWarehouseCode": "WH-MUM"
+    }, headers=headers)
+    assert item_res.status_code == 201
+    item_code = item_res.json()["data"]["itemCode"]
+
+    # Stock-in
+    client.post("/api/inventory/stock-in", json={
+        "itemCode": item_code,
+        "warehouseCode": "WH-MUM",
+        "locationCode": "BIN-A",
+        "quantity": 10.0,
+        "unitCost": 100.0,
+        "remarks": "initial stock"
+    }, headers=headers)
+
+    # 1. Create Carrier Rate Card
+    rate_res = client.post("/api/v1/supply-chain/carrier-rates", json={
+        "carrierId": carrier_id,
+        "originZone": "North",
+        "destinationZone": "South",
+        "ratePerKm": 10.0,
+        "ratePerKg": 2.0,
+        "baseCharge": 300.0,
+        "status": "active"
+    }, headers=headers)
+    assert rate_res.status_code == 201
+    assert rate_res.json()["data"]["baseCharge"] == 300.0
+
+    # List Carrier Rates
+    list_rates = client.get("/api/v1/supply-chain/carrier-rates", headers=headers)
+    assert list_rates.status_code == 200
+    assert len(list_rates.json()["data"]) >= 1
+
+    # Create Outbound Shipment
+    ship_res = client.post("/api/v1/supply-chain/shipments", json={
+        "customerName": "Test Customer",
+        "warehouseCode": "WH-MUM",
+        "destinationAddress": "Pune Sector 2",
+        "priority": "medium",
+        "carrierId": carrier_id,
+        "items": [
+            {
+                "itemCode": item_code,
+                "quantity": 2.0,
+                "weight": 5.0,
+                "volume": 0.1
+            }
+        ]
+    }, headers=headers)
+    assert ship_res.status_code == 201
+    shipment_id = ship_res.json()["data"]["_id"]
+
+    # 2. Solve 3D Container Volumetric Stacking
+    packing_res = client.post("/api/v1/supply-chain/container-loading", json={
+        "shipmentId": shipment_id,
+        "vehicleId": vehicle_id
+    }, headers=headers)
+    assert packing_res.status_code == 201
+    assert packing_res.json()["data"]["utilizationPercentage"] > 0.0
+
+    # 3. Dispatch and check pricing math matches
+    dispatch_res = client.post("/api/v1/supply-chain/dispatch", json={
+        "shipmentId": shipment_id,
+        "vehicleId": vehicle_id,
+        "driverId": driver_id,
+        "gatePassNumber": "GATE-UPG-1"
+    }, headers=headers)
+    assert dispatch_res.status_code == 200
+
+    dash_res = client.get("/api/v1/supply-chain/dashboard", headers=headers)
+    assert dash_res.status_code == 200
+    # base(300) + rate_per_km(10) * dist(150) + rate_per_kg(2) * total_weight(10.0) = 300 + 1500 + 20 = 1820.
+    # plus toll(45) + fuel(180) + driver(100) + maint(25) = 2170
+    assert dash_res.json()["data"]["totalFreightCost"] == 2170.0
+
+    # 4. Report Breakdown delay alert
+    delay_res = client.post(f"/api/v1/supply-chain/shipments/{shipment_id}/delays", json={
+        "shipmentId": shipment_id,
+        "delayType": "breakdown",
+        "durationMinutes": 90,
+        "severity": "high",
+        "remarks": "Flat tire NH4"
+    }, headers=headers)
+    assert delay_res.status_code == 201
+    alert_id = delay_res.json()["data"]["_id"]
+
+    # Verify active delays list
+    delays_list = client.get(f"/api/v1/supply-chain/shipments/{shipment_id}/delays", headers=headers)
+    assert delays_list.status_code == 200
+    assert len(delays_list.json()["data"]) == 1
+    assert delays_list.json()["data"][0]["resolved"] is False
+
+    # 5. Resolve delay exception
+    resolve_res = client.put(f"/api/v1/supply-chain/shipments/delays/{alert_id}", json={
+        "resolved": True,
+        "remarks": "Mechanic replaced flat tire, resumed transit"
+    }, headers=headers)
+    assert resolve_res.status_code == 200
+
+    # Verify delay resolved
+    delays_list_2 = client.get(f"/api/v1/supply-chain/shipments/{shipment_id}/delays", headers=headers)
+    assert delays_list_2.json()["data"][0]["resolved"] is True

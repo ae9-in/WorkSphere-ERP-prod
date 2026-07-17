@@ -108,22 +108,34 @@ def get_latecomers_report(user: User = Depends(verify_tenant), db: Session = Dep
 @router.get("/payroll-cost")
 def get_payroll_cost_report(user: User = Depends(verify_tenant), db: Session = Depends(get_db)):
     tenant_id = user.company_id
-    query = db.query(
-        Employee.department_name,
-        func.sum(Payslip.gross_salary),
-        func.sum(Payslip.net_salary),
-        func.sum(Payslip.total_deductions)
-    ).join(Employee, Employee.employee_id == Payslip.employee_id).filter(
+    
+    # Query payslips and join Employee to group by department_name
+    payslips = db.query(Payslip).join(Employee, Employee.id == Payslip.employee_id).filter(
         Payslip.tenant_id == tenant_id
-    ).group_by(Employee.department_name).all()
+    ).all()
 
+    dept_totals = {}
+    for p in payslips:
+        dept = p.employee.department_name or "Others"
+        totals = p.totals or {}
+        gross = float(totals.get("gross", 0.0))
+        net = float(totals.get("net", 0.0))
+        ded = float(totals.get("deductions", 0.0))
+        
+        if dept not in dept_totals:
+            dept_totals[dept] = {"gross": 0.0, "net": 0.0, "deductions": 0.0}
+        
+        dept_totals[dept]["gross"] += gross
+        dept_totals[dept]["net"] += net
+        dept_totals[dept]["deductions"] += ded
+        
     report = []
-    for dept_name, gross, net, ded in query:
+    for dept_name, vals in dept_totals.items():
         report.append({
-            "_id": dept_name or "Others",
-            "totalGross": gross or 0.0,
-            "totalNet": net or 0.0,
-            "totalDeductions": ded or 0.0
+            "_id": dept_name,
+            "totalGross": round(vals["gross"], 2),
+            "totalNet": round(vals["net"], 2),
+            "totalDeductions": round(vals["deductions"], 2)
         })
     return {"success": True, "data": report}
 

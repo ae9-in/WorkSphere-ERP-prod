@@ -1,9 +1,13 @@
 import axios from 'axios';
 import { useAuthStore } from '@/store/authStore';
 
-let apiBaseURL = process.env.NEXT_PUBLIC_API_URL || '/api';
-if (apiBaseURL !== '/api' && !apiBaseURL.endsWith('/api') && !apiBaseURL.endsWith('/api/')) {
-  apiBaseURL = apiBaseURL.replace(/\/$/, '') + '/api';
+let apiBaseURL = process.env.NEXT_PUBLIC_API_URL || '';
+if (!apiBaseURL) {
+  apiBaseURL = 'http://localhost:5000/api';
+} else {
+  if (apiBaseURL !== '/api' && !apiBaseURL.endsWith('/api') && !apiBaseURL.endsWith('/api/')) {
+    apiBaseURL = apiBaseURL.replace(/\/$/, '') + '/api';
+  }
 }
 
 const api = axios.create({

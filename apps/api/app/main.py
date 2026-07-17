@@ -140,7 +140,17 @@ async def add_security_headers(request: Request, call_next):
     return response
 
 # ── Health Check ─────────────────────────────────────────────────
+@app.get("/", tags=["system"])
+@app.head("/", tags=["system"])
+async def root_check():
+    return {
+        "status": "ok",
+        "message": "WorkSphere ERP API is running",
+        "documentation": "/docs"
+    }
+
 @app.get("/health", tags=["system"])
+@app.head("/health", tags=["system"])
 async def health_check():
     import datetime
     valkey_status = await valkey_health()

@@ -85,14 +85,31 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 # ── CORS Middleware ───────────────────────────────────────────────
 # Normalize client URL
 client_origin = settings.CLIENT_URL.rstrip('/')
+allowed_origins = [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+    "https://work-sphere-erp-prod-web.vercel.app"
+]
+if client_origin not in allowed_origins:
+    allowed_origins.append(client_origin)
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[client_origin],
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=["Content-Type", "Authorization"],
     expose_headers=["Content-Range", "X-Content-Range"]
 )
+
+# ── Private Network Access (PNA) preflight header ──────────────
+@app.middleware("http")
+async def add_private_network_headers(request: Request, call_next):
+    if request.method == "OPTIONS":
+        response = await call_next(request)
+        response.headers["Access-Control-Allow-Private-Network"] = "true"
+        return response
+    return await call_next(request)
 
 # ── Secure HTTP Headers Middleware ──────────────────────────────
 @app.middleware("http")
